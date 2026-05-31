@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>わり算の筆算 1画面版・空欄ガイドつき</title>
+  <title>わり算の筆算 1画面版・画面が動かない入力</title>
   <style>
     :root{
       --bg1:#fff8fc;
@@ -308,25 +308,52 @@
       border-radius:17px;
       font-size:29px;
       font-weight:900;
-      padding:10px 9px;
+      padding:9px 8px;
       text-align:center;
       color:var(--ink);
       outline:none;
       background:#fff;
+      caret-color:transparent;
     }
     .answer-input:focus{
-      border-color:var(--pink);
-      box-shadow:0 0 0 4px #ffe3ef;
+      border-color:#ffc7df;
+      box-shadow:none;
     }
     .check-btn{
       height:100%;
-      min-height:54px;
+      min-height:50px;
       background:var(--pink);
       color:#fff;
       font-size:17px;
       box-shadow:0 4px 0 #c93d7d;
     }
     .check-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #c93d7d}
+
+    .num-pad{
+      display:grid;
+      grid-template-columns:repeat(6,1fr);
+      gap:5px;
+      margin-top:7px;
+    }
+    .num-pad button{
+      min-height:34px;
+      border-radius:12px;
+      background:#fff;
+      color:var(--ink);
+      border:2px solid #e5e8f0;
+      font-size:18px;
+      font-weight:900;
+      box-shadow:0 2px 0 #dfe3ec;
+    }
+    .num-pad button:active{
+      transform:translateY(2px);
+      box-shadow:0 0 0 #dfe3ec;
+    }
+    .num-pad .clear{
+      color:var(--pink);
+      background:#fff2f8;
+      border-color:#ffd1e6;
+    }
     .result{
       min-height:22px;
       margin-top:7px;
@@ -413,8 +440,10 @@
       .prompt{font-size:21px}
       .guide .text{font-size:15px}
       .answer-row{grid-template-columns:1fr 112px}
-      .check-btn{font-size:15px;min-height:50px}
-      .answer-input{font-size:27px;padding:9px 8px}
+      .check-btn{font-size:15px;min-height:48px}
+      .answer-input{font-size:26px;padding:8px 7px}
+      .num-pad{gap:4px;margin-top:6px}
+      .num-pad button{min-height:30px;font-size:16px;border-radius:10px}
       .dot{height:8px}
     }
   </style>
@@ -426,7 +455,7 @@
         <div class="title">わり算の筆算 💖</div>
         <div class="problem-mini" id="problemText">48 ÷ 3</div>
       </div>
-      <div class="subline" id="sequenceText">固定問題 1/6：黄色い□に入る数を考えよう</div>
+      <div class="subline" id="sequenceText">固定問題 1/6：数字ボタンで入力しよう</div>
       <div class="btn-row">
         <button class="btn btn-soft" id="resetBtn">48÷3にもどす</button>
         <button class="btn btn-blue" id="newBtn">次の問題</button>
@@ -523,10 +552,24 @@
 
       <section class="bottom">
         <div id="workBox">
-          <div class="answer-title">黄色い□に入る数を入力</div>
+          <div class="answer-title">黄色い□に入る数を、下の数字ボタンで入力</div>
           <div class="answer-row">
-            <input class="answer-input" id="answerInput" type="number" inputmode="numeric" autocomplete="off" />
+            <input class="answer-input" id="answerInput" type="text" readonly autocomplete="off" aria-label="答え表示欄" />
             <button class="check-btn" id="checkBtn">確認する</button>
+          </div>
+          <div class="num-pad" aria-label="数字ボタン">
+            <button data-num="1">1</button>
+            <button data-num="2">2</button>
+            <button data-num="3">3</button>
+            <button data-num="4">4</button>
+            <button data-num="5">5</button>
+            <button class="clear" data-action="back">消</button>
+            <button data-num="6">6</button>
+            <button data-num="7">7</button>
+            <button data-num="8">8</button>
+            <button data-num="9">9</button>
+            <button data-num="0">0</button>
+            <button class="clear" data-action="clear">C</button>
           </div>
           <div class="result" id="result"></div>
           <div class="progress" id="progress"></div>
@@ -701,7 +744,7 @@
       const r2 = partial - m2;
 
       el("problemText").textContent = `${n} ÷ ${d}`;
-      el("sequenceText").textContent = `固定問題 ${currentProblemIndex + 1}/6：黄色い□に入る数を考えよう`;
+      el("sequenceText").textContent = `固定問題 ${currentProblemIndex + 1}/6：数字ボタンで入力しよう`;
       setDigitText("divisor", d);
       setDigitText("tenDigit", tens);
       setDigitText("oneDigit", ones);
@@ -891,9 +934,31 @@
     }
 
     el("checkBtn").addEventListener("click", checkAnswer);
-    el("answerInput").addEventListener("keydown", e=>{
-      if(e.key === "Enter") checkAnswer();
+
+    el("answerInput").addEventListener("focus", e=>{
+      // スマホのキーボードを出さないため、すぐフォーカスを外す
+      e.target.blur();
     });
+
+    document.querySelectorAll(".num-pad button").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const input = el("answerInput");
+        const num = btn.dataset.num;
+        const action = btn.dataset.action;
+
+        if(num !== undefined){
+          // 2桁入力までに制限。今回の答えは最大18なので十分。
+          if(input.value.length < 2){
+            input.value += num;
+          }
+        }else if(action === "back"){
+          input.value = input.value.slice(0, -1);
+        }else if(action === "clear"){
+          input.value = "";
+        }
+      });
+    });
+
     el("resetBtn").addEventListener("click", ()=>setProblem(48,3,0));
     el("newBtn").addEventListener("click", nextFixedProblem);
     el("againBtn").addEventListener("click", nextFixedProblem);
