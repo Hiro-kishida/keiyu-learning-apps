@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>わり算の筆算 1画面版・画面が動かない入力</title>
+  <title>わり算の筆算 1画面版・やさしい効果音つき</title>
   <style>
     :root{
       --bg1:#fff8fc;
@@ -80,8 +80,8 @@
     }
     .btn-row{
       display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:7px;
       margin-top:7px;
     }
     button{
@@ -433,7 +433,7 @@
       .title{font-size:19px}
       .problem-mini{font-size:21px}
       .subline{font-size:11px}
-      .btn{padding:8px 7px;font-size:12px}
+      .btn{padding:8px 5px;font-size:11px}
       .chip{font-size:11px;padding:5px 7px}
       .count{font-size:12px;padding:5px 8px}
       svg{max-width:232px}
@@ -457,8 +457,9 @@
       </div>
       <div class="subline" id="sequenceText">固定問題 1/6：数字ボタンで入力しよう</div>
       <div class="btn-row">
-        <button class="btn btn-soft" id="resetBtn">48÷3にもどす</button>
+        <button class="btn btn-soft" id="resetBtn">48÷3</button>
         <button class="btn btn-blue" id="newBtn">次の問題</button>
+        <button class="btn btn-soft" id="soundBtn">音 ON</button>
       </div>
     </section>
 
@@ -601,6 +602,9 @@
     let problem = { dividend: 48, divisor: 3 };
     let steps = [];
     let stepIndex = 0;
+
+    let soundEnabled = true;
+    let audioCtx = null;
 
     const el = id => document.getElementById(id);
 
@@ -887,6 +891,62 @@
       el("answerInput").value = "";
     }
 
+    function getAudioContext(){
+      if(!soundEnabled) return null;
+      if(!audioCtx){
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if(!AudioContextClass) return null;
+        audioCtx = new AudioContextClass();
+      }
+      if(audioCtx.state === "suspended"){
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(ctx, freq, start, duration, volume = 0.035, type = "sine"){
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, start);
+
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(start);
+      osc.stop(start + duration + 0.03);
+    }
+
+    function playStepCorrectSound(){
+      const ctx = getAudioContext();
+      if(!ctx) return;
+
+      const t = ctx.currentTime + 0.01;
+      // 静かな小学生向け：短く、やさしい「ぽろん♪」
+      playTone(ctx, 659.25, t, 0.12, 0.030, "sine");       // E5
+      playTone(ctx, 880.00, t + 0.09, 0.16, 0.026, "sine"); // A5
+    }
+
+    function playProblemCompleteSound(){
+      const ctx = getAudioContext();
+      if(!ctx) return;
+
+      const t = ctx.currentTime + 0.01;
+      // ふわふわ・魔法っぽい完成音。派手すぎない小さめのキラキラ。
+      playTone(ctx, 523.25, t, 0.18, 0.028, "sine");        // C5
+      playTone(ctx, 659.25, t + 0.11, 0.20, 0.026, "sine"); // E5
+      playTone(ctx, 783.99, t + 0.22, 0.24, 0.024, "sine"); // G5
+      playTone(ctx, 1046.50, t + 0.36, 0.34, 0.020, "sine");// C6
+
+      // ほんの少しだけ、ぬいぐるみっぽい丸さを足す低めの音
+      playTone(ctx, 261.63, t + 0.02, 0.32, 0.012, "triangle");
+    }
+
     function checkAnswer(){
       const s = steps[stepIndex];
       const raw = el("answerInput").value;
@@ -899,7 +959,15 @@
       }
 
       if(value === s.expected){
-        el("result").textContent = "正解！";
+        const willCompleteProblem = stepIndex === steps.length - 2;
+
+        if(willCompleteProblem){
+          playProblemCompleteSound();
+          el("result").textContent = "できたね！";
+        }else{
+          playStepCorrectSound();
+          el("result").textContent = "正解！";
+        }
         el("result").className = "result ok";
 
         // 正解した瞬間、黄色い□を数字に変える
@@ -957,6 +1025,11 @@
           input.value = "";
         }
       });
+    });
+
+    el("soundBtn").addEventListener("click", ()=>{
+      soundEnabled = !soundEnabled;
+      el("soundBtn").textContent = soundEnabled ? "音 ON" : "音 OFF";
     });
 
     el("resetBtn").addEventListener("click", ()=>setProblem(48,3,0));
