@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>わり算の筆算 1画面版・空欄ガイドつき</title>
+  <style>
+    :root{
+      --bg1:#fff8fc;
+      --bg2:#f7fbff;
+      --card:#ffffff;
+      --ink:#2d3040;
+      --sub:#667085;
+      --pink:#e84a95;
+      --pink-soft:#ffe5f1;
+      --blue:#4f9fff;
+      --blue-soft:#eaf4ff;
+      --green:#1f9d6b;
+      --green-soft:#e8fff4;
+      --yellow:#ffe97b;
+      --yellow-soft:#fff8cd;
+      --line:#353844;
+      --stroke:#e6e8f0;
+      --shadow:0 8px 22px rgba(204,74,140,.12);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;height:100%}
+    body{
+      font-family:"Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at top left, #ffeef7 0%, transparent 34%),
+        radial-gradient(circle at top right, #edf6ff 0%, transparent 36%),
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+      overflow:hidden;
+    }
+
+    .app{
+      height:100dvh;
+      max-width:500px;
+      margin:0 auto;
+      padding:8px;
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+    }
+
+    .topbar{
+      background:linear-gradient(135deg,#fff4fa,#ffffff 55%,#f4fbff);
+      border:2px solid #ffe0ee;
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:9px 11px;
+      flex:0 0 auto;
+    }
+    .title-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .title{
+      font-weight:900;
+      font-size:clamp(19px,5vw,27px);
+      color:var(--pink);
+      line-height:1.1;
+    }
+    .problem-mini{
+      font-size:clamp(20px,5vw,28px);
+      font-weight:900;
+      color:var(--ink);
+      white-space:nowrap;
+    }
+    .subline{
+      margin-top:3px;
+      font-size:12px;
+      color:var(--sub);
+      line-height:1.35;
+    }
+    .btn-row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:7px;
+    }
+    button{
+      border:none;
+      border-radius:999px;
+      font-weight:900;
+      cursor:pointer;
+      font-family:inherit;
+    }
+    .btn{
+      padding:9px 8px;
+      font-size:13px;
+      box-shadow:0 4px 0 rgba(0,0,0,.10);
+    }
+    .btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.10)}
+    .btn-soft{
+      background:#fff;
+      color:var(--pink);
+      border:2px solid #ffd1e6;
+      box-shadow:0 4px 0 #ffdceb;
+    }
+    .btn-blue{
+      background:var(--blue);
+      color:#fff;
+      box-shadow:0 4px 0 #2c78c9;
+    }
+
+    .main{
+      flex:1 1 auto;
+      min-height:0;
+      display:grid;
+      grid-template-rows:auto auto 1fr auto;
+      gap:7px;
+    }
+
+    .chip-row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:6px;
+      align-items:center;
+      flex:0 0 auto;
+    }
+    .chips{
+      display:flex;
+      gap:5px;
+      flex-wrap:wrap;
+      min-width:0;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 9px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      line-height:1;
+      white-space:nowrap;
+    }
+    .chip.step{background:var(--pink-soft);color:#bb2f73;}
+    .chip.focus{background:var(--blue-soft);color:#2564a5;}
+    .chip.rule{background:var(--green-soft);color:#197f56;}
+    .count{
+      padding:6px 10px;
+      border-radius:999px;
+      background:#fff;
+      border:2px solid var(--stroke);
+      color:var(--sub);
+      font-size:13px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .board-card{
+      background:#fffdf7;
+      border:2px dashed #f0cf81;
+      border-radius:22px;
+      padding:7px 5px 5px;
+      flex:0 0 auto;
+    }
+    .board-caption{
+      text-align:center;
+      font-weight:900;
+      color:#5d677a;
+      font-size:12px;
+      margin-bottom:2px;
+    }
+    svg{
+      display:block;
+      width:100%;
+      max-width:250px;
+      height:auto;
+      margin:0 auto;
+    }
+    .main-line{
+      stroke:var(--line);
+      stroke-width:6;
+      stroke-linecap:round;
+      fill:none;
+    }
+    .sub-line{
+      stroke:#787d89;
+      stroke-width:4;
+      stroke-linecap:round;
+      fill:none;
+    }
+    .minus{
+      font-size:30px;
+      font-weight:900;
+      fill:#7d818e;
+      dominant-baseline:middle;
+      text-anchor:middle;
+    }
+    .digit-box rect{
+      fill:#fff;
+      stroke:#d9dce6;
+      stroke-width:3;
+    }
+    .digit-box text{
+      font-size:40px;
+      font-weight:900;
+      fill:#23252d;
+      text-anchor:middle;
+      dominant-baseline:middle;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    }
+    .digit-box.answer rect{fill:#ffe8f3;stroke:#ff9cc9;}
+    .digit-box.answer text{fill:var(--pink);}
+    .digit-box.calc rect{fill:var(--yellow-soft);stroke:#f4c44b;}
+    .digit-box.calc text{fill:#1e6cc6;}
+    .digit-box.rem rect{fill:#e8fff4;stroke:#98e0bf;}
+    .digit-box.rem text{fill:var(--green);}
+    .digit-box.active rect{
+      fill:var(--yellow);
+      stroke:#ffca45;
+      stroke-width:4;
+    }
+
+    .blank rect{
+      fill:#fff6a8;
+      stroke:#ffbf2f;
+      stroke-width:4;
+      stroke-dasharray:8 5;
+      filter:drop-shadow(0 0 8px rgba(255,202,69,.65));
+    }
+    .blank text{
+      fill:#c48200;
+      font-size:34px;
+      font-weight:900;
+      text-anchor:middle;
+      dominant-baseline:middle;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    }
+    .hidden{visibility:hidden}
+
+    .prompt-card{
+      background:var(--card);
+      border:2px solid #ffe3ef;
+      border-radius:20px;
+      padding:9px 11px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      min-height:0;
+    }
+    .prompt{
+      font-size:clamp(23px,6vw,34px);
+      font-weight:900;
+      line-height:1.2;
+      margin-bottom:7px;
+      letter-spacing:.01em;
+    }
+    .mini-guide{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:7px;
+    }
+    .guide{
+      border-radius:15px;
+      padding:7px 9px;
+      min-width:0;
+    }
+    .guide.blue{background:var(--blue-soft);border:2px solid #d2e7ff;}
+    .guide.yellow{background:#fff7cf;border:2px solid #ffe08b;}
+    .guide .label{
+      font-size:11px;
+      font-weight:900;
+      color:#5d6574;
+      margin-bottom:2px;
+      line-height:1.2;
+    }
+    .guide .text{
+      font-size:17px;
+      font-weight:900;
+      line-height:1.22;
+      word-break:break-word;
+    }
+
+    .bottom{
+      background:#fffafd;
+      border:2px solid #ffd9e9;
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      padding:9px 11px 10px;
+      flex:0 0 auto;
+    }
+    .answer-title{
+      font-size:12px;
+      font-weight:900;
+      color:var(--sub);
+      margin-bottom:7px;
+    }
+    .answer-row{
+      display:grid;
+      grid-template-columns:1fr 132px;
+      gap:7px;
+      align-items:center;
+    }
+    .answer-input{
+      width:100%;
+      min-width:0;
+      border:3px solid #ffc7df;
+      border-radius:17px;
+      font-size:29px;
+      font-weight:900;
+      padding:10px 9px;
+      text-align:center;
+      color:var(--ink);
+      outline:none;
+      background:#fff;
+    }
+    .answer-input:focus{
+      border-color:var(--pink);
+      box-shadow:0 0 0 4px #ffe3ef;
+    }
+    .check-btn{
+      height:100%;
+      min-height:54px;
+      background:var(--pink);
+      color:#fff;
+      font-size:17px;
+      box-shadow:0 4px 0 #c93d7d;
+    }
+    .check-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #c93d7d}
+    .result{
+      min-height:22px;
+      margin-top:7px;
+      font-size:16px;
+      font-weight:900;
+      line-height:1.32;
+    }
+    .ok{color:var(--green)}
+    .ng{color:#e35959}
+    .progress{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:5px;
+      margin-top:7px;
+    }
+    .dot{
+      height:9px;
+      border-radius:999px;
+      background:#eceff5;
+    }
+    .dot.done{background:#ff9cc8}
+    .dot.now{background:#67b1ff}
+
+    .complete{
+      display:none;
+      text-align:center;
+      padding-top:2px;
+    }
+    .complete.show{display:block}
+    .complete .done{
+      font-size:22px;
+      font-weight:900;
+      color:var(--pink);
+      margin-bottom:4px;
+    }
+    .complete .ans{
+      font-size:33px;
+      font-weight:900;
+      margin-bottom:7px;
+    }
+    .complete .msg{
+      font-size:15px;
+      color:var(--sub);
+      line-height:1.4;
+      margin-bottom:9px;
+    }
+    .again-btn{
+      padding:11px 15px;
+      background:var(--blue);
+      color:#fff;
+      font-size:15px;
+      box-shadow:0 4px 0 #2c78c9;
+    }
+
+    .confetti{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:999;
+    }
+    .piece{
+      position:absolute;
+      top:-20px;
+      width:10px;
+      height:16px;
+      border-radius:3px;
+      animation:fall 1.7s linear forwards;
+    }
+    @keyframes fall{
+      to{transform:translateY(110vh) rotate(720deg);opacity:.85}
+    }
+
+    @media (max-width: 380px){
+      .app{padding:7px;gap:6px}
+      .topbar{padding:8px 9px}
+      .title{font-size:19px}
+      .problem-mini{font-size:21px}
+      .subline{font-size:11px}
+      .btn{padding:8px 7px;font-size:12px}
+      .chip{font-size:11px;padding:5px 7px}
+      .count{font-size:12px;padding:5px 8px}
+      svg{max-width:232px}
+      .prompt{font-size:21px}
+      .guide .text{font-size:15px}
+      .answer-row{grid-template-columns:1fr 112px}
+      .check-btn{font-size:15px;min-height:50px}
+      .answer-input{font-size:27px;padding:9px 8px}
+      .dot{height:8px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="topbar">
+      <div class="title-row">
+        <div class="title">わり算の筆算 💖</div>
+        <div class="problem-mini" id="problemText">48 ÷ 3</div>
+      </div>
+      <div class="subline" id="sequenceText">固定問題 1/6：黄色い□に入る数を考えよう</div>
+      <div class="btn-row">
+        <button class="btn btn-soft" id="resetBtn">48÷3にもどす</button>
+        <button class="btn btn-blue" id="newBtn">次の問題</button>
+      </div>
+    </section>
+
+    <main class="main">
+      <div class="chip-row">
+        <div class="chips">
+          <span class="chip step" id="stepChip">ステップ 1</span>
+          <span class="chip focus" id="focusChip">見るところ：4</span>
+          <span class="chip rule" id="ruleChip">たてる</span>
+        </div>
+        <div class="count" id="stepCount">1 / 7</div>
+      </div>
+
+      <section class="board-card">
+        <div class="board-caption">黄色い□が、今入力する場所です</div>
+        <svg viewBox="0 0 360 370" role="img" aria-label="割り算の筆算">
+          <path class="main-line" d="M105 76 L105 168" />
+          <path class="main-line" d="M105 76 L246 76" />
+
+          <g id="divisor" class="digit-box">
+            <rect x="44" y="94" width="52" height="52" rx="14"></rect>
+            <text x="70" y="120">3</text>
+          </g>
+          <g id="tenDigit" class="digit-box">
+            <rect x="124" y="94" width="52" height="52" rx="14"></rect>
+            <text x="150" y="120">4</text>
+          </g>
+          <g id="oneDigit" class="digit-box">
+            <rect x="184" y="94" width="52" height="52" rx="14"></rect>
+            <text x="210" y="120">8</text>
+          </g>
+
+          <g id="qTen" class="digit-box answer hidden">
+            <rect x="124" y="14" width="52" height="52" rx="14"></rect>
+            <text x="150" y="40">1</text>
+          </g>
+          <g id="qOne" class="digit-box answer hidden">
+            <rect x="184" y="14" width="52" height="52" rx="14"></rect>
+            <text x="210" y="40">6</text>
+          </g>
+
+          <text id="minus1" class="minus hidden" x="113" y="168">−</text>
+          <g id="m1" class="digit-box calc hidden">
+            <rect x="124" y="142" width="52" height="52" rx="14"></rect>
+            <text x="150" y="168">3</text>
+          </g>
+          <line id="line1" class="sub-line hidden" x1="126" y1="202" x2="178" y2="202"></line>
+
+          <g id="r1" class="digit-box rem hidden">
+            <rect x="124" y="210" width="52" height="52" rx="14"></rect>
+            <text x="150" y="236">1</text>
+          </g>
+          <g id="down" class="digit-box rem hidden">
+            <rect x="184" y="210" width="52" height="52" rx="14"></rect>
+            <text x="210" y="236">8</text>
+          </g>
+
+          <text id="minus2" class="minus hidden" x="113" y="286">−</text>
+          <g id="m2Ten" class="digit-box calc hidden">
+            <rect x="124" y="260" width="52" height="52" rx="14"></rect>
+            <text x="150" y="286">1</text>
+          </g>
+          <g id="m2One" class="digit-box calc hidden">
+            <rect x="184" y="260" width="52" height="52" rx="14"></rect>
+            <text x="210" y="286">8</text>
+          </g>
+          <line id="line2" class="sub-line hidden" x1="126" y1="320" x2="238" y2="320"></line>
+
+          <g id="finalR" class="digit-box rem hidden">
+            <rect x="184" y="326" width="52" height="38" rx="13"></rect>
+            <text x="210" y="345">0</text>
+          </g>
+
+          <g id="blankGuide" class="blank hidden"></g>
+        </svg>
+      </section>
+
+      <section class="prompt-card">
+        <div class="prompt" id="instruction">4 ÷ 3 は？</div>
+        <div class="mini-guide">
+          <div class="guide blue">
+            <div class="label">いま見るところ</div>
+            <div class="text" id="focusText">4</div>
+          </div>
+          <div class="guide yellow">
+            <div class="label">ヒント</div>
+            <div class="text" id="hintText">3のだん</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bottom">
+        <div id="workBox">
+          <div class="answer-title">黄色い□に入る数を入力</div>
+          <div class="answer-row">
+            <input class="answer-input" id="answerInput" type="number" inputmode="numeric" autocomplete="off" />
+            <button class="check-btn" id="checkBtn">確認する</button>
+          </div>
+          <div class="result" id="result"></div>
+          <div class="progress" id="progress"></div>
+        </div>
+
+        <div class="complete" id="completeBox">
+          <div class="done">できたね！🎉</div>
+          <div class="ans" id="finalAnswer">答えは 16 です！</div>
+          <div class="msg" id="completeHint">48 ÷ 3 = 16</div>
+          <button class="again-btn" id="againBtn">次の問題へ</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="confetti" id="confetti"></div>
+
+  <script>
+    const fixedProblems = [
+      { dividend: 48, divisor: 3, answer: 16 },
+      { dividend: 45, divisor: 3, answer: 15 },
+      { dividend: 54, divisor: 3, answer: 18 },
+      { dividend: 63, divisor: 3, answer: 21 },
+      { dividend: 72, divisor: 3, answer: 24 },
+      { dividend: 81, divisor: 3, answer: 27 }
+    ];
+
+    let currentProblemIndex = 0;
+    let problem = { dividend: 48, divisor: 3 };
+    let steps = [];
+    let stepIndex = 0;
+
+    const el = id => document.getElementById(id);
+
+    function blankAt(x, y, w=52, h=52){
+      return {x, y, w, h};
+    }
+
+    function buildSteps(){
+      const d = problem.divisor;
+      const n = problem.dividend;
+      const tens = Math.floor(n / 10);
+      const ones = n % 10;
+      const qT = Math.floor(tens / d);
+      const m1 = qT * d;
+      const r1 = tens - m1;
+      const partial = r1 * 10 + ones;
+      const qO = Math.floor(partial / d);
+      const m2 = qO * d;
+      const r2 = partial - m2;
+      const quotient = qT * 10 + qO;
+
+      const m2Blanks = m2 >= 10
+        ? [blankAt(124,260), blankAt(184,260)]
+        : [blankAt(184,260)];
+
+      steps = [
+        {
+          label:"ステップ 1",
+          expected:qT,
+          focus:`${tens}`,
+          ruleName:"たてる",
+          instruction:`${tens} ÷ ${d} は？`,
+          hint:`${d}のだんで考えよう`,
+          reveal:["qTen"],
+          active:["tenDigit"],
+          blanks:[blankAt(124,14)]
+        },
+        {
+          label:"ステップ 2",
+          expected:m1,
+          focus:`${qT} と ${d}`,
+          ruleName:"かける",
+          instruction:`${qT} × ${d} は？`,
+          hint:`上の数 × わる数`,
+          reveal:["qTen","m1","minus1","line1"],
+          active:["qTen","divisor"],
+          blanks:[blankAt(124,142)]
+        },
+        {
+          label:"ステップ 3",
+          expected:r1,
+          focus:`${tens} と ${m1}`,
+          ruleName:"ひく",
+          instruction:`${tens} − ${m1} は？`,
+          hint:`位をそろえてひこう`,
+          reveal:["qTen","m1","minus1","line1","r1"],
+          active:["tenDigit","m1"],
+          blanks:[blankAt(124,210)]
+        },
+        {
+          label:"ステップ 4",
+          expected:ones,
+          focus:`${ones}`,
+          ruleName:"おろす",
+          instruction:`おろす数は？`,
+          hint:`次の数字を下ろす`,
+          reveal:["qTen","m1","minus1","line1","r1","down"],
+          active:["oneDigit"],
+          blanks:[blankAt(184,210)]
+        },
+        {
+          label:"ステップ 5",
+          expected:qO,
+          focus:`${partial}`,
+          ruleName:"たてる",
+          instruction:`${partial} ÷ ${d} は？`,
+          hint:`もう一度、だんで考えよう`,
+          reveal:["qTen","qOne","m1","minus1","line1","r1","down"],
+          active:["r1","down"],
+          blanks:[blankAt(184,14)]
+        },
+        {
+          label:"ステップ 6",
+          expected:m2,
+          focus:`${qO} と ${d}`,
+          ruleName:"かける",
+          instruction:`${qO} × ${d} は？`,
+          hint:`答えを下に書く`,
+          reveal:["qTen","qOne","m1","minus1","line1","r1","down","m2Ten","m2One","minus2","line2"],
+          active:["qOne","divisor"],
+          blanks:m2Blanks
+        },
+        {
+          label:"ステップ 7",
+          expected:r2,
+          focus:`${partial} と ${m2}`,
+          ruleName:"ひく",
+          instruction:`${partial} − ${m2} は？`,
+          hint:`最後は 0 になるかな？`,
+          reveal:["qTen","qOne","m1","minus1","line1","r1","down","m2Ten","m2One","minus2","line2","finalR"],
+          active:["r1","down","m2Ten","m2One"],
+          blanks:[blankAt(184,326,52,38)]
+        },
+        {
+          label:"完成",
+          expected:null,
+          focus:"できた！",
+          ruleName:"完成",
+          instruction:`答えは ${quotient}！`,
+          hint:`よくできました`,
+          reveal:["qTen","qOne","m1","minus1","line1","r1","down","m2Ten","m2One","minus2","line2","finalR"],
+          active:[],
+          blanks:[]
+        }
+      ];
+    }
+
+    function setDigitText(id, value){
+      const g = el(id);
+      g.querySelector("text").textContent = value;
+    }
+
+    function setProblem(n, d, index = null){
+      if(index !== null){
+        currentProblemIndex = index;
+      }else{
+        const foundIndex = fixedProblems.findIndex(p => p.dividend === n && p.divisor === d);
+        if(foundIndex >= 0) currentProblemIndex = foundIndex;
+      }
+
+      problem = { dividend:n, divisor:d };
+      const tens = Math.floor(n / 10);
+      const ones = n % 10;
+      const q = n / d;
+      const qT = Math.floor(q / 10);
+      const qO = q % 10;
+      const m1 = qT * d;
+      const r1 = tens - m1;
+      const partial = r1 * 10 + ones;
+      const m2 = qO * d;
+      const r2 = partial - m2;
+
+      el("problemText").textContent = `${n} ÷ ${d}`;
+      el("sequenceText").textContent = `固定問題 ${currentProblemIndex + 1}/6：黄色い□に入る数を考えよう`;
+      setDigitText("divisor", d);
+      setDigitText("tenDigit", tens);
+      setDigitText("oneDigit", ones);
+      setDigitText("qTen", qT);
+      setDigitText("qOne", qO);
+      setDigitText("m1", m1);
+      setDigitText("r1", r1);
+      setDigitText("down", ones);
+
+      if(m2 >= 10){
+        setDigitText("m2Ten", Math.floor(m2 / 10));
+        setDigitText("m2One", m2 % 10);
+        el("m2Ten").style.display = "";
+        el("line2").setAttribute("x1","126");
+        el("line2").setAttribute("x2","238");
+      }else{
+        setDigitText("m2Ten", "");
+        setDigitText("m2One", m2);
+        el("m2Ten").style.display = "none";
+        el("line2").setAttribute("x1","186");
+        el("line2").setAttribute("x2","238");
+      }
+      setDigitText("finalR", r2);
+
+      el("finalAnswer").textContent = `答えは ${q} です！`;
+      el("completeHint").textContent = `${n} ÷ ${d} = ${q}`;
+
+      buildSteps();
+      stepIndex = 0;
+      render();
+    }
+
+    function nextFixedProblem(){
+      const nextIndex = (currentProblemIndex + 1) % fixedProblems.length;
+      const next = fixedProblems[nextIndex];
+      setProblem(next.dividend, next.divisor, nextIndex);
+    }
+
+    function hideAll(){
+      ["qTen","qOne","m1","r1","down","m2Ten","m2One","finalR","minus1","minus2","line1","line2"].forEach(id=>{
+        const node = el(id);
+        if(node) node.classList.add("hidden");
+      });
+      document.querySelectorAll(".digit-box").forEach(x=>x.classList.remove("active"));
+      hideBlank();
+    }
+
+    function reveal(ids){
+      ids.forEach(id=>{
+        const node = el(id);
+        if(node) node.classList.remove("hidden");
+      });
+    }
+
+    function activate(ids){
+      ids.forEach(id=>{
+        const node = el(id);
+        if(node) node.classList.add("active");
+      });
+    }
+
+    function hideBlank(){
+      const g = el("blankGuide");
+      g.innerHTML = "";
+      g.classList.add("hidden");
+    }
+
+    function showBlank(blanks){
+      const g = el("blankGuide");
+      g.innerHTML = "";
+      if(!blanks || blanks.length === 0){
+        g.classList.add("hidden");
+        return;
+      }
+
+      blanks.forEach(b=>{
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", b.x);
+        rect.setAttribute("y", b.y);
+        rect.setAttribute("width", b.w);
+        rect.setAttribute("height", b.h);
+        rect.setAttribute("rx", Math.min(14, b.h/3));
+        g.appendChild(rect);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", b.x + b.w/2);
+        text.setAttribute("y", b.y + b.h/2 + 1);
+        text.textContent = "□";
+        g.appendChild(text);
+      });
+
+      g.classList.remove("hidden");
+    }
+
+    function updateProgress(){
+      const p = el("progress");
+      p.innerHTML = "";
+      for(let i=0; i<7; i++){
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        if(i < stepIndex) dot.classList.add("done");
+        if(i === stepIndex) dot.classList.add("now");
+        p.appendChild(dot);
+      }
+    }
+
+    function render(){
+      const s = steps[stepIndex];
+      hideAll();
+
+      // すでに正解した前のステップまで表示する
+      const alreadyRevealed = stepIndex > 0 ? steps[stepIndex - 1].reveal : [];
+      reveal(alreadyRevealed || []);
+
+      // 今入力する場所だけ、黄色い□で表示する
+      showBlank(s.blanks || []);
+
+      activate(s.active || []);
+      updateProgress();
+
+      const displayStep = Math.min(stepIndex + 1, 7);
+      el("stepChip").textContent = s.label;
+      el("focusChip").textContent = `見るところ：${s.focus}`;
+      el("ruleChip").textContent = s.ruleName;
+      el("stepCount").textContent = `${displayStep} / 7`;
+      el("instruction").textContent = s.instruction;
+      el("focusText").textContent = s.focus;
+      el("hintText").textContent = s.hint;
+      el("result").textContent = "";
+      el("result").className = "result";
+
+      const complete = stepIndex === steps.length - 1;
+      if(complete){
+        hideBlank();
+        reveal(s.reveal || []);
+      }
+
+      el("workBox").style.display = complete ? "none" : "block";
+      el("completeBox").classList.toggle("show", complete);
+      el("answerInput").value = "";
+    }
+
+    function checkAnswer(){
+      const s = steps[stepIndex];
+      const raw = el("answerInput").value;
+      const value = Number(raw);
+
+      if(raw === ""){
+        el("result").textContent = "数字を入れてね。";
+        el("result").className = "result ng";
+        return;
+      }
+
+      if(value === s.expected){
+        el("result").textContent = "正解！";
+        el("result").className = "result ok";
+
+        // 正解した瞬間、黄色い□を数字に変える
+        hideBlank();
+        reveal(s.reveal || []);
+
+        setTimeout(()=>{
+          stepIndex++;
+          render();
+          if(stepIndex === steps.length - 1) confetti();
+        }, 600);
+      }else{
+        el("result").textContent = "おしい！ もう一度。";
+        el("result").className = "result ng";
+      }
+    }
+
+    function confetti(){
+      const box = el("confetti");
+      box.innerHTML = "";
+      const colors = ["#ff6fb1","#68b7ff","#31b57b","#ffcd4f","#b58cff"];
+      for(let i=0;i<70;i++){
+        const piece = document.createElement("div");
+        piece.className = "piece";
+        piece.style.left = Math.random()*100 + "vw";
+        piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+        piece.style.animationDelay = (Math.random()*0.5) + "s";
+        piece.style.transform = `rotate(${Math.random()*360}deg)`;
+        box.appendChild(piece);
+      }
+      setTimeout(()=>box.innerHTML="",2200);
+    }
+
+    el("checkBtn").addEventListener("click", checkAnswer);
+    el("answerInput").addEventListener("keydown", e=>{
+      if(e.key === "Enter") checkAnswer();
+    });
+    el("resetBtn").addEventListener("click", ()=>setProblem(48,3,0));
+    el("newBtn").addEventListener("click", nextFixedProblem);
+    el("againBtn").addEventListener("click", nextFixedProblem);
+
+    setProblem(48,3,0);
+  </script>
+</body>
+</html>
