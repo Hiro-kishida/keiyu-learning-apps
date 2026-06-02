@@ -1,6 +1,25 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>B案：4択サクサク型</title><style>
 :root{--bg:#f8f5ee;--card:#fff;--ink:#232323;--muted:#666;--line:#e7ded0;--accent:#2f6866;--soft:#e9f3f1;--ok:#197447;--bad:#aa3333;--warn:#8a5a00;--shadow:0 12px 28px rgba(0,0,0,.08)}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}.app{width:min(760px,100%);margin:0 auto;padding:16px 14px 32px}header{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}h1{font-size:clamp(22px,6vw,34px);margin:0;line-height:1.2}.sub{color:var(--muted);font-size:14px;line-height:1.6}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:18px;margin:14px 0}.problem{font-size:clamp(36px,11vw,66px);text-align:center;font-weight:900;letter-spacing:.02em;padding:20px 8px;border-radius:18px;background:#fffdf8;border:1px solid var(--line)}.problem small{display:block;font-size:15px;color:var(--muted);font-weight:700;margin-bottom:8px}.progress{display:flex;flex-wrap:wrap;gap:8px}.pill{display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border-radius:999px;background:var(--soft);color:var(--accent);font-weight:800;font-size:14px}.prompt{font-size:clamp(18px,5vw,25px);font-weight:850;line-height:1.45;margin:4px 0 12px}.options{display:grid;gap:10px}@media(min-width:560px){.options.two{grid-template-columns:1fr 1fr}}button{font:inherit}.option,.primary,.ghost{width:100%;border-radius:16px;padding:15px 14px;min-height:58px;font-size:clamp(19px,5.5vw,26px);font-weight:900;cursor:pointer}.option{background:#fff;border:2px solid #dfd4c4;box-shadow:0 6px 0 #dfd4c4}.option:active{transform:translateY(4px);box-shadow:0 2px 0 #dfd4c4}.primary{background:var(--accent);color:white;border:0;box-shadow:0 6px 0 #214d4b;margin-top:10px}.ghost{background:white;color:var(--accent);border:2px solid var(--accent);margin-top:10px}.feedback{min-height:58px;border-radius:16px;padding:12px 14px;margin-top:12px;font-size:17px;line-height:1.55;background:#faf6ec;border:1px solid var(--line)}.feedback.ok{background:#eef8f2;border-color:#bde4cf;color:var(--ok);font-weight:900}.feedback.try{background:#fff7e6;border-color:#efcf91;color:var(--warn);font-weight:800}.feedback.bad{background:#fff0f0;border-color:#eeb7b7;color:var(--bad);font-weight:800}.note{font-size:15px;color:var(--muted);line-height:1.7}.menu-grid,.result-list{display:grid;gap:12px}@media(min-width:680px){.menu-grid{grid-template-columns:repeat(3,1fr)}}.menu-card{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}.menu-card h2{margin:0 0 8px}.menu-card p{margin:0;color:var(--muted);line-height:1.6}.result-item{padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff;line-height:1.65}.toplink{color:var(--accent);text-decoration:none;font-weight:900;white-space:nowrap}.kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#eee7dc;padding:2px 6px;border-radius:7px}.stage{font-size:18px;font-weight:900;color:var(--accent);margin-bottom:8px}.shake{animation:shake .24s linear}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* 全問正解演出 */
+.celebration-overlay{
+  position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center;
+  background:rgba(255,250,238,.86); backdrop-filter: blur(4px); padding:18px;
+  animation: fadeIn .25s ease-out;
+}
+.celebration-box{
+  width:min(520px,94vw); background:white; border:3px solid #f1d28b; border-radius:28px;
+  box-shadow:0 24px 70px rgba(0,0,0,.18); padding:28px 18px; text-align:center;
+  animation: popIn .35s cubic-bezier(.2,1.4,.4,1);
+}
+.celebration-title{font-size:clamp(32px,9vw,54px);font-weight:950;line-height:1.15;margin:0 0 10px;color:#b26a00;}
+.celebration-sub{font-size:clamp(18px,5vw,24px);font-weight:850;line-height:1.45;margin:0;color:#2f6866;}
+.confetti-piece{position:fixed;top:-24px;z-index:10000;font-size:24px;animation:fall linear forwards;pointer-events:none;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{transform:scale(.75);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.95}}
+
 </style></head><body>
 <main class="app">
 <header><div><h1>B案：4択サクサク型</h1><div class="sub">5問だけ、軽く練習する版</div></div><a class="toplink" href="index.html">一覧へ</a></header>
@@ -21,5 +40,46 @@ let quiz=[],qIndex=0,correct=0,answered=0,wrongItems=[];
 function restart(){quiz=sample(BANK,5);qIndex=0;correct=0;answered=0;wrongItems=[];render()}
 function render(){if(qIndex>=quiz.length)return showResult();const q=quiz[qIndex];setText("qPill",`${qIndex+1}問目 / ${quiz.length}問`);setText("scorePill",`${correct} / ${answered}`);setText("typePill",q.type);setText("problemText",q.problem);const options=document.getElementById("options");options.innerHTML="";shuffle(q.choices).forEach(opt=>{const btn=document.createElement("button");btn.className="option";btn.textContent=opt;btn.onclick=()=>choose(opt);options.appendChild(btn)});const fb=document.getElementById("feedback");fb.className="feedback";fb.textContent="x は最後まで残します。"}
 function choose(value){const q=quiz[qIndex],fb=document.getElementById("feedback");answered++;if(value===q.answer){correct++;playCorrectSound();fb.className="feedback ok";fb.textContent="正解！"}else{wrongItems.push({...q,selected:value,reason:q.wrong[value]||q.hint});fb.className="feedback try";fb.textContent=`正解は「${q.answer}」です。`;markShake()}setText("scorePill",`${correct} / ${answered}`);setTimeout(()=>{qIndex++;render()},750)}
-function showResult(){document.querySelector(".app").innerHTML=`<header><div><h1>B案 結果</h1><div class="sub">4択サクサク型</div></div><a class="toplink" href="index.html">一覧へ</a></header><section class="card"><p class="prompt">${quiz.length}問中 ${correct}問 正解</p><p class="note">短時間で回す家庭学習向きです。</p></section><section class="card"><div class="result-list">${wrongItems.length?wrongItems.map(w=>`<div class="result-item"><b>${w.problem}</b><br>選んだ答え：${w.selected}<br>正解：${w.answer}<br>${w.reason}</div>`).join(""):`<div class="result-item">全問正解です。すばらしいです。</div>`}</div><button class="primary" onclick="location.reload()">もう一度</button></section>`}
+
+function playPerfectSound(){
+  try{
+    const AudioContext=window.AudioContext||window.webkitAudioContext;
+    const ctx=new AudioContext();
+    const notes=[523.25,659.25,783.99,1046.5];
+    notes.forEach((freq,i)=>{
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.type="sine";
+      o.frequency.setValueAtTime(freq,ctx.currentTime+i*.11);
+      g.gain.setValueAtTime(.0001,ctx.currentTime+i*.11);
+      g.gain.exponentialRampToValueAtTime(.18,ctx.currentTime+i*.11+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+i*.11+.20);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(ctx.currentTime+i*.11); o.stop(ctx.currentTime+i*.11+.22);
+    });
+  }catch(e){}
+}
+function triggerAllCorrectCelebration(title="全問正解！", sub="すごい！よくできました！"){
+  playPerfectSound();
+  const old=document.querySelector(".celebration-overlay");
+  if(old) old.remove();
+  const overlay=document.createElement("div");
+  overlay.className="celebration-overlay";
+  overlay.innerHTML=`<div class="celebration-box"><p class="celebration-title">${title}</p><p class="celebration-sub">${sub}</p><button class="primary" style="margin-top:18px" onclick="this.closest('.celebration-overlay').remove()">閉じる</button></div>`;
+  document.body.appendChild(overlay);
+  const marks=["🎉","✨","🌟","💮","👏","🎊"];
+  for(let i=0;i<42;i++){
+    const p=document.createElement("div");
+    p.className="confetti-piece";
+    p.textContent=marks[Math.floor(Math.random()*marks.length)];
+    p.style.left=Math.random()*100+"vw";
+    p.style.animationDuration=(1.8+Math.random()*1.8)+"s";
+    p.style.animationDelay=(Math.random()*.45)+"s";
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),4200);
+  }
+  setTimeout(()=>{ if(document.body.contains(overlay)) overlay.remove(); },5200);
+}
+
+function showResult(){const allCorrect=wrongItems.length===0;document.querySelector(".app").innerHTML=`<header><div><h1>B案 結果</h1><div class="sub">4択サクサク型</div></div><a class="toplink" href="index.html">一覧へ</a></header><section class="card"><p class="prompt">${quiz.length}問中 ${correct}問 正解</p><p class="note">短時間で回す家庭学習向きです。</p></section><section class="card"><div class="result-list">${wrongItems.length?wrongItems.map(w=>`<div class="result-item"><b>${w.problem}</b><br>選んだ答え：${w.selected}<br>正解：${w.answer}<br>${w.reason}</div>`).join(""):`<div class="result-item">全問正解です。すばらしいです。</div>`}</div><button class="primary" onclick="location.reload()">もう一度</button></section>`;if(allCorrect){setTimeout(()=>triggerAllCorrectCelebration("全問正解！","すごい！ぜんぶできました！"),180);}}
 restart();</script></body></html>

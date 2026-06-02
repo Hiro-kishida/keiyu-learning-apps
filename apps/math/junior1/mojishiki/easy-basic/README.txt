@@ -29,3 +29,6 @@
 
 GitHub配置例：
 apps/math/junior1/mojishiki/easy-basic/
+
+
+更新：全問正解のとき、紙吹雪風の演出と短い成功音が出ます。
