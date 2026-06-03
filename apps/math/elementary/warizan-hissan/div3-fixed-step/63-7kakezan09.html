@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>63×7 筆算練習</title>
+<title>2けた×1けた 筆算練習｜6問版</title>
 <style>
 *{box-sizing:border-box}
 body{
@@ -18,12 +19,29 @@ body{
   width:min(520px,100%);
   min-height:820px;
   background:#fff;
+  position:relative;
+}
+.topbar{
+  width:340px;
+  margin:10px auto 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:#4c78b8;
+  font-size:18px;
+  font-weight:900;
+}
+.problemNo{
+  background:#eef6ff;
+  border:2px solid #b8d7ff;
+  border-radius:20px;
+  padding:7px 16px;
 }
 .hissan{
   position:relative;
-  width:320px;
-  height:320px;
-  margin:30px auto 0;
+  width:340px;
+  height:330px;
+  margin:14px auto 0;
   font-family:"Trebuchet MS","Hiragino Sans",sans-serif;
 }
 .num{
@@ -31,33 +49,96 @@ body{
   font-size:64px;
   line-height:1;
   color:#333;
+  font-weight:400;
 }
-#n6{left:120px;top:10px}
-#n3{left:190px;top:10px}
-#times{left:60px;top:92px;font-size:58px}
-#n7{left:190px;top:92px}
+#nTens{left:120px;top:10px}
+#nOnes{left:190px;top:10px}
+#times{left:58px;top:94px;font-size:58px}
+#nMul{left:190px;top:94px}
 #line{
   position:absolute;
-  left:46px;
-  top:172px;
-  width:232px;
+  left:44px;
+  top:174px;
+  width:238px;
   border-top:5px solid #222;
 }
 
-/* 最初の小さい赤い？ */
-#miniQ{
+/* 小さい繰り上がり */
+#carryNum{
   position:absolute;
-  left:160px;
-  top:182px;
-  color:#e60012;
-  font-size:16px;
-  font-weight:900;
+  left:182px;
+  top:154px;
+  font-size:22px;
+  color:#333;
+  line-height:1;
+  display:none;
+  z-index:6;
 }
 
-/* 数字ボタン */
+/* いちばん最初の小さい赤い？ */
+#smallQ{
+  position:absolute;
+  left:167px;
+  top:180px;
+  font-size:32px;
+  color:#d90000;
+  font-weight:900;
+  line-height:1;
+  display:none;
+  z-index:5;
+}
+
+/* 答え数字 */
+.answer{
+  position:absolute;
+  font-size:58px;
+  line-height:1;
+  color:#333;
+  display:none;
+}
+#ansL{left:74px; top:184px;}   /* 百の位 */
+#ansM{left:140px; top:184px;}  /* 十の位 */
+#ansR{left:208px; top:184px;}  /* 一の位 */
+
+/* ？ボックス */
+.qbox{
+  position:absolute;
+  width:40px;
+  height:48px;
+  border:2px solid #8f8f8f;
+  border-radius:12px;
+  background:linear-gradient(#fff,#efefef);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  font-size:31px;
+  font-weight:900;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.85);
+}
+#qR{ left:198px; top:184px; color:#d90000; }  /* 一の位 */
+#qL{ left:70px;  top:184px; color:#d90000; }  /* 百の位 */
+#qM{ left:136px; top:184px; color:#999; }     /* 十の位・待機 */
+#qMActive{ left:136px; top:184px; color:#e08a00; } /* 十の位・入力 */
+
+/* 完了時の丸 */
+#ring{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:220px;
+  height:220px;
+  margin-left:-110px;
+  margin-top:-54px;
+  border:30px solid rgba(240,90,110,.42);
+  border-radius:50%;
+  display:none;
+  pointer-events:none;
+}
+
+/* キーパッド */
 .keypad{
   width:390px;
-  margin:10px auto 0;
+  margin:6px auto 0;
   display:grid;
   grid-template-columns:repeat(5,62px);
   gap:12px;
@@ -69,32 +150,24 @@ body{
   border-radius:50%;
   border:3px solid #6aa1e8;
   background:radial-gradient(circle at 35% 25%,#cfe8ff,#4d8fe5 64%,#2f72c9);
-  color:white;
+  color:#fff;
   font-size:36px;
   font-weight:900;
   text-shadow:0 2px 2px #246;
   box-shadow:inset 0 3px 3px rgba(255,255,255,.75),0 4px 0 #2d65a8;
   cursor:pointer;
 }
-.key:active{
-  transform:translateY(3px);
-}
+.key:active{ transform:translateY(3px); }
 
-/* メッセージ */
+/* 説明文は出さない */
 .message{
-  margin-top:24px;
-  text-align:center;
-  color:#e86c1c;
-  font-size:20px;
-  font-weight:900;
-  line-height:1.6;
+  display:none;
 }
 
-/* 下ボタン */
-.bottom{
-  width:420px;
-  max-width:92%;
-  margin:34px auto 0;
+/* 下の補助ボタン */
+.controls{
+  width:min(420px,92%);
+  margin:26px auto 0;
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:16px;
@@ -108,55 +181,712 @@ body{
   font-weight:900;
   cursor:pointer;
 }
-.hint{
-  background:linear-gradient(#7ec9ff,#3d8fe4);
-  box-shadow:0 5px 0 #2c67a7;
+.nextBtn{
+  background:linear-gradient(#8fe8c0,#3fbf87);
+  box-shadow:0 5px 0 #2e8f64;
+  display:none;
+  grid-column:1 / span 2;
 }
-.reset{
+.resetBtn{
   background:linear-gradient(#ff9ddd,#ef5baa);
   box-shadow:0 5px 0 #b55089;
 }
-.btn:active{
-  transform:translateY(3px);
+.backBtn{
+  background:linear-gradient(#7ec9ff,#3d8fe4);
+  box-shadow:0 5px 0 #2c67a7;
+}
+.btn:active{ transform:translateY(3px); }
+
+/* 正解時のやさしい演出：静か・海・星・きらきら */
+.soft-effect-layer{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  overflow:hidden;
+  z-index:999;
+}
+.soft-star,
+.soft-bubble,
+.soft-shell{
+  position:absolute;
+  left:50%;
+  top:50%;
+  opacity:0;
+  transform:translate(-50%,-50%) scale(.6);
+  animation:softFloat 950ms ease-out forwards;
+}
+.soft-star{
+  width:16px;
+  height:16px;
+  background:#fff2a8;
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 56%,79% 91%,50% 70%,21% 91%,32% 56%,2% 35%,39% 35%);
+  filter:drop-shadow(0 0 5px rgba(255,210,120,.7));
+}
+.soft-bubble{
+  width:14px;
+  height:14px;
+  border:2px solid rgba(116,190,240,.7);
+  border-radius:50%;
+  background:rgba(220,245,255,.35);
+  filter:drop-shadow(0 0 4px rgba(120,200,245,.35));
+}
+.soft-shell{
+  width:18px;
+  height:13px;
+  border-radius:18px 18px 6px 6px;
+  background:linear-gradient(#ffe5f0,#ffd0e3);
+  box-shadow:0 0 6px rgba(255,180,210,.5);
+}
+@keyframes softFloat{
+  0%{ opacity:0; transform:translate(-50%,-50%) scale(.55); }
+  18%{ opacity:1; }
+  100%{ opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.05); }
+}
+.answer.correct-glow,
+#carryNum.correct-glow{
+  animation:correctGlow 720ms ease-out;
+}
+@keyframes correctGlow{
+  0%{ text-shadow:0 0 0 rgba(255,210,130,0); transform:scale(1); }
+  35%{ text-shadow:0 0 14px rgba(255,210,130,.85); transform:scale(1.08); }
+  100%{ text-shadow:0 0 0 rgba(255,210,130,0); transform:scale(1); }
+}
+
+
+/* 全問完成：静かな女の子向けの特別演出 */
+.final-sea-overlay{
+  position:fixed;
+  inset:0;
+  z-index:1200;
+  pointer-events:none;
+  display:none;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255,247,205,.42), transparent 18%),
+    linear-gradient(180deg, rgba(15,38,83,.88), rgba(58,112,158,.78) 48%, rgba(143,214,229,.65));
+  opacity:0;
+  animation:finalFadeIn 420ms ease-out forwards;
+}
+.final-sea-overlay.show{
+  display:block;
+}
+.final-moon{
+  position:absolute;
+  left:50%;
+  top:11%;
+  width:76px;
+  height:76px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #fff9d8, #f8e6a2 62%, rgba(248,230,162,.05) 70%);
+  box-shadow:0 0 28px rgba(255,242,180,.75), 0 0 60px rgba(255,242,180,.28);
+  animation:moonBreath 2600ms ease-in-out infinite;
+}
+.final-title{
+  position:absolute;
+  left:50%;
+  top:27%;
+  transform:translateX(-50%);
+  width:min(430px,88vw);
+  text-align:center;
+  color:#fffdf0;
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-shadow:0 3px 10px rgba(30,45,90,.65);
+  animation:titleFloat 1800ms ease-out forwards;
+}
+.final-subtitle{
+  position:absolute;
+  left:50%;
+  top:35%;
+  transform:translateX(-50%);
+  color:#e5fbff;
+  font-size:22px;
+  font-weight:900;
+  text-shadow:0 2px 8px rgba(30,45,90,.55);
+  animation:titleFloat 2000ms ease-out forwards;
+}
+.final-shell{
+  position:absolute;
+  left:50%;
+  top:47%;
+  width:86px;
+  height:58px;
+  transform:translateX(-50%);
+  border-radius:70px 70px 22px 22px;
+  background:
+    radial-gradient(circle at 50% 86%, rgba(255,255,255,.8), transparent 19%),
+    repeating-radial-gradient(ellipse at 50% 100%, #fff7fb 0 8px, #ffd6e6 9px 15px);
+  box-shadow:0 0 22px rgba(255,220,235,.68);
+  opacity:.98;
+  animation:shellRise 1600ms ease-out forwards;
+}
+.final-shell:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:18px;
+  width:13px;
+  height:13px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:#fffef2;
+  box-shadow:0 0 14px rgba(255,255,230,.95);
+}
+.final-wave{
+  position:absolute;
+  left:-20%;
+  width:140%;
+  height:160px;
+  border-radius:50% 50% 0 0;
+  background:rgba(190,241,255,.42);
+  filter:blur(.2px);
+}
+.wave1{
+  bottom:-70px;
+  animation:waveMove 4300ms ease-in-out infinite;
+}
+.wave2{
+  bottom:-96px;
+  background:rgba(255,255,255,.26);
+  animation:waveMove 5400ms ease-in-out infinite reverse;
+}
+.final-star-dot{
+  position:absolute;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#fff8c8;
+  box-shadow:0 0 10px rgba(255,248,200,.9);
+  opacity:0;
+  animation:starTwinkle 1800ms ease-in-out infinite;
+}
+.final-sea-overlay.hide{
+  animation:finalFadeOut 500ms ease-in forwards;
+}
+
+@keyframes finalFadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+@keyframes finalFadeOut{
+  from{opacity:1}
+  to{opacity:0}
+}
+@keyframes moonBreath{
+  0%,100%{transform:translateX(-50%) scale(1)}
+  50%{transform:translateX(-50%) scale(1.06)}
+}
+@keyframes titleFloat{
+  0%{opacity:0; transform:translate(-50%, 10px)}
+  100%{opacity:1; transform:translate(-50%, 0)}
+}
+@keyframes shellRise{
+  0%{opacity:0; transform:translate(-50%, 22px) scale(.86)}
+  100%{opacity:.98; transform:translate(-50%, 0) scale(1)}
+}
+@keyframes waveMove{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(36px)}
+}
+@keyframes starTwinkle{
+  0%,100%{opacity:.18; transform:scale(.8)}
+  45%{opacity:1; transform:scale(1.25)}
+}
+
+@media (max-width:520px){
+  .app{min-height:760px}
+  .topbar{width:320px}
+  .hissan{transform:scale(.95); transform-origin:top center; margin-top:8px;}
+  .keypad{width:330px; grid-template-columns:repeat(5,52px); gap:9px;}
+  .key{width:50px;height:50px;font-size:30px}
 }
 </style>
 </head>
 <body>
+<div id="softEffectLayer" class="soft-effect-layer" aria-hidden="true"></div>
+
+<div id="finalSeaOverlay" class="final-sea-overlay" aria-hidden="true">
+  <div class="final-moon"></div>
+  <div class="final-title">たいへんよくできました</div>
+  <div class="final-subtitle">6問クリア</div>
+  <div class="final-shell"></div>
+  <div class="final-wave wave1"></div>
+  <div class="final-wave wave2"></div>
+  <div class="final-stars" id="finalStars"></div>
+</div>
+
 <main class="app">
+  <div class="topbar">
+    <div class="problemNo" id="problemNo">1 / 6</div>
+    <div class="problemNo" id="levelLabel">2けた×1けた</div>
+  </div>
 
-<div class="hissan">
-  <div id="n6" class="num">6</div>
-  <div id="n3" class="num">3</div>
-  <div id="times" class="num">×</div>
-  <div id="n7" class="num">7</div>
-  <div id="line"></div>
+  <div class="hissan">
+    <div id="nTens" class="num">1</div>
+    <div id="nOnes" class="num">2</div>
+    <div id="times" class="num">×</div>
+    <div id="nMul" class="num">6</div>
+    <div id="line"></div>
 
-  <div id="miniQ">?</div>
-</div>
+    <div id="carryNum">1</div>
+    <div id="smallQ">?</div>
 
-<div class="keypad">
-  <button class="key">1</button>
-  <button class="key">2</button>
-  <button class="key">3</button>
-  <button class="key">4</button>
-  <button class="key">5</button>
+    <div id="ansL" class="answer">1</div>
+    <div id="ansM" class="answer">7</div>
+    <div id="ansR" class="answer">2</div>
 
-  <button class="key">6</button>
-  <button class="key">7</button>
-  <button class="key">8</button>
-  <button class="key">9</button>
-  <button class="key">0</button>
-</div>
+    <div id="qR" class="qbox">?</div>
+    <div id="qL" class="qbox">?</div>
+    <div id="qM" class="qbox"></div>
+    <div id="qMActive" class="qbox">?</div>
 
-<div class="message">
-21の十の位は2。小さくメモします。
-</div>
+    <div id="ring"></div>
+  </div>
 
-<div class="bottom">
-  <button class="btn hint">ヒント</button>
-  <button class="btn reset">はじめから</button>
-</div>
+  <div class="keypad">
+    <button class="key" onclick="press('1')">1</button>
+    <button class="key" onclick="press('2')">2</button>
+    <button class="key" onclick="press('3')">3</button>
+    <button class="key" onclick="press('4')">4</button>
+    <button class="key" onclick="press('5')">5</button>
 
+    <button class="key" onclick="press('6')">6</button>
+    <button class="key" onclick="press('7')">7</button>
+    <button class="key" onclick="press('8')">8</button>
+    <button class="key" onclick="press('9')">9</button>
+    <button class="key" onclick="press('0')">0</button>
+  </div>
+
+  <div id="msg" class="message" aria-hidden="true"></div>
+
+  <div class="controls">
+    <button id="nextBtn" class="btn nextBtn" onclick="nextProblem()">つぎの問題へ</button>
+    <button class="btn backBtn" onclick="goBack()">もどる</button>
+    <button class="btn resetBtn" onclick="resetAll()">はじめから</button>
+  </div>
 </main>
+
+<script>
+const problems = [
+  { tens:1, ones:2, mul:6 }, // 12×6=72   繰り上がり1回
+  { tens:2, ones:3, mul:4 }, // 23×4=92   繰り上がり1回
+  { tens:2, ones:5, mul:3 }, // 25×3=75   繰り上がり1回
+  { tens:2, ones:4, mul:6 }, // 24×6=144  繰り上がり2回
+  { tens:4, ones:7, mul:6 }, // 47×6=282  繰り上がり2回
+  { tens:6, ones:3, mul:7 }  // 63×7=441  繰り上がり2回
+];
+
+let problemIndex = 0;
+let stepIndex = 0;
+let steps = [];
+let locked = false;
+let problemDone = false;
+
+let audioCtx = null;
+
+function getAudioCtx(){
+  if(!audioCtx){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(Ctx) audioCtx = new Ctx();
+  }
+  if(audioCtx && audioCtx.state === "suspended"){
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function playTone(freq, startOffset, duration, gainValue, type="sine"){
+  const ctx = getAudioCtx();
+  if(!ctx) return;
+
+  const now = ctx.currentTime + startOffset;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, now);
+
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(gainValue, now + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + duration + 0.03);
+}
+
+function playCorrectSound(){
+  playTone(1046.5, 0.00, 0.20, 0.045, "sine");
+  playTone(1318.5, 0.07, 0.24, 0.035, "triangle");
+}
+
+function playQuestionFinishSound(){
+  playTone(880.00, 0.00, 0.20, 0.038, "sine");
+  playTone(1174.66, 0.10, 0.28, 0.036, "triangle");
+  playTone(1396.91, 0.22, 0.32, 0.032, "sine");
+}
+
+function playFinalSound(){
+  playTone(783.99, 0.00, 0.22, 0.040, "sine");
+  playTone(1046.5, 0.10, 0.24, 0.042, "triangle");
+  playTone(1318.5, 0.22, 0.34, 0.045, "triangle");
+  playTone(1567.98, 0.30, 0.40, 0.032, "sine");
+}
+
+function gentleCorrectEffect(targetId){
+  const target = document.getElementById(targetId);
+  const layer = document.getElementById("softEffectLayer");
+  if(!target || !layer) return;
+
+  target.classList.remove("correct-glow");
+  void target.offsetWidth;
+  target.classList.add("correct-glow");
+
+  const rect = target.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  const pieces = [
+    {type:"soft-star", dx:-36, dy:-34},
+    {type:"soft-star", dx:34, dy:-30},
+    {type:"soft-bubble", dx:-26, dy:26},
+    {type:"soft-bubble", dx:30, dy:22},
+    {type:"soft-shell", dx:0, dy:-42}
+  ];
+
+  pieces.forEach((p, i) => {
+    const el = document.createElement("div");
+    el.className = p.type;
+    el.style.left = centerX + "px";
+    el.style.top = centerY + "px";
+    el.style.setProperty("--dx", p.dx + "px");
+    el.style.setProperty("--dy", p.dy + "px");
+    el.style.animationDelay = (i * 45) + "ms";
+    layer.appendChild(el);
+    setTimeout(() => el.remove(), 1200);
+  });
+}
+
+
+function showSpecialFinale(){
+  const overlay = document.getElementById("finalSeaOverlay");
+  const stars = document.getElementById("finalStars");
+  if(!overlay || !stars) return;
+
+  stars.innerHTML = "";
+  overlay.classList.remove("hide");
+  overlay.classList.add("show");
+
+  const starPositions = [
+    [15,18,0],[28,10,220],[39,19,420],[63,13,120],[78,20,330],
+    [18,34,520],[82,37,250],[51,8,700],[69,30,570],[34,42,180],
+    [90,15,620],[9,27,400]
+  ];
+
+  starPositions.forEach(([x,y,delay])=>{
+    const s = document.createElement("div");
+    s.className = "final-star-dot";
+    s.style.left = x + "%";
+    s.style.top = y + "%";
+    s.style.animationDelay = delay + "ms";
+    stars.appendChild(s);
+  });
+
+  setTimeout(()=>{
+    overlay.classList.add("hide");
+    setTimeout(()=>{
+      overlay.classList.remove("show");
+      overlay.classList.remove("hide");
+    }, 650);
+  }, 3600);
+}
+
+function playVerySpecialFinalSound(){
+  // 静かで少しだけ特別な「夜の海」風アルペジオ
+  playTone(659.25, 0.00, 0.28, 0.032, "sine");
+  playTone(783.99, 0.12, 0.30, 0.034, "triangle");
+  playTone(987.77, 0.26, 0.32, 0.036, "triangle");
+  playTone(1318.51, 0.44, 0.44, 0.030, "sine");
+  playTone(1567.98, 0.68, 0.54, 0.022, "sine");
+}
+
+function gentleFinishEffect(final=false){
+  const layer = document.getElementById("softEffectLayer");
+  if(!layer) return;
+
+  const centerX = window.innerWidth / 2;
+  const centerY = Math.min(window.innerHeight * 0.32, 260);
+  const count = final ? 28 : 16;
+
+  for(let i=0; i<count; i++){
+    const el = document.createElement("div");
+    const types = ["soft-star","soft-bubble","soft-shell"];
+    el.className = types[i % types.length];
+    el.style.left = centerX + "px";
+    el.style.top = centerY + "px";
+    const angle = (Math.PI * 2 * i) / count;
+    const r = 50 + (i % 3) * (final ? 24 : 16);
+    el.style.setProperty("--dx", Math.cos(angle) * r + "px");
+    el.style.setProperty("--dy", Math.sin(angle) * r + "px");
+    el.style.animationDelay = (i * 25) + "ms";
+    layer.appendChild(el);
+    setTimeout(() => el.remove(), 1400);
+  }
+}
+
+function show(id){
+  const el = document.getElementById(id);
+  if(id === "carryNum" || id === "smallQ" || id === "ring") el.style.display = "block";
+  else if(id.startsWith("ans")) el.style.display = "block";
+  else el.style.display = "flex";
+}
+
+function hide(id){
+  document.getElementById(id).style.display = "none";
+}
+
+function hideAll(){
+  ["carryNum","smallQ","ansL","ansM","ansR","qR","qL","qM","qMActive","ring"].forEach(hide);
+}
+
+function currentProblem(){
+  return problems[problemIndex];
+}
+
+function calcProblem(){
+  const p = currentProblem();
+  const first = p.ones * p.mul;
+  const carry = Math.floor(first / 10);
+  const onesAns = first % 10;
+  const second = p.tens * p.mul + carry;
+  const leftAns = Math.floor(second / 10);
+  const tensAns = second % 10;
+  const answer = (p.tens * 10 + p.ones) * p.mul;
+  return { first, carry, onesAns, second, leftAns, tensAns, answer };
+}
+
+function buildSteps(){
+  const c = calcProblem();
+  const resultIsThreeDigits = c.leftAns > 0;
+
+  steps = [
+    {
+      correct: String(c.carry),
+      render: function(){
+        show("smallQ");
+      },
+      onCorrect: function(){
+        show("carryNum");
+        gentleCorrectEffect("carryNum");
+      }
+    },
+    {
+      correct: String(c.onesAns),
+      render: function(){
+        show("carryNum");
+        show("qR");
+      },
+      onCorrect: function(){
+        show("ansR");
+        gentleCorrectEffect("ansR");
+      }
+    }
+  ];
+
+  if(resultIsThreeDigits){
+    steps.push({
+      correct: String(c.leftAns),
+      render: function(){
+        show("carryNum");
+        show("ansR");
+        show("qL");
+        show("qM");
+      },
+      onCorrect: function(){
+        show("ansL");
+        gentleCorrectEffect("ansL");
+      }
+    });
+    steps.push({
+      correct: String(c.tensAns),
+      render: function(){
+        show("carryNum");
+        show("ansR");
+        show("ansL");
+        show("qMActive");
+      },
+      onCorrect: function(){
+        show("ansM");
+        gentleCorrectEffect("ansM");
+      }
+    });
+  }else{
+    steps.push({
+      correct: String(c.tensAns),
+      render: function(){
+        show("carryNum");
+        show("ansR");
+        show("qMActive");
+      },
+      onCorrect: function(){
+        show("ansM");
+        gentleCorrectEffect("ansM");
+      }
+    });
+  }
+}
+
+function setProblemVisual(){
+  const p = currentProblem();
+  const c = calcProblem();
+
+  document.getElementById("problemNo").textContent = (problemIndex + 1) + " / " + problems.length;
+  document.getElementById("nTens").textContent = p.tens;
+  document.getElementById("nOnes").textContent = p.ones;
+  document.getElementById("nMul").textContent = p.mul;
+
+  document.getElementById("carryNum").textContent = c.carry;
+  document.getElementById("ansR").textContent = c.onesAns;
+  document.getElementById("ansM").textContent = c.tensAns;
+  document.getElementById("ansL").textContent = c.leftAns;
+
+  buildSteps();
+}
+
+function render(){
+  hideAll();
+  document.getElementById("nextBtn").style.display = "none";
+  locked = false;
+  problemDone = false;
+  steps[stepIndex].render();
+}
+
+function press(n){
+  if(locked || problemDone) return;
+  if(stepIndex >= steps.length) return;
+
+  if(n === steps[stepIndex].correct){
+    locked = true;
+    hideAll();
+
+    // ここまでの確定数字を再表示
+    for(let i=0; i<stepIndex; i++){
+      showConfirmed(i);
+    }
+
+    steps[stepIndex].onCorrect();
+    playCorrectSound();
+
+    setTimeout(function(){
+      stepIndex++;
+      if(stepIndex < steps.length){
+        renderWithConfirmed();
+      }else{
+        finishProblem();
+      }
+    }, 520);
+  }else{
+    // 間違いは無音。軽い揺れだけ。
+    document.querySelector(".hissan").animate([
+      { transform: "translateX(0)" },
+      { transform: "translateX(-6px)" },
+      { transform: "translateX(6px)" },
+      { transform: "translateX(0)" }
+    ], { duration: 220 });
+  }
+}
+
+function showConfirmed(index){
+  const c = calcProblem();
+  const resultIsThreeDigits = c.leftAns > 0;
+
+  if(index >= 0) show("carryNum");
+  if(index >= 1) show("ansR");
+
+  if(resultIsThreeDigits){
+    if(index >= 2) show("ansL");
+    if(index >= 3) show("ansM");
+  }else{
+    if(index >= 2) show("ansM");
+  }
+}
+
+function renderWithConfirmed(){
+  hideAll();
+  for(let i=0; i<stepIndex; i++){
+    showConfirmed(i);
+  }
+  steps[stepIndex].render();
+  locked = false;
+}
+
+function finishProblem(){
+  hideAll();
+  const c = calcProblem();
+
+  show("carryNum");
+  show("ansR");
+  show("ansM");
+  if(c.leftAns > 0) show("ansL");
+  show("ring");
+
+  problemDone = true;
+  locked = false;
+
+  if(problemIndex === problems.length - 1){
+    gentleFinishEffect(true);
+    showSpecialFinale();
+    playVerySpecialFinalSound();
+    document.getElementById("nextBtn").textContent = "もう一度";
+    document.getElementById("nextBtn").style.display = "block";
+  }else{
+    gentleFinishEffect(false);
+    playQuestionFinishSound();
+    document.getElementById("nextBtn").textContent = "つぎの問題へ";
+    document.getElementById("nextBtn").style.display = "block";
+  }
+}
+
+function nextProblem(){
+  if(problemIndex === problems.length - 1){
+    resetAll();
+    return;
+  }
+
+  problemIndex++;
+  stepIndex = 0;
+  setProblemVisual();
+  render();
+}
+
+function goBack(){
+  if(problemDone){
+    stepIndex = Math.max(0, steps.length - 1);
+    problemDone = false;
+    renderWithConfirmed();
+    return;
+  }
+
+  if(stepIndex > 0){
+    stepIndex--;
+    renderWithConfirmed();
+  }
+}
+
+function resetAll(){
+  problemIndex = 0;
+  stepIndex = 0;
+  problemDone = false;
+  setProblemVisual();
+  render();
+}
+
+setProblemVisual();
+render();
+</script>
 </body>
 </html>
