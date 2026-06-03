@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>63×7 筆算練習｜参考UI反映版</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#fff;
+  font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;
+  display:flex;
+  justify-content:center;
+  padding:10px;
+  color:#333;
+}
+.app{
+  width:min(760px,100%);
+  min-height:600px;
+  background:#fff;
+  position:relative;
+  overflow:hidden;
+}
+.card{
+  width:92%;
+  height:310px;
+  margin:18px auto 10px;
+  background:#fff;
+  position:relative;
+}
+.hissan{
+  position:absolute;
+  width:330px;
+  height:260px;
+  left:50%;
+  top:8px;
+  transform:translateX(-50%);
+  font-family:"Trebuchet MS","Hiragino Sans",sans-serif;
+}
+.num{
+  position:absolute;
+  font-size:58px;
+  line-height:1;
+  font-weight:400;
+}
+#n6{left:122px;top:8px}
+#n3{left:188px;top:8px}
+#times{left:60px;top:80px;font-size:55px}
+#n7{left:188px;top:80px}
+#line{
+  position:absolute;
+  left:48px;
+  top:148px;
+  width:224px;
+  border-top:4px solid #222;
+}
+.answer{
+  position:absolute;
+  font-size:58px;
+  line-height:1;
+  font-weight:400;
+  color:#333;
+  display:none;
+}
+#ansH{left:72px;top:160px}
+#ansT{left:137px;top:160px}
+#ansO{left:204px;top:160px}
+
+/* 小さい2：線の少し下、中央の？に隠れない高さ */
+#carry2{
+  position:absolute;
+  left:174px;
+  top:150px;
+  font-size:22px;
+  line-height:1;
+  color:#333;
+  display:none;
+  z-index:5;
+}
+
+/* 参考画像風の小さい？マーク */
+#miniQ{
+  position:absolute;
+  left:162px;
+  top:154px;
+  font-size:15px;
+  color:#e60012;
+  display:none;
+}
+
+/* ？ボックス：数字と同じ列だが、小さい2より下に置く */
+.blank{
+  position:absolute;
+  width:40px;
+  height:48px;
+  border:2px solid #888;
+  border-radius:10px;
+  background:linear-gradient(#fff,#eee);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  color:#e60012;
+  font-weight:900;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.8);
+  z-index:4;
+}
+#blankC{
+  left:164px;
+  top:176px;
+  width:34px;
+  height:40px;
+  font-size:25px;
+}
+#blankO{left:198px;top:176px}
+#blankT{left:132px;top:176px;color:#999}
+#blankH{left:68px;top:176px}
+
+#burst{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:190px;
+  height:190px;
+  margin-left:-95px;
+  margin-top:-78px;
+  border:28px solid rgba(255,80,110,.42);
+  border-radius:50%;
+  display:none;
+  pointer-events:none;
+}
+.keypad{
+  width:390px;
+  margin:4px auto 0;
+  display:grid;
+  grid-template-columns:repeat(5,62px);
+  gap:10px 12px;
+  justify-content:center;
+}
+.key{
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  border:3px solid #6aa1e8;
+  background:radial-gradient(circle at 35% 25%,#cfe8ff,#4d8fe5 64%,#2f72c9);
+  color:white;
+  font-size:36px;
+  font-weight:900;
+  text-shadow:0 2px 2px #246;
+  box-shadow:inset 0 3px 3px rgba(255,255,255,.75),0 4px 0 #2d65a8;
+  cursor:pointer;
+}
+button:active{transform:translateY(3px)}
+.message{
+  width:min(620px,92%);
+  min-height:54px;
+  margin:16px auto 0;
+  text-align:center;
+  font-size:22px;
+  font-weight:900;
+  color:#e56417;
+}
+.buttons{
+  width:min(400px,90%);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:12px auto;
+}
+.sub{
+  border:none;
+  border-radius:22px;
+  padding:14px;
+  font-size:18px;
+  font-weight:900;
+  color:#fff;
+  background:linear-gradient(#ff9ddd,#ef5baa);
+  box-shadow:0 5px 0 #b55089;
+}
+.hintBtn{background:linear-gradient(#8bd2ff,#3f91e5);box-shadow:0 5px 0 #2d65a8}
+@media(max-width:520px){
+  .app{min-height:560px}
+  .card{height:300px}
+  .hissan{transform:translateX(-50%) scale(.86);transform-origin:top center}
+  .keypad{width:330px;grid-template-columns:repeat(5,52px);gap:9px}
+  .key{width:50px;height:50px;font-size:30px}
+  .message{font-size:18px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <section class="card">
+    <div class="hissan">
+      <div id="n6" class="num">6</div>
+      <div id="n3" class="num">3</div>
+      <div id="times" class="num">×</div>
+      <div id="n7" class="num">7</div>
+      <div id="line"></div>
+
+      <div id="miniQ">?</div>
+      <div id="blankC" class="blank">?</div>
+      <div id="carry2">2</div>
+
+      <div id="blankO" class="blank">?</div>
+      <div id="blankT" class="blank">?</div>
+      <div id="blankH" class="blank">?</div>
+
+      <div id="ansH" class="answer">4</div>
+      <div id="ansT" class="answer">4</div>
+      <div id="ansO" class="answer">1</div>
+
+      <div id="burst"></div>
+    </div>
+  </section>
+
+  <div class="keypad">
+    <button class="key" onclick="press('1')">1</button>
+    <button class="key" onclick="press('2')">2</button>
+    <button class="key" onclick="press('3')">3</button>
+    <button class="key" onclick="press('4')">4</button>
+    <button class="key" onclick="press('5')">5</button>
+    <button class="key" onclick="press('6')">6</button>
+    <button class="key" onclick="press('7')">7</button>
+    <button class="key" onclick="press('8')">8</button>
+    <button class="key" onclick="press('9')">9</button>
+    <button class="key" onclick="press('0')">0</button>
+  </div>
+
+  <div class="message" id="msg"></div>
+
+  <div class="buttons">
+    <button class="sub hintBtn" onclick="hint()">ヒント</button>
+    <button class="sub" onclick="reset()">はじめから</button>
+  </div>
+</main>
+
+<script>
+const steps=[
+  {
+    blank:"blankC",
+    correct:"2",
+    msg:"3×7=21。先に、十の位の2を小さく書こう。",
+    hint:"21の十の位は2。小さくメモします。",
+    ok:function(){
+      hide("blankC");
+      hide("miniQ");
+      showBlock("carry2");
+      say("小さい2を書けました。次に1を書こう。");
+      next();
+    }
+  },
+  {
+    blank:"blankO",
+    correct:"1",
+    msg:"21の一の位、1を下に書こう。",
+    hint:"21の一の位は1。右下に書きます。",
+    ok:function(){
+      hide("blankO");
+      show("ansO");
+      say("1を書けました。次は6×7です。");
+      next();
+    }
+  },
+  {
+    blank:"blankH",
+    correct:"4",
+    msg:"6×7=42。さっきの2を足して44。先に左の4を書こう。",
+    hint:"42+2=44。先に左の4を書きます。",
+    ok:function(){
+      hide("blankH");
+      show("ansH");
+      say("左の4を書けました。次に右の4を書こう。");
+      next();
+    }
+  },
+  {
+    blank:"blankT",
+    correct:"4",
+    msg:"44の右の4を、真ん中に書こう。",
+    hint:"44の右の4を真ん中に書きます。",
+    ok:function(){
+      hide("blankT");
+      show("ansT");
+      say("完成！ 63×7=441");
+      setTimeout(finish,600);
+    }
+  }
+];
+
+let step=0;
+let locked=false;
+
+function show(id){document.getElementById(id).style.display="flex"}
+function showBlock(id){document.getElementById(id).style.display="block"}
+function hide(id){document.getElementById(id).style.display="none"}
+function say(t){document.getElementById("msg").textContent=t}
+
+function render(){
+  locked=false;
+  ["blankC","blankO","blankT","blankH","ansO","ansT","ansH","carry2","miniQ","burst"].forEach(hide);
+
+  if(step>0){showBlock("carry2")}
+  if(step>1){show("ansO")}
+  if(step>2){show("ansH")}
+  if(step>3){show("ansT")}
+
+  show(steps[step].blank);
+  if(step===0) showBlock("miniQ");
+  say(steps[step].msg);
+}
+
+function press(n){
+  if(locked || step>=steps.length)return;
+  if(n===steps[step].correct){
+    locked=true;
+    steps[step].ok();
+  }else{
+    say("もう一度考えてみよう。");
+    document.querySelector(".hissan").animate([
+      {transform:"translateX(-50%)"},
+      {transform:"translateX(calc(-50% - 6px))"},
+      {transform:"translateX(calc(-50% + 6px))"},
+      {transform:"translateX(-50%)"}
+    ],{duration:220});
+  }
+}
+
+function next(){
+  setTimeout(function(){
+    step++;
+    if(step<steps.length)render();
+  },760);
+}
+
+function hint(){
+  if(step<steps.length)say(steps[step].hint);
+}
+
+function reset(){
+  step=0;
+  render();
+}
+
+function finish(){
+  step=steps.length;
+  ["ansO","ansT","ansH"].forEach(show);
+  showBlock("carry2");
+  showBlock("burst");
+  say("よくできました！ 63×7=441");
+}
+
+render();
+</script>
+</body>
+</html>
