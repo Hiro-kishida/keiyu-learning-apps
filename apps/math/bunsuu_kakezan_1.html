@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>分数のかけ算 ステップれんしゅう</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF7EF;
+    --ink:#33312E;
+    --line:#2B5C4F;
+    --line-light:#A9CFC4;
+    --accent:#E2674A;
+    --gold:#E5A93C;
+    --good:#2E8B6B;
+    --bad:#D44C5C;
+    --card:#FFFFFF;
+    --hl-bg:#FBE3D6;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:'Zen Maru Gothic','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif;
+    background:var(--bg); color:var(--ink);
+    min-height:100vh; padding:14px 12px 30px;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .app{width:100%; max-width:920px;}
+  header{margin-bottom:12px;}
+  .titlebar{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+  h1{font-size:21px; font-weight:900; margin:0; letter-spacing:1px;}
+  .mode-toggle{display:flex; gap:6px;}
+  .mt{font-family:inherit; font-weight:700; font-size:14px; border:2px solid var(--line); background:#fff; color:var(--line); border-radius:999px; padding:7px 16px; cursor:pointer;}
+  .mt.active{background:var(--line); color:#fff;}
+  .levels{display:flex; gap:8px; margin-top:12px;}
+  .lv{flex:1; font-family:inherit; font-weight:700; font-size:14px; border:2px solid var(--line); background:#fff; color:var(--line); border-radius:14px; padding:9px 4px; cursor:pointer; text-align:center;}
+  .lv small{display:block; font-weight:500; font-size:11px; color:#8a8a85; margin-top:2px;}
+  .lv.active{background:var(--line); color:#fff;}
+  .lv.active small{color:#cfe6dd;}
+  .main{display:flex; flex-direction:column; gap:14px; margin-top:14px;}
+  .work{background:var(--card); border:3px solid var(--ink); border-radius:22px; box-shadow:6px 6px 0 rgba(43,92,79,.22); padding:20px 18px; flex:1; min-width:0;}
+  .stepbar{display:flex; align-items:center; gap:8px; margin-bottom:14px; font-size:13px; font-weight:900; color:var(--gold); letter-spacing:1px;}
+  .stepbar .dots{display:flex; gap:5px; margin-left:auto;}
+  .stepbar .dot{width:9px; height:9px; border-radius:50%; background:var(--line-light);}
+  .stepbar .dot.on{background:var(--line);}
+  .stepbar .dot.cur{background:var(--gold); transform:scale(1.4);}
+  .prompt{font-size:16px; font-weight:700; line-height:1.6; margin-bottom:14px; min-height:24px;}
+  .prompt b{color:var(--accent);}
+  .expr{display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; min-height:96px; padding:8px 0;}
+  .frac{display:inline-flex; flex-direction:column; align-items:center; min-width:46px;}
+  .frac .top,.frac .bot{font-size:34px; font-weight:900; line-height:1.05; padding:2px 8px; border-radius:8px; transition:background .2s; display:flex; flex-direction:column; align-items:center;}
+  .frac .bar{height:3px; background:var(--line); width:100%; min-width:38px; border-radius:2px; margin:3px 0;}
+  .frac .hl{background:var(--hl-bg);}
+  .frac .reduced{line-height:.95;}
+  .repl{font-size:.52em; color:var(--good); font-weight:900;}
+  .gone{position:relative; color:#c4c0b6;}
+  .gone::after{content:''; position:absolute; left:-3px; right:-3px; top:48%; height:2.5px; background:var(--accent); transform:rotate(-18deg); border-radius:2px;}
+  .whole{font-size:36px; font-weight:900;}
+  .op{font-size:34px; font-weight:900; color:var(--accent);}
+  .eq{font-size:36px; font-weight:900;}
+  .log{margin-top:6px; font-size:13px; font-weight:700; color:var(--line); line-height:1.8; min-height:0;}
+  .log div{display:flex; gap:6px; align-items:center;}
+  .log .tag{background:var(--line-light); border-radius:6px; padding:1px 7px; color:var(--line);}
+  .inputs{display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:18px;}
+  .field-frac{display:flex; flex-direction:column; align-items:center;}
+  .nin{width:104px; height:60px; text-align:center; font-family:inherit; font-weight:900; font-size:30px; border:3px solid var(--line-light); border-radius:12px; background:#FCFDFC; color:var(--ink); caret-color:transparent;}
+  .nin::placeholder{color:#cfcbc2; font-size:16px; font-weight:700;}
+  .nin:focus{outline:none; border-color:var(--accent); background:#fff;}
+  .nin.active{border-color:var(--accent); box-shadow:0 0 0 3px rgba(226,103,74,.18);}
+  .ans-bar{height:3px; background:var(--ink); width:108px; border-radius:2px; margin:8px 0;}
+  .single-in{width:130px;}
+  .lead-text{font-size:18px; font-weight:700; color:#6f6c65; align-self:center;}
+  .verdict{font-size:18px; font-weight:900; min-height:28px; text-align:center; margin-top:14px; line-height:1.5;}
+  .verdict.ok{color:var(--good);} .verdict.ng{color:var(--bad);} .verdict.warn{color:var(--gold);}
+  .final-answer{text-align:center; margin-top:8px;}
+  .final-answer .big{font-size:24px; font-weight:900; color:var(--good);}
+  .pad{background:var(--card); border:3px solid var(--ink); border-radius:22px; box-shadow:6px 6px 0 rgba(43,92,79,.22); padding:14px;}
+  .keys{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .key{font-family:inherit; font-weight:900; font-size:26px; border:2.5px solid var(--line); background:#fff; color:var(--ink); border-radius:14px; padding:16px 0; cursor:pointer; box-shadow:0 4px 0 rgba(43,92,79,.28);}
+  .key:active{transform:translateY(3px); box-shadow:0 1px 0 rgba(43,92,79,.28);}
+  .key.util{background:#F1EEE6; font-size:20px;}
+  .actions{display:flex; gap:10px; margin-top:12px;}
+  .act{flex:1; font-family:inherit; font-weight:900; font-size:17px; border:2.5px solid var(--ink); border-radius:14px; padding:14px 4px; cursor:pointer; box-shadow:0 4px 0 rgba(43,49,46,.35);}
+  .act:active{transform:translateY(3px); box-shadow:0 1px 0 rgba(43,49,46,.35);}
+  .act.primary{background:var(--gold); color:var(--ink);}
+  .act.ghost{background:#fff; color:var(--line); border-color:var(--line); box-shadow:0 4px 0 rgba(43,92,79,.28);}
+  .scoreboard{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px;}
+  .stat{background:#fff; border:2px solid var(--line-light); border-radius:14px; padding:11px 4px; text-align:center;}
+  .stat .v{font-size:26px; font-weight:900; color:var(--line);}
+  .stat .l{font-size:11px; font-weight:700; color:#9a978f; margin-top:2px;}
+  .stat.streak .v{color:var(--accent);}
+  .hidden{display:none !important;}
+  @media (min-width:760px){
+    h1{font-size:24px;}
+    .main{flex-direction:row; align-items:flex-start;}
+    .work{padding:26px 26px;}
+    .pad{width:330px; flex-shrink:0; position:sticky; top:14px;}
+    .prompt{font-size:18px;}
+    .frac .top,.frac .bot{font-size:42px;}
+    .op,.eq,.whole{font-size:44px;}
+    .key{font-size:30px; padding:20px 0;}
+    .nin{width:120px; height:68px; font-size:34px;}
+    .ans-bar{width:124px;}
+  }
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="titlebar">
+      <h1>✕ 分数のかけ算</h1>
+      <div class="mode-toggle">
+        <button class="mt active" data-mode="step">ステップで学ぶ</button>
+        <button class="mt" data-mode="free">力だめし</button>
+      </div>
+    </div>
+    <div class="levels" id="levels">
+      <button class="lv active" data-lv="easy">やさしい<small>小さい真分数</small></button>
+      <button class="lv" data-lv="normal">ふつう<small>約分あり真分数</small></button>
+      <button class="lv" data-lv="hard">むずかしい<small>帯分数まじり</small></button>
+    </div>
+  </header>
+  <div class="main">
+    <div class="work">
+      <div class="stepbar"><span id="stepLabel">ステップ</span><span class="dots" id="dots"></span></div>
+      <div class="prompt" id="prompt"></div>
+      <div class="expr" id="expr"></div>
+      <div class="log" id="log"></div>
+      <div class="inputs" id="inputs"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="final-answer hidden" id="finalAnswer"></div>
+    </div>
+    <div class="pad">
+      <div class="keys">
+        <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+        <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+        <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+        <button class="key util" data-k="clear">けす</button><button class="key" data-k="0">0</button><button class="key util" data-k="back">⌫</button>
+      </div>
+      <div class="actions">
+        <button class="act ghost" id="hintBtn">💡 ヒント</button>
+        <button class="act primary" id="actBtn">こたえあわせ</button>
+      </div>
+    </div>
+  </div>
+  <div class="scoreboard">
+    <div class="stat"><div class="v" id="sCorrect">0</div><div class="l">ノーミス正解</div></div>
+    <div class="stat"><div class="v" id="sTotal">0</div><div class="l">といた数</div></div>
+    <div class="stat streak"><div class="v" id="sStreak">0</div><div class="l">れんぞく</div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ var t=b; b=a%b; a=t; } return a||1; }
+  function rnd(min,max){ return min+Math.floor(Math.random()*(max-min+1)); }
+  var mode='step', level='easy', q=null, phases=[], phaseIdx=0, work=null, doneLog=[];
+  var awaitingNext=false, mistakes=0, correct=0, total=0, streak=0, activeField=null, fieldOrder=[];
+
+  function toImproper(f){ return { n:(f.whole||0)*f.d + f.n, d:f.d }; }
+  function genFraction(maxDen, allowMixed){
+    var d=rnd(2,maxDen), n=rnd(1,d-1);
+    var w=(allowMixed && Math.random()<0.6)?rnd(1,3):0;
+    return { whole:w, n:n, d:d };
+  }
+  function computeCancellations(nums0, dens0){
+    var nums=nums0.slice(), dens=dens0.slice(), steps=[];
+    while(true){
+      var best=null;
+      for(var i=0;i<nums.length;i++){ for(var j=0;j<dens.length;j++){
+        var g=gcd(nums[i],dens[j]); if(g>1 && (!best||g>best.g)) best={i:i,j:j,g:g};
+      }}
+      if(!best) break;
+      steps.push({i:best.i,j:best.j,g:best.g,numBefore:nums[best.i],denBefore:dens[best.j]});
+      nums[best.i]/=best.g; dens[best.j]/=best.g;
+    }
+    return { steps:steps, nums:nums, dens:dens };
+  }
+  function makeProblem(){
+    var conf={ easy:{md:6,mix:false,need:false}, normal:{md:10,mix:false,need:true}, hard:{md:7,mix:true,need:true} }[level];
+    for(var t=0;t<24;t++){
+      var f1=genFraction(conf.md,conf.mix), f2=genFraction(conf.md,conf.mix);
+      var i1=toImproper(f1), i2=toImproper(f2);
+      var c=computeCancellations([i1.n,i2.n],[i1.d,i2.d]);
+      if(conf.need && c.steps.length===0 && t<23) continue;
+      var finalN=c.nums[0]*c.nums[1], finalD=c.dens[0]*c.dens[1];
+      if(finalN===finalD && t<23) continue;
+      return { f1:f1,f2:f2,i1:i1,i2:i2,cancel:c,finalN:finalN,finalD:finalD,hasMixed:(f1.whole>0||f2.whole>0) };
+    }
+  }
+
+  function buildExpr(useImproper, hl){
+    hl=hl||{ni:-1,dj:-1};
+    var ex=$('expr'); ex.innerHTML='';
+    function cell(isNum, fi){
+      var span=document.createElement('span');
+      span.className=(isNum?'top':'bot')+(((isNum?hl.ni:hl.dj)===fi)?' hl':'');
+      var cur = isNum ? work.nums[fi] : work.dens[fi];
+      var orig = isNum ? work.origN[fi] : work.origD[fi];
+      if(!useImproper || cur===orig){ span.textContent = cur; return span; }
+      // 約分された数：元の数を斜線で消し、約分後の数を小さく書き添える
+      span.classList.add('reduced');
+      var goneEl=document.createElement('span'); goneEl.className='gone'; goneEl.textContent=orig;
+      var replEl=document.createElement('span'); replEl.className='repl'; replEl.textContent=cur;
+      if(isNum){ span.appendChild(replEl); span.appendChild(goneEl); }   // 分子は上に小さく
+      else { span.appendChild(goneEl); span.appendChild(replEl); }       // 分母は下に小さく
+      return span;
+    }
+    function fracNode(fi){
+      var whole=0;
+      if(!useImproper){ var f=fi===0?q.f1:q.f2; whole=f.whole; }
+      var wrap=document.createElement('span'); wrap.style.display='inline-flex'; wrap.style.alignItems='center'; wrap.style.gap='4px';
+      if(!useImproper && whole>0){ var w=document.createElement('span'); w.className='whole'; w.textContent=whole; wrap.appendChild(w); }
+      var fr=document.createElement('span'); fr.className='frac';
+      if(!useImproper){
+        // 元の(帯)分数：そのまま表示
+        var f2=fi===0?q.f1:q.f2;
+        var top=document.createElement('span'); top.className='top'; top.textContent=f2.n;
+        var bar=document.createElement('span'); bar.className='bar';
+        var bot=document.createElement('span'); bot.className='bot'; bot.textContent=f2.d;
+        fr.appendChild(top); fr.appendChild(bar); fr.appendChild(bot);
+      } else {
+        var bar2=document.createElement('span'); bar2.className='bar';
+        fr.appendChild(cell(true,fi)); fr.appendChild(bar2); fr.appendChild(cell(false,fi));
+      }
+      wrap.appendChild(fr);
+      return wrap;
+    }
+    ex.appendChild(fracNode(0));
+    var op=document.createElement('span'); op.className='op'; op.textContent='\u00d7'; ex.appendChild(op);
+    ex.appendChild(fracNode(1));
+  }
+  function renderLog(){
+    var l=$('log'); l.innerHTML='';
+    doneLog.forEach(function(s){
+      var row=document.createElement('div');
+      row.innerHTML='<span class="tag">'+s.g+'で約分</span>'+s.numBefore+' \u2192 '+(s.numBefore/s.g)+' \uff0f '+s.denBefore+' \u2192 '+(s.denBefore/s.g);
+      l.appendChild(row);
+    });
+  }
+  function setDots(){
+    var d=$('dots'); d.innerHTML='';
+    if(mode==='free') return;
+    phases.forEach(function(p,i){
+      if(p.type==='done') return;
+      var dot=document.createElement('span');
+      dot.className='dot'+(i<phaseIdx?' on':'')+(i===phaseIdx?' cur':'');
+      d.appendChild(dot);
+    });
+  }
+
+  function makeNumInput(placeholder, extraClass){
+    var inp=document.createElement('input');
+    inp.className='nin'+(extraClass?(' '+extraClass):'');
+    inp.type='text'; inp.setAttribute('inputmode','none'); inp.maxLength=3; inp.placeholder=placeholder||'';
+    inp.addEventListener('focus', function(){ setActive(inp); });
+    inp.addEventListener('input', function(){ inp.value=inp.value.replace(/[^0-9]/g,'').slice(0,3); });
+    return inp;
+  }
+  function setActive(inp){
+    activeField=inp;
+    [].forEach.call(document.querySelectorAll('.nin'), function(e){ e.classList.toggle('active', e===inp); });
+  }
+  // 入力の進行順(分母→分子など)。最後の欄でEnterすると こたえあわせ
+  function focusNext(){
+    var idx=fieldOrder.indexOf(activeField);
+    if(idx>=0 && idx<fieldOrder.length-1){ setActive(fieldOrder[idx+1]); }
+    else { onAct(); }
+  }
+  function fieldFrac(numInp, denInp){
+    var wrap=document.createElement('div'); wrap.className='field-frac';
+    wrap.appendChild(numInp);
+    var bar=document.createElement('div'); bar.className='ans-bar'; wrap.appendChild(bar);
+    wrap.appendChild(denInp); return wrap;
+  }
+
+  function startProblem(){
+    q=makeProblem();
+    work={ nums:[q.i1.n,q.i2.n], dens:[q.i1.d,q.i2.d], origN:[q.i1.n,q.i2.n], origD:[q.i1.d,q.i2.d] };
+    doneLog=[]; mistakes=0; awaitingNext=false;
+    $('verdict').textContent=''; $('verdict').className='verdict';
+    $('finalAnswer').classList.add('hidden'); renderLog();
+    if(mode==='free'){ renderFree(); setDots(); return; }
+    phases=[];
+    if(q.hasMixed) phases.push({type:'convert'});
+    for(var k=0;k<q.cancel.steps.length;k++) phases.push({type:'cancel',step:k});
+    phases.push({type:'multiply'}); phases.push({type:'done'});
+    phaseIdx=0; renderPhase();
+  }
+
+  function renderPhase(){
+    awaitingNext=false;
+    $('verdict').textContent=''; $('verdict').className='verdict';
+    $('finalAnswer').classList.add('hidden');
+    $('inputs').innerHTML=''; $('actBtn').textContent='こたえあわせ'; $('hintBtn').classList.remove('hidden');
+    setDots();
+    var p=phases[phaseIdx];
+    if(p.type==='convert'){
+      $('stepLabel').textContent='ステップ \u2460  仮分数になおす';
+      $('prompt').innerHTML='帯分数を <b>仮分数</b> になおそう。<br>「整数 \u00d7 分母 \uff0b 分子」が あたらしい分子だよ。';
+      buildExpr(false,{ni:-1,dj:-1});
+      var box=$('inputs'), first=null; fieldOrder=[];
+      [q.f1,q.f2].forEach(function(f,idx){
+        if(f.whole>0){
+          var lab=document.createElement('span'); lab.className='lead-text'; lab.textContent=(idx===0?'左':'右')+'の分子 =';
+          var inp=makeNumInput('?'); inp.dataset.expect=(f.whole*f.d+f.n);
+          if(!first) first=inp; fieldOrder.push(inp); box.appendChild(lab); box.appendChild(inp);
+        }
+      });
+      if(first) setActive(first);
+    } else if(p.type==='cancel'){
+      var st=q.cancel.steps[p.step];
+      $('stepLabel').textContent='ステップ \u2461  かける前に約分';
+      $('prompt').innerHTML='<b>かけ算する前に約分</b>しよう。<br>赤い2つの数を、いちばん大きい数で わると いくつ？';
+      buildExpr(true,{ni:st.i,dj:st.j});
+      var box=$('inputs');
+      var lab=document.createElement('span'); lab.className='lead-text'; lab.textContent=work.nums[st.i]+' と '+work.dens[st.j]+' を\u3000\u00f7';
+      var inp=makeNumInput('?','single-in'); inp.dataset.expect=st.g;
+      box.appendChild(lab); box.appendChild(inp); fieldOrder=[inp]; setActive(inp);
+    } else if(p.type==='multiply'){
+      $('stepLabel').textContent='ステップ \u2462  さいごにかける';
+      $('prompt').innerHTML='のこった数で、<b>分子どうし・分母どうし</b>をかけよう。<br>「○分の○」と読む順に、<b>分母から</b>入れてね。';
+      buildExpr(true,{ni:-1,dj:-1});
+      var numInp=makeNumInput('\u2461 分子'); numInp.dataset.expect=q.finalN;
+      var denInp=makeNumInput('\u2460 分母'); denInp.dataset.expect=q.finalD;
+      var box=$('inputs');
+      var lead=document.createElement('span'); lead.className='lead-text'; lead.textContent='\uff1d';
+      box.appendChild(lead); box.appendChild(fieldFrac(numInp,denInp));
+      fieldOrder=[denInp, numInp]; setActive(denInp);
+    } else if(p.type==='done'){ showDone(); }
+  }
+
+  function showDone(){
+    $('stepLabel').textContent='かんせい！';
+    $('prompt').innerHTML = mistakes===0 ? 'すばらしい！ノーミスでクリア \ud83c\udf1f' : 'クリア！もう一度 見なおすと かんぺきだよ。';
+    buildExpr(true,{ni:-1,dj:-1}); $('inputs').innerHTML='';
+    var fa=$('finalAnswer'); fa.classList.remove('hidden');
+    var html='<div class="big">こたえ：'+fracText(q.finalN,q.finalD)+'</div>';
+    if(q.finalD!==1 && q.finalN>q.finalD){
+      var w=Math.floor(q.finalN/q.finalD), r=q.finalN%q.finalD;
+      if(r===0) html+='<div>（\uff1d '+w+' ）</div>'; else html+='<div>（帯分数なら '+w+' と '+r+'/'+q.finalD+'）</div>';
+    } else if(q.finalD===1){ html+='<div>（\uff1d '+q.finalN+' ）</div>'; }
+    fa.innerHTML=html;
+    $('actBtn').textContent='つぎの もんだい \u25b6'; $('hintBtn').classList.add('hidden'); awaitingNext=true;
+  }
+  function fracText(n,d){ return d===1?(''+n):(n+'/'+d); }
+
+  function renderFree(){
+    $('stepLabel').textContent='力だめし';
+    $('prompt').innerHTML='答えを <b>約分した形</b>で入力しよう。「○分の○」と読む順に、<b>分母から</b>どうぞ。';
+    buildExpr(false,{ni:-1,dj:-1}); $('inputs').innerHTML='';
+    var numInp=makeNumInput('\u2461 分子'); var denInp=makeNumInput('\u2460 分母'); numInp.id='freeNum'; denInp.id='freeDen';
+    var box=$('inputs');
+    var lead=document.createElement('span'); lead.className='lead-text'; lead.textContent='\uff1d';
+    box.appendChild(lead); box.appendChild(fieldFrac(numInp,denInp));
+    fieldOrder=[denInp, numInp]; setActive(denInp);
+    $('actBtn').textContent='こたえあわせ'; $('hintBtn').classList.remove('hidden'); awaitingNext=false;
+  }
+
+  function flashVerdict(txt,cls){ $('verdict').innerHTML=txt; $('verdict').className='verdict '+cls; }
+
+  function checkCurrent(){
+    if(mode==='free') return checkFree();
+    var p=phases[phaseIdx];
+    if(p.type==='convert'){
+      var inputs=$('inputs').querySelectorAll('.nin'), allOk=true;
+      if([].some.call(inputs,function(i){return i.value==='';})){ flashVerdict('数字を入れてね','warn'); return; }
+      [].forEach.call(inputs,function(inp){ if(parseInt(inp.value,10)!==parseInt(inp.dataset.expect,10)) allOk=false; });
+      if(allOk){ flashVerdict('\u2713 仮分数に なおせた！','ok'); goNext(); }
+      else { mistakes++; streak=0; flashVerdict('もう一度。整数\u00d7分母\uff0b分子 だよ','ng'); }
+    } else if(p.type==='cancel'){
+      var st=q.cancel.steps[p.step];
+      var inp=$('inputs').querySelector('.nin');
+      if(inp.value===''){ flashVerdict('わる数を入れてね','warn'); return; }
+      var v=parseInt(inp.value,10);
+      if(v===st.g){
+        work.nums[st.i]/=st.g; work.dens[st.j]/=st.g;
+        doneLog.push({g:st.g,numBefore:st.numBefore,denBefore:st.denBefore}); renderLog();
+        buildExpr(true,{ni:-1,dj:-1}); flashVerdict('\u2713 '+st.g+'で約分できた！','ok'); goNext();
+      } else if(v>1 && st.numBefore%v===0 && st.denBefore%v===0){
+        mistakes++; streak=0; flashVerdict(v+'でも割れるけど、もっと大きい数で 一気に！','warn');
+      } else { mistakes++; streak=0; flashVerdict('その数では わりきれないよ','ng'); }
+    } else if(p.type==='multiply'){
+      var inps=$('inputs').querySelectorAll('.nin');
+      if(inps[0].value===''||inps[1].value===''){ flashVerdict('分子と分母を入れてね','warn'); return; }
+      var nv=parseInt(inps[0].value,10), dv=parseInt(inps[1].value,10);
+      if(nv===q.finalN && dv===q.finalD){ flashVerdict('\u2713 正解！','ok'); goNext(); }
+      else { mistakes++; streak=0; flashVerdict('のこった数どうしを かけてみよう','ng'); }
+    } else if(p.type==='done'){ startProblem(); }
+  }
+
+  function goNext(){
+    awaitingNext=true;
+    var nextType=phases[phaseIdx+1]?phases[phaseIdx+1].type:'done';
+    $('actBtn').textContent=(nextType==='done')?'けっか \u25b6':'つぎへ \u25b6';
+  }
+
+  function checkFree(){
+    var n=parseInt($('freeNum').value,10), d=parseInt($('freeDen').value,10);
+    if($('freeNum').value===''||$('freeDen').value===''){ flashVerdict('分子と分母を入れてね','warn'); return; }
+    if(isNaN(d)||d===0){ flashVerdict('分母は0以外の数だよ','warn'); return; }
+    var g=gcd(n,d), un=n/g, ud=d/g;
+    var sameVal=(un===q.finalN && ud===q.finalD), reduced=(n===q.finalN && d===q.finalD);
+    if(sameVal && reduced){
+      correct++; total++; streak++; updateScore();
+      flashVerdict('\ud83c\udf89 せいかい！約分もばっちり','ok');
+      $('actBtn').textContent='つぎの もんだい \u25b6'; awaitingNext=true;
+    } else if(sameVal){
+      flashVerdict('\u2728 あと一歩！'+q.finalN+'/'+q.finalD+' まで約分しよう','warn');
+      $('freeNum').value=q.finalN; $('freeDen').value=q.finalD;
+    } else {
+      total++; streak=0; updateScore();
+      flashVerdict('\u2715 おしい。ヒントで手順を見よう','ng');
+      $('actBtn').textContent='つぎの もんだい \u25b6'; awaitingNext=true;
+    }
+  }
+
+  function showHint(){
+    if(mode==='free'){
+      var c=q.cancel, html='';
+      if(q.hasMixed) html+='\u2460 帯分数を仮分数に \u2192 '+q.i1.n+'/'+q.i1.d+' \u00d7 '+q.i2.n+'/'+q.i2.d+'<br>';
+      if(c.steps.length){
+        html+=(q.hasMixed?'\u2461':'\u2460')+' かける前に約分：';
+        var ns=[q.i1.n,q.i2.n], ds=[q.i1.d,q.i2.d];
+        c.steps.forEach(function(s){ html+=' ['+ns[s.i]+'と'+ds[s.j]+'を'+s.g+'で] '; ns[s.i]/=s.g; ds[s.j]/=s.g; });
+        html+='<br>'+(q.hasMixed?'\u2462':'\u2461')+' かける \u2192 '+c.nums[0]+'\u00d7'+c.nums[1]+'\uff0f'+c.dens[0]+'\u00d7'+c.dens[1]+' = '+fracText(q.finalN,q.finalD);
+      } else { html+=(q.hasMixed?'\u2461':'\u2460')+' 約分できないので そのままかける \u2192 '+fracText(q.finalN,q.finalD); }
+      $('log').innerHTML='<div style="display:block;line-height:1.9">'+html+'</div>'; return;
+    }
+    var p=phases[phaseIdx];
+    if(p.type==='convert'){
+      [].forEach.call($('inputs').querySelectorAll('.nin'),function(inp){ inp.value=inp.dataset.expect; });
+      flashVerdict('整数\u00d7分母\uff0b分子 を計算したよ','warn');
+    } else if(p.type==='cancel'){
+      var st=q.cancel.steps[p.step];
+      $('inputs').querySelector('.nin').value=st.g;
+      flashVerdict(work.nums[st.i]+'と'+work.dens[st.j]+'の最大公約数は '+st.g,'warn');
+    } else if(p.type==='multiply'){
+      var inps=$('inputs').querySelectorAll('.nin'); inps[0].value=q.finalN; inps[1].value=q.finalD;
+      flashVerdict('のこった数をかけると こうなるよ','warn');
+    }
+  }
+
+  function typeDigit(d){ if(!activeField) return; if(activeField.value.length>=3) return; activeField.value+=d; }
+  function backspace(){ if(activeField) activeField.value=activeField.value.slice(0,-1); }
+  function clearField(){ if(activeField) activeField.value=''; }
+  [].forEach.call(document.querySelectorAll('.key'),function(k){
+    k.addEventListener('click',function(){
+      var v=k.getAttribute('data-k');
+      if(v==='back') backspace(); else if(v==='clear') clearField(); else typeDigit(v);
+    });
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key>='0'&&e.key<='9'){ typeDigit(e.key); }
+    else if(e.key==='Backspace'){ if(activeField){ e.preventDefault(); backspace(); } }
+    else if(e.key==='Enter'){ e.preventDefault(); if(!awaitingNext && fieldOrder.length>1){ focusNext(); } else { onAct(); } }
+  });
+
+  function onAct(){
+    if(awaitingNext){
+      if(mode==='free'){ startProblem(); return; }
+      var p=phases[phaseIdx];
+      if(p.type==='done'){ total++; if(mistakes===0){ correct++; streak++; } else { streak=0; } updateScore(); startProblem(); }
+      else { phaseIdx++; renderPhase(); }
+    } else { checkCurrent(); }
+  }
+  $('actBtn').addEventListener('click', onAct);
+  $('hintBtn').addEventListener('click', showHint);
+  function updateScore(){ $('sCorrect').textContent=correct; $('sTotal').textContent=total; $('sStreak').textContent=streak; }
+
+  [].forEach.call(document.querySelectorAll('.mt'),function(b){
+    b.addEventListener('click',function(){
+      mode=b.getAttribute('data-mode');
+      [].forEach.call(document.querySelectorAll('.mt'),function(x){x.classList.remove('active');});
+      b.classList.add('active'); startProblem();
+    });
+  });
+  [].forEach.call($('levels').children,function(b){
+    b.addEventListener('click',function(){
+      level=b.getAttribute('data-lv');
+      [].forEach.call($('levels').children,function(x){x.classList.remove('active');});
+      b.classList.add('active'); startProblem();
+    });
+  });
+
+  startProblem(); updateScore();
+})();
+</script>
+</body>
+</html>
