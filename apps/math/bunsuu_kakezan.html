@@ -49,9 +49,13 @@
   .prompt b{color:var(--accent);}
   .expr{display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; min-height:96px; padding:8px 0;}
   .frac{display:inline-flex; flex-direction:column; align-items:center; min-width:46px;}
-  .frac .top,.frac .bot{font-size:34px; font-weight:900; line-height:1.05; padding:2px 8px; border-radius:8px; transition:background .2s;}
+  .frac .top,.frac .bot{font-size:34px; font-weight:900; line-height:1.05; padding:2px 8px; border-radius:8px; transition:background .2s; display:flex; flex-direction:column; align-items:center;}
   .frac .bar{height:3px; background:var(--line); width:100%; min-width:38px; border-radius:2px; margin:3px 0;}
-  .frac .hl{background:var(--hl-bg); color:var(--accent);}
+  .frac .hl{background:var(--hl-bg);}
+  .frac .reduced{line-height:.95;}
+  .repl{font-size:.52em; color:var(--good); font-weight:900;}
+  .gone{position:relative; color:#c4c0b6;}
+  .gone::after{content:''; position:absolute; left:-3px; right:-3px; top:48%; height:2.5px; background:var(--accent); transform:rotate(-18deg); border-radius:2px;}
   .whole{font-size:36px; font-weight:900;}
   .op{font-size:34px; font-weight:900; color:var(--accent);}
   .eq{font-size:36px; font-weight:900;}
@@ -153,7 +157,7 @@
   function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ var t=b; b=a%b; a=t; } return a||1; }
   function rnd(min,max){ return min+Math.floor(Math.random()*(max-min+1)); }
   var mode='step', level='easy', q=null, phases=[], phaseIdx=0, work=null, doneLog=[];
-  var awaitingNext=false, mistakes=0, correct=0, total=0, streak=0, activeField=null;
+  var awaitingNext=false, mistakes=0, correct=0, total=0, streak=0, activeField=null, fieldOrder=[];
 
   function toImproper(f){ return { n:(f.whole||0)*f.d + f.n, d:f.d }; }
   function genFraction(maxDen, allowMixed){
@@ -190,17 +194,38 @@
   function buildExpr(useImproper, hl){
     hl=hl||{ni:-1,dj:-1};
     var ex=$('expr'); ex.innerHTML='';
+    function cell(isNum, fi){
+      var span=document.createElement('span');
+      span.className=(isNum?'top':'bot')+(((isNum?hl.ni:hl.dj)===fi)?' hl':'');
+      var cur = isNum ? work.nums[fi] : work.dens[fi];
+      var orig = isNum ? work.origN[fi] : work.origD[fi];
+      if(!useImproper || cur===orig){ span.textContent = cur; return span; }
+      // 約分された数：元の数を斜線で消し、約分後の数を小さく書き添える
+      span.classList.add('reduced');
+      var goneEl=document.createElement('span'); goneEl.className='gone'; goneEl.textContent=orig;
+      var replEl=document.createElement('span'); replEl.className='repl'; replEl.textContent=cur;
+      if(isNum){ span.appendChild(replEl); span.appendChild(goneEl); }   // 分子は上に小さく
+      else { span.appendChild(goneEl); span.appendChild(replEl); }       // 分母は下に小さく
+      return span;
+    }
     function fracNode(fi){
-      var topVal,botVal,whole=0;
-      if(useImproper){ topVal=work.nums[fi]; botVal=work.dens[fi]; }
-      else { var f=fi===0?q.f1:q.f2; topVal=f.n; botVal=f.d; whole=f.whole; }
+      var whole=0;
+      if(!useImproper){ var f=fi===0?q.f1:q.f2; whole=f.whole; }
       var wrap=document.createElement('span'); wrap.style.display='inline-flex'; wrap.style.alignItems='center'; wrap.style.gap='4px';
-      if(whole>0){ var w=document.createElement('span'); w.className='whole'; w.textContent=whole; wrap.appendChild(w); }
+      if(!useImproper && whole>0){ var w=document.createElement('span'); w.className='whole'; w.textContent=whole; wrap.appendChild(w); }
       var fr=document.createElement('span'); fr.className='frac';
-      var top=document.createElement('span'); top.className='top'+(hl.ni===fi?' hl':''); top.textContent=topVal;
-      var bar=document.createElement('span'); bar.className='bar';
-      var bot=document.createElement('span'); bot.className='bot'+(hl.dj===fi?' hl':''); bot.textContent=botVal;
-      fr.appendChild(top); fr.appendChild(bar); fr.appendChild(bot); wrap.appendChild(fr);
+      if(!useImproper){
+        // 元の(帯)分数：そのまま表示
+        var f2=fi===0?q.f1:q.f2;
+        var top=document.createElement('span'); top.className='top'; top.textContent=f2.n;
+        var bar=document.createElement('span'); bar.className='bar';
+        var bot=document.createElement('span'); bot.className='bot'; bot.textContent=f2.d;
+        fr.appendChild(top); fr.appendChild(bar); fr.appendChild(bot);
+      } else {
+        var bar2=document.createElement('span'); bar2.className='bar';
+        fr.appendChild(cell(true,fi)); fr.appendChild(bar2); fr.appendChild(cell(false,fi));
+      }
+      wrap.appendChild(fr);
       return wrap;
     }
     ex.appendChild(fracNode(0));
@@ -238,6 +263,12 @@
     activeField=inp;
     [].forEach.call(document.querySelectorAll('.nin'), function(e){ e.classList.toggle('active', e===inp); });
   }
+  // 入力の進行順(分母→分子など)。最後の欄でEnterすると こたえあわせ
+  function focusNext(){
+    var idx=fieldOrder.indexOf(activeField);
+    if(idx>=0 && idx<fieldOrder.length-1){ setActive(fieldOrder[idx+1]); }
+    else { onAct(); }
+  }
   function fieldFrac(numInp, denInp){
     var wrap=document.createElement('div'); wrap.className='field-frac';
     wrap.appendChild(numInp);
@@ -247,7 +278,7 @@
 
   function startProblem(){
     q=makeProblem();
-    work={ nums:[q.i1.n,q.i2.n], dens:[q.i1.d,q.i2.d] };
+    work={ nums:[q.i1.n,q.i2.n], dens:[q.i1.d,q.i2.d], origN:[q.i1.n,q.i2.n], origD:[q.i1.d,q.i2.d] };
     doneLog=[]; mistakes=0; awaitingNext=false;
     $('verdict').textContent=''; $('verdict').className='verdict';
     $('finalAnswer').classList.add('hidden'); renderLog();
@@ -270,12 +301,12 @@
       $('stepLabel').textContent='ステップ \u2460  仮分数になおす';
       $('prompt').innerHTML='帯分数を <b>仮分数</b> になおそう。<br>「整数 \u00d7 分母 \uff0b 分子」が あたらしい分子だよ。';
       buildExpr(false,{ni:-1,dj:-1});
-      var box=$('inputs'), first=null;
+      var box=$('inputs'), first=null; fieldOrder=[];
       [q.f1,q.f2].forEach(function(f,idx){
         if(f.whole>0){
           var lab=document.createElement('span'); lab.className='lead-text'; lab.textContent=(idx===0?'左':'右')+'の分子 =';
           var inp=makeNumInput('?'); inp.dataset.expect=(f.whole*f.d+f.n);
-          if(!first) first=inp; box.appendChild(lab); box.appendChild(inp);
+          if(!first) first=inp; fieldOrder.push(inp); box.appendChild(lab); box.appendChild(inp);
         }
       });
       if(first) setActive(first);
@@ -287,16 +318,17 @@
       var box=$('inputs');
       var lab=document.createElement('span'); lab.className='lead-text'; lab.textContent=work.nums[st.i]+' と '+work.dens[st.j]+' を\u3000\u00f7';
       var inp=makeNumInput('?','single-in'); inp.dataset.expect=st.g;
-      box.appendChild(lab); box.appendChild(inp); setActive(inp);
+      box.appendChild(lab); box.appendChild(inp); fieldOrder=[inp]; setActive(inp);
     } else if(p.type==='multiply'){
       $('stepLabel').textContent='ステップ \u2462  さいごにかける';
-      $('prompt').innerHTML='のこった数で、<b>分子どうし・分母どうし</b>をかけよう。<br>約分ずみだから、これが答えだよ！';
+      $('prompt').innerHTML='のこった数で、<b>分子どうし・分母どうし</b>をかけよう。<br>「○分の○」と読む順に、<b>分母から</b>入れてね。';
       buildExpr(true,{ni:-1,dj:-1});
-      var numInp=makeNumInput('分子'); numInp.dataset.expect=q.finalN;
-      var denInp=makeNumInput('分母'); denInp.dataset.expect=q.finalD;
+      var numInp=makeNumInput('\u2461 分子'); numInp.dataset.expect=q.finalN;
+      var denInp=makeNumInput('\u2460 分母'); denInp.dataset.expect=q.finalD;
       var box=$('inputs');
       var lead=document.createElement('span'); lead.className='lead-text'; lead.textContent='\uff1d';
-      box.appendChild(lead); box.appendChild(fieldFrac(numInp,denInp)); setActive(numInp);
+      box.appendChild(lead); box.appendChild(fieldFrac(numInp,denInp));
+      fieldOrder=[denInp, numInp]; setActive(denInp);
     } else if(p.type==='done'){ showDone(); }
   }
 
@@ -317,12 +349,13 @@
 
   function renderFree(){
     $('stepLabel').textContent='力だめし';
-    $('prompt').innerHTML='答えを <b>約分した形</b>で入力しよう。とき方を見たいときは ヒント。';
+    $('prompt').innerHTML='答えを <b>約分した形</b>で入力しよう。「○分の○」と読む順に、<b>分母から</b>どうぞ。';
     buildExpr(false,{ni:-1,dj:-1}); $('inputs').innerHTML='';
-    var numInp=makeNumInput('分子'); var denInp=makeNumInput('分母'); numInp.id='freeNum'; denInp.id='freeDen';
+    var numInp=makeNumInput('\u2461 分子'); var denInp=makeNumInput('\u2460 分母'); numInp.id='freeNum'; denInp.id='freeDen';
     var box=$('inputs');
     var lead=document.createElement('span'); lead.className='lead-text'; lead.textContent='\uff1d';
-    box.appendChild(lead); box.appendChild(fieldFrac(numInp,denInp)); setActive(numInp);
+    box.appendChild(lead); box.appendChild(fieldFrac(numInp,denInp));
+    fieldOrder=[denInp, numInp]; setActive(denInp);
     $('actBtn').textContent='こたえあわせ'; $('hintBtn').classList.remove('hidden'); awaitingNext=false;
   }
 
@@ -422,7 +455,7 @@
   document.addEventListener('keydown',function(e){
     if(e.key>='0'&&e.key<='9'){ typeDigit(e.key); }
     else if(e.key==='Backspace'){ if(activeField){ e.preventDefault(); backspace(); } }
-    else if(e.key==='Enter'){ e.preventDefault(); onAct(); }
+    else if(e.key==='Enter'){ e.preventDefault(); if(!awaitingNext && fieldOrder.length>1){ focusNext(); } else { onAct(); } }
   });
 
   function onAct(){
