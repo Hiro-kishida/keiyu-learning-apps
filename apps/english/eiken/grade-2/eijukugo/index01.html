@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>英検2級 英熟語 四択｜イッテQ風</title>
+<style>
+  :root{
+    --teal:#00a6b8;
+    --teal-dark:#067f8d;
+    --cream:#fff3cf;
+    --line:#d29418;
+    --word:#a34817;
+    --text:#202020;
+    --ok:#12a85f;
+    --bad:#d34b42;
+    --bg:#f4f5ef;
+    --card:#ffffff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;color:var(--text)}
+  button{font-family:inherit}
+  .app{min-height:100svh;display:flex;flex-direction:column;background:var(--card);max-width:920px;margin:0 auto;box-shadow:0 0 26px rgba(0,0,0,.09)}
+  header{background:var(--teal);color:white;min-height:78px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 22px 12px 28px;font-weight:850;letter-spacing:.03em}
+  .title{font-size:clamp(20px,4.5vw,30px);line-height:1.2}
+  .sub{display:block;font-size:.58em;font-weight:700;opacity:.9;margin-top:2px;letter-spacing:0}
+  .counter{background:#087989;border-radius:999px;padding:9px 16px;font-size:clamp(17px,4vw,23px);min-width:92px;text-align:center;white-space:nowrap}
+  main{flex:1;padding:30px 30px 22px;display:flex;flex-direction:column;gap:18px}
+  .qmeta{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#526064;font-weight:800}
+  .badge{background:#e8fbfd;color:var(--teal-dark);border:1px solid #bcecf2;border-radius:999px;padding:7px 12px;font-size:15px}
+  .score{font-size:15px;color:#617174}
+  .qbox{min-height:150px;border:1px solid #ece6d8;background:#fffdf6;border-radius:16px;padding:20px 18px;display:flex;flex-direction:column;justify-content:center}
+  .en{font-size:clamp(23px,5vw,38px);line-height:1.42;margin:0 0 10px;font-weight:760;letter-spacing:.005em}
+  .ja{font-size:clamp(17px,3.7vw,27px);line-height:1.48;color:#333;margin:0}
+  .blank{display:inline-block;min-width:70px;text-align:center}
+  .choices{display:grid;gap:14px;margin-top:0}
+  .choice{width:100%;border:0;border-bottom:4px solid var(--line);background:var(--cream);border-radius:10px;min-height:72px;font-size:clamp(24px,5vw,40px);color:var(--word);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.12s transform,.12s background,.12s opacity;font-weight:700;padding:10px 12px;text-align:center;box-shadow:0 2px 9px rgba(0,0,0,.05)}
+  .choice:active{transform:scale(.987)}
+  .choice:disabled{cursor:default}
+  .choice.correct{background:#e5f8ed;border-bottom-color:var(--ok);color:#0f7d43}
+  .choice.wrong{background:#fde9e5;border-bottom-color:var(--bad);color:#b62929}
+  .choice.dim{opacity:.42}
+  .feedback{min-height:46px;font-size:clamp(19px,4.5vw,26px);font-weight:850;text-align:center;display:flex;align-items:center;justify-content:center;padding:2px 4px}
+  .feedback.ok{color:var(--ok)}
+  .feedback.bad{color:var(--bad)}
+  .bottom{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;padding:0 24px 24px}
+  .btn{border:0;border-radius:999px;background:var(--teal);color:white;font-weight:850;font-size:18px;padding:13px 22px;cursor:pointer}
+  .btn.secondary{background:#738184}
+  .btn:disabled{opacity:.45;cursor:default}
+  .result-actions{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;margin:14px auto 6px}
+
+  .start{display:none;flex:1;padding:34px 24px 28px;text-align:center}
+  .start-card{max-width:720px;margin:0 auto;background:#fffdf6;border:1px solid #e6dcc5;border-radius:20px;padding:28px 20px;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+  .start h1{font-size:clamp(30px,6vw,46px);line-height:1.25;color:var(--teal-dark);margin:4px 0 10px}
+  .start p{font-size:clamp(17px,4vw,22px);line-height:1.65;margin:8px auto 20px;max-width:620px;color:#3c474a}
+  .mode-buttons{display:grid;gap:16px;margin:22px auto 8px;max-width:560px}
+  .mode-btn{border:0;border-radius:18px;background:var(--teal);color:white;font-weight:900;font-size:clamp(21px,5vw,31px);line-height:1.35;padding:20px 18px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.12);text-align:left}
+  .mode-btn span{display:block;font-size:.62em;font-weight:750;opacity:.92;margin-top:5px}
+  .mode-btn.review-mode{background:#f0a51d;color:#fff}
+  .mode-btn:disabled{background:#b9c4c7;color:#eef5f6;cursor:default;box-shadow:none}
+  .mode-btn.range-mode{background:#16a05f;color:#fff}
+  .range-panel{background:#eefbf3;border:1px solid #c8efd8;border-radius:18px;padding:16px 14px;display:grid;gap:12px;text-align:left}
+  .range-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .range-label{display:grid;gap:6px;font-weight:850;color:#326144;font-size:16px}
+  .range-input{width:100%;border:2px solid #b9dec9;border-radius:12px;background:white;font-size:24px;font-weight:850;padding:12px 10px;text-align:center;color:#223}
+  .range-error{min-height:24px;text-align:center;color:var(--bad);font-weight:850;font-size:15px}
+  .mini{font-size:14px;color:#666;width:100%;text-align:center;margin-top:2px}
+  .result{display:none;text-align:center;padding:30px 24px 18px}
+  .result h2{font-size:clamp(31px,6vw,46px);margin:8px 0 8px;color:var(--teal-dark)}
+  .result p{font-size:clamp(18px,4vw,23px);line-height:1.65;margin:6px auto 16px;max-width:720px}
+  .meter{width:min(560px,100%);height:18px;background:#eee;border-radius:999px;margin:18px auto;overflow:hidden}
+  .meter > div{height:100%;background:var(--teal);width:0%;transition:width .5s}
+  .review{margin-top:18px;text-align:left;display:grid;gap:12px}
+  .review-card{background:#fffdf6;border:1px solid #e4dac2;border-radius:14px;padding:14px 15px;line-height:1.55}
+  .review-card b{color:var(--teal-dark);font-size:18px}
+  .review-card .small{color:#666;font-size:14px;margin-top:4px}
+  @media (min-width:740px){.choices{grid-template-columns:1fr 1fr}}
+  @media (max-width:520px){
+    header{min-height:64px;padding:10px 13px 10px 16px}
+    .counter{font-size:17px;padding:8px 12px;min-width:76px}
+    main{padding:22px 14px 12px;gap:13px}
+    .qbox{min-height:145px;border-radius:14px;padding:17px 14px}
+    .choices{gap:11px}
+    .choice{min-height:62px;border-radius:9px}
+    .feedback{min-height:42px}
+    .bottom{padding-bottom:18px}
+    .range-row{grid-template-columns:1fr 1fr;gap:10px}
+    .range-input{font-size:22px;padding:10px 8px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">英検2級 英熟語 四択<span class="sub">イッテQ風・穴埋め練習</span></div>
+    <div class="counter" id="counter">選択</div>
+  </header>
+  <section class="start" id="start">
+    <div class="start-card">
+      <h1>どれで始めますか？</h1>
+      <p>今日の学習モードを選んでください。全問、前回の間違い、番号指定の3つから選べます。</p>
+      <div class="mode-buttons">
+        <button class="mode-btn" id="startAllBtn" type="button">1：全問解く<span id="startAllSub">34問すべてに挑戦</span></button>
+        <button class="mode-btn review-mode" id="startReviewModeBtn" type="button">2：前回間違えた問題を解く<span id="startReviewSub">復習リストを確認中</span></button>
+        <div class="range-panel" aria-label="問題番号を指定して解く">
+          <div class="range-row">
+            <label class="range-label" for="rangeStart">始め
+              <input class="range-input" id="rangeStart" type="number" inputmode="numeric" min="1" max="34" value="1" />
+            </label>
+            <label class="range-label" for="rangeEnd">終わり
+              <input class="range-input" id="rangeEnd" type="number" inputmode="numeric" min="1" max="34" value="34" />
+            </label>
+          </div>
+          <button class="mode-btn range-mode" id="startRangeModeBtn" type="button">3：問題番号を指定して解く<span id="startRangeSub">始め〜終わりの番号だけ出題</span></button>
+          <div class="range-error" id="rangeError" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <main id="quiz" style="display:none">
+    <div class="qmeta">
+      <div class="badge" id="qNo">No.1</div>
+      <div class="score" id="liveScore">正解 0</div>
+    </div>
+    <section class="qbox">
+      <p class="en" id="en"></p>
+      <p class="ja" id="ja"></p>
+    </section>
+    <section class="choices" id="choices"></section>
+    <div class="feedback" id="feedback"></div>
+  </main>
+  <section class="result" id="result">
+    <h2 id="resultTitle">結果</h2>
+    <p id="resultText"></p>
+    <div class="meter"><div id="meterBar"></div></div>
+    <div class="result-actions">
+      <button class="btn" id="reviewBtn">間違えた問題だけ復習する</button>
+      <button class="btn" id="restartBtn">全部をもう一度やる</button>
+      <button class="btn secondary" id="menuBtn">最初の画面に戻る</button>
+      <button class="btn secondary" id="clearReviewBtn">復習リストをリセット</button>
+    </div>
+    <div class="review" id="review"></div>
+  </section>
+  <div class="bottom">
+    <div class="mini" id="miniInfo">答えを選ぶと、自動で次の問題へ進みます。間違えた問題はこの端末に記憶されます。</div>
+  </div>
+</div>
+<script>
+const questions = [
+  {
+    "no": 1,
+    "en": "Imoto (　　　) at the airport.",
+    "answer": "turned up",
+    "ja": "イモトは空港に現れた。",
+    "choices": [
+      "turned up",
+      "looked up",
+      "went over",
+      "turned into"
+    ],
+    "note": "正解：turned up"
+  },
+  {
+    "no": 2,
+    "en": "Degawa (　　　) the word.",
+    "answer": "looked up",
+    "ja": "出川はその単語を調べた。",
+    "choices": [
+      "looked over",
+      "looked up",
+      "ran into",
+      "turned on"
+    ],
+    "note": "正解：looked up"
+  },
+  {
+    "no": 3,
+    "en": "They (　　　) the plan.",
+    "answer": "went over",
+    "ja": "彼らはその計画をもう一度確認した。",
+    "choices": [
+      "turned away",
+      "went over",
+      "ran out of",
+      "look up to"
+    ],
+    "note": "正解：went over"
+  },
+  {
+    "no": 4,
+    "en": "Uchimura (　　　) the script.",
+    "answer": "ran through",
+    "ja": "内村さんは台本をざっと確認した。",
+    "choices": [
+      "ran through",
+      "turned into",
+      "looked down on",
+      "went off"
+    ],
+    "note": "正解：ran through"
+  },
+  {
+    "no": 5,
+    "en": "Miyagawa (　　　) from the smell.",
+    "answer": "turned away",
+    "ja": "宮川大輔はそのにおいから顔をそむけた。",
+    "choices": [
+      "looked into",
+      "turned away",
+      "took up",
+      "got by"
+    ],
+    "note": "正解：turned away"
+  },
+  {
+    "no": 6,
+    "en": "They (　　　) Uchimura.",
+    "answer": "look up to",
+    "ja": "彼らは内村さんを尊敬している。",
+    "choices": [
+      "look up to",
+      "looked down on",
+      "looked through",
+      "ran out of"
+    ],
+    "note": "正解：look up to"
+  },
+  {
+    "no": 7,
+    "en": "Degawa walked (　　　) he were a star.",
+    "answer": "as if",
+    "ja": "出川はまるでスターであるかのように歩いた。",
+    "choices": [
+      "So far",
+      "as if",
+      "As for",
+      "in turn"
+    ],
+    "note": "正解：as if"
+  },
+  {
+    "no": 8,
+    "en": "Degawa (　　　) a strange animal.",
+    "answer": "ran into",
+    "ja": "出川は珍しい動物にばったり出会った。",
+    "choices": [
+      "ran out of",
+      "turned over",
+      "ran into",
+      "got over"
+    ],
+    "note": "正解：ran into"
+  },
+  {
+    "no": 9,
+    "en": "Uchimura (　　　) the card.",
+    "answer": "turned over",
+    "ja": "内村さんはカードを裏返した。",
+    "choices": [
+      "turned in",
+      "turned on",
+      "turned over",
+      "far from"
+    ],
+    "note": "正解：turned over"
+  },
+  {
+    "no": 10,
+    "en": "Imoto (　　　) the notes.",
+    "answer": "looked through",
+    "ja": "イモトはメモにざっと目を通した。",
+    "choices": [
+      "looked through",
+      "looked into",
+      "looked up",
+      "turned up"
+    ],
+    "note": "正解：looked through"
+  },
+  {
+    "no": 11,
+    "en": "It is (　　　) Imoto.",
+    "answer": "up to",
+    "ja": "それはイモト次第だ。",
+    "choices": [
+      "up to",
+      "as if",
+      "in vain",
+      "took over"
+    ],
+    "note": "正解：up to"
+  },
+  {
+    "no": 12,
+    "en": "They (　　　) water.",
+    "answer": "ran out of",
+    "ja": "彼らは水を使い果たした。",
+    "choices": [
+      "ran into",
+      "ran out of",
+      "went over",
+      "got by"
+    ],
+    "note": "正解：ran out of"
+  },
+  {
+    "no": 13,
+    "en": "Degawa (　　　) a mud monster.",
+    "answer": "turned into",
+    "ja": "出川は泥の怪物に変わった。",
+    "choices": [
+      "turned over",
+      "turned into",
+      "turned in",
+      "went off"
+    ],
+    "note": "正解：turned into"
+  },
+  {
+    "no": 14,
+    "en": "Miyagawa (　　　) the tools.",
+    "answer": "looked over",
+    "ja": "宮川大輔は道具を点検した。",
+    "choices": [
+      "looked up",
+      "looked over",
+      "turned away",
+      "took up"
+    ],
+    "note": "正解：looked over"
+  },
+  {
+    "no": 15,
+    "en": "(　　　), the trip is going well.",
+    "answer": "So far",
+    "ja": "今のところ、旅は順調に進んでいる。",
+    "choices": [
+      "Above all",
+      "So far",
+      "As for",
+      "far from"
+    ],
+    "note": "正解：So far"
+  },
+  {
+    "no": 16,
+    "en": "The food (　　　) delicious.",
+    "answer": "turned out to be",
+    "ja": "その食べ物は結局おいしいとわかった。",
+    "choices": [
+      "turned into",
+      "turned over",
+      "turned out to be",
+      "looked down on"
+    ],
+    "note": "正解：turned out to be"
+  },
+  {
+    "no": 17,
+    "en": "The team (　　　) the strange festival.",
+    "answer": "looked into",
+    "ja": "チームはその不思議な祭りを調査した。",
+    "choices": [
+      "looked into",
+      "looked through",
+      "turned on",
+      "ran through"
+    ],
+    "note": "正解：looked into"
+  },
+  {
+    "no": 18,
+    "en": "ItteQ (　　　) tonight.",
+    "answer": "is on",
+    "ja": "今夜、イッテQが放送されている。",
+    "choices": [
+      "went off",
+      "is on",
+      "turned up",
+      "got over"
+    ],
+    "note": "正解：is on"
+  },
+  {
+    "no": 19,
+    "en": "Uchimura (　　　) the light.",
+    "answer": "turned on",
+    "ja": "内村さんはライトをつけた。",
+    "choices": [
+      "turned on",
+      "turned in",
+      "went over",
+      "takes after"
+    ],
+    "note": "正解：turned on"
+  },
+  {
+    "no": 20,
+    "en": "Degawa was not (　　　) by anyone.",
+    "answer": "looked down on",
+    "ja": "出川は誰にも見下されなかった。",
+    "choices": [
+      "look up to",
+      "looked down on",
+      "looked into",
+      "turned away"
+    ],
+    "note": "正解：looked down on"
+  },
+  {
+    "no": 21,
+    "en": "He ran hard, but it was (　　　).",
+    "answer": "in vain",
+    "ja": "彼は一生懸命走ったが、それはむだになった。",
+    "choices": [
+      "in turn",
+      "Above all",
+      "in vain",
+      "up to"
+    ],
+    "note": "正解：in vain"
+  },
+  {
+    "no": 22,
+    "en": "Degawa (　　　) his answer.",
+    "answer": "turned in",
+    "ja": "出川は自分の答えを提出した。",
+    "choices": [
+      "turned away",
+      "turned in",
+      "turned into",
+      "looked over"
+    ],
+    "note": "正解：turned in"
+  },
+  {
+    "no": 23,
+    "en": "(　　　) Degawa, English missions are great.",
+    "answer": "As for",
+    "ja": "出川については、英語ミッションが最高だ。",
+    "choices": [
+      "As for",
+      "So far",
+      "as if",
+      "not to mention"
+    ],
+    "note": "正解：As for"
+  },
+  {
+    "no": 24,
+    "en": "He (　　　) Degawa.",
+    "answer": "takes after",
+    "ja": "彼は出川に似ている。",
+    "choices": [
+      "took up",
+      "takes after",
+      "took over",
+      "got by"
+    ],
+    "note": "正解：takes after"
+  },
+  {
+    "no": 25,
+    "en": "(　　　), teamwork is important.",
+    "answer": "Above all",
+    "ja": "何よりも、チームワークが大切だ。",
+    "choices": [
+      "So far",
+      "Above all",
+      "in vain",
+      "As for"
+    ],
+    "note": "正解：Above all"
+  },
+  {
+    "no": 26,
+    "en": "Imoto (　　　) mountain training.",
+    "answer": "took up",
+    "ja": "イモトは山登りの練習を始めた。",
+    "choices": [
+      "took over",
+      "took up",
+      "took Degawa's place",
+      "turned out to be"
+    ],
+    "note": "正解：took up"
+  },
+  {
+    "no": 27,
+    "en": "Degawa's English is (　　　) perfect.",
+    "answer": "far from",
+    "ja": "出川の英語は完璧にはほど遠い。",
+    "choices": [
+      "up to",
+      "far from",
+      "as if",
+      "in turn"
+    ],
+    "note": "正解：far from"
+  },
+  {
+    "no": 28,
+    "en": "Miyagawa (　　　) the challenge.",
+    "answer": "took over",
+    "ja": "宮川大輔はその挑戦を引き継いだ。",
+    "choices": [
+      "takes after",
+      "took over",
+      "got over",
+      "looked over"
+    ],
+    "note": "正解：took over"
+  },
+  {
+    "no": 29,
+    "en": "The alarm (　　　).",
+    "answer": "went off",
+    "ja": "アラームが鳴った。",
+    "choices": [
+      "is on",
+      "went off",
+      "turned on",
+      "ran into"
+    ],
+    "note": "正解：went off"
+  },
+  {
+    "no": 30,
+    "en": "Uchimura (　　　) for Degawa and tried the challenge.",
+    "answer": "took Degawa's place",
+    "ja": "内村さんは出川の代わりにその挑戦をした。",
+    "choices": [
+      "took Degawa's place",
+      "took over",
+      "takes after",
+      "got over"
+    ],
+    "note": "正解：took Degawa's place"
+  },
+  {
+    "no": 31,
+    "en": "Degawa (　　　) with simple English.",
+    "answer": "got by",
+    "ja": "出川は簡単な英語でなんとか乗り切った。",
+    "choices": [
+      "got over",
+      "got by",
+      "went over",
+      "looked into"
+    ],
+    "note": "正解：got by"
+  },
+  {
+    "no": 32,
+    "en": "They tried the food (　　　).",
+    "answer": "in turn",
+    "ja": "彼らは順番にその食べ物を試した。",
+    "choices": [
+      "in vain",
+      "in turn",
+      "not to mention",
+      "So far"
+    ],
+    "note": "正解：in turn"
+  },
+  {
+    "no": 33,
+    "en": "Imoto (　　　) her fear.",
+    "answer": "got over",
+    "ja": "イモトは恐怖を乗り越えた。",
+    "choices": [
+      "got by",
+      "look up to",
+      "got over",
+      "ran out of"
+    ],
+    "note": "正解：got over"
+  },
+  {
+    "no": 34,
+    "en": "It was hot, (　　　) full of bugs.",
+    "answer": "not to mention",
+    "ja": "暑かった。虫が多いのは言うまでもなかった。",
+    "choices": [
+      "As for",
+      "not to mention",
+      "Above all",
+      "far from"
+    ],
+    "note": "正解：not to mention"
+  }
+];
+
+const STORAGE_KEY = 'keiyu_eiken2_eijukugo_itteq4taku_set01_review_v1';
+
+let mode = 'normal'; // normal | review | range
+let activeQuestions = [...questions];
+let index = 0;
+let correctCount = 0;
+let answers = [];
+let locked = false;
+let autoTimer = null;
+let currentRangeLabel = '';
+const $ = id => document.getElementById(id);
+
+function getQuestionId(q) {
+  return String(q.no);
+}
+
+function loadReviewIds() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveReviewIds(ids) {
+  try {
+    const unique = [...new Set(ids.map(String))];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(unique));
+  } catch (e) {}
+}
+
+function addToReview(q) {
+  const ids = loadReviewIds();
+  const id = getQuestionId(q);
+  if (!ids.includes(id)) ids.push(id);
+  saveReviewIds(ids);
+}
+
+function removeFromReview(q) {
+  const id = getQuestionId(q);
+  saveReviewIds(loadReviewIds().filter(savedId => savedId !== id));
+}
+
+function clearReviewList() {
+  saveReviewIds([]);
+  updateMiniInfo();
+  showEmptyReviewMessage();
+}
+
+function getReviewQuestions() {
+  const ids = loadReviewIds();
+  return questions.filter(q => ids.includes(getQuestionId(q)));
+}
+
+function updateMiniInfo() {
+  const count = getReviewQuestions().length;
+  $('miniInfo').textContent = `答えを選ぶと、自動で次の問題へ進みます。復習リスト：${count}問`;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+
+function showStart() {
+  clearTimeout(autoTimer);
+  locked = false;
+  $('start').style.display = 'block';
+  $('quiz').style.display = 'none';
+  $('result').style.display = 'none';
+  $('counter').textContent = '選択';
+  $('rangeError').textContent = '';
+  $('rangeStart').max = String(questions.length);
+  $('rangeEnd').max = String(questions.length);
+  $('startAllSub').textContent = `${questions.length}問すべてに挑戦`;
+  const reviewCount = getReviewQuestions().length;
+  const btn = $('startReviewModeBtn');
+  btn.disabled = reviewCount === 0;
+  $('startReviewSub').textContent = reviewCount > 0
+    ? `前回の間違い ${reviewCount}問を復習`
+    : '前回間違えた問題はありません';
+  updateMiniInfo();
+}
+
+function startNormal() {
+  startQuiz([...questions], 'normal');
+}
+
+function startReview() {
+  const reviewQuestions = getReviewQuestions();
+  if (reviewQuestions.length === 0) {
+    showEmptyReviewMessage();
+    return;
+  }
+  startQuiz(reviewQuestions, 'review');
+}
+
+function startRange() {
+  const startNo = Number($('rangeStart').value);
+  const endNo = Number($('rangeEnd').value);
+  $('rangeError').textContent = '';
+
+  if (!Number.isInteger(startNo) || !Number.isInteger(endNo)) {
+    $('rangeError').textContent = `1〜${questions.length}の数字で入力してください。`;
+    return;
+  }
+  if (startNo < 1 || endNo < 1 || startNo > questions.length || endNo > questions.length) {
+    $('rangeError').textContent = `1〜${questions.length}の数字で入力してください。`;
+    return;
+  }
+  if (startNo > endNo) {
+    $('rangeError').textContent = '始めの番号は、終わりの番号より小さくしてください。';
+    return;
+  }
+
+  const rangeQuestions = questions.filter(q => q.no >= startNo && q.no <= endNo);
+  currentRangeLabel = `${startNo}〜${endNo}番`;
+  startQuiz(rangeQuestions, 'range');
+}
+
+function startQuiz(questionSet, nextMode) {
+  clearTimeout(autoTimer);
+  mode = nextMode;
+  if (nextMode !== 'range') currentRangeLabel = '';
+  activeQuestions = questionSet;
+  index = 0;
+  correctCount = 0;
+  answers = Array(activeQuestions.length).fill(null);
+  render();
+}
+
+function render() {
+  clearTimeout(autoTimer);
+  locked = false;
+  const q = activeQuestions[index];
+  $('start').style.display = 'none';
+  $('quiz').style.display = 'flex';
+  $('result').style.display = 'none';
+  $('counter').textContent = `${index + 1}/${activeQuestions.length}`;
+  if (mode === 'review') {
+    $('qNo').textContent = `復習 No.${q.no}`;
+  } else if (mode === 'range') {
+    $('qNo').textContent = `範囲 No.${q.no}`;
+  } else {
+    $('qNo').textContent = `No.${q.no}`;
+  }
+  $('liveScore').textContent = `正解 ${correctCount}`;
+  $('en').textContent = q.en;
+  $('ja').textContent = q.ja;
+  $('feedback').textContent = '';
+  $('feedback').className = 'feedback';
+  $('choices').innerHTML = '';
+  updateMiniInfo();
+
+  shuffle(q.choices).forEach(choice => {
+    const button = document.createElement('button');
+    button.className = 'choice';
+    button.type = 'button';
+    button.textContent = choice;
+    button.addEventListener('click', () => select(choice));
+    $('choices').appendChild(button);
+  });
+}
+
+function select(choice) {
+  if (locked) return;
+  locked = true;
+  answers[index] = choice;
+  const q = activeQuestions[index];
+  const ok = choice === q.answer;
+
+  if (ok) {
+    correctCount += 1;
+    if (mode === 'review') removeFromReview(q);
+  } else {
+    addToReview(q);
+  }
+
+  document.querySelectorAll('.choice').forEach(button => {
+    button.disabled = true;
+    if (button.textContent === q.answer) button.classList.add('correct');
+    else if (button.textContent === choice) button.classList.add('wrong');
+    else button.classList.add('dim');
+  });
+
+  $('feedback').textContent = ok ? '正解！' : `惜しい！ 正解は「${q.answer}」`;
+  $('feedback').className = 'feedback ' + (ok ? 'ok' : 'bad');
+  $('liveScore').textContent = `正解 ${correctCount}`;
+  updateMiniInfo();
+
+  if (ok) beep(880, 90);
+  const wait = ok ? 850 : 1850;
+  autoTimer = setTimeout(() => {
+    if (index < activeQuestions.length - 1) {
+      index += 1;
+      render();
+    } else {
+      showResult();
+    }
+  }, wait);
+}
+
+function beep(freq, duration) {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration / 1000);
+    osc.start();
+    osc.stop(ctx.currentTime + duration / 1000);
+  } catch (e) {}
+}
+
+function showResult() {
+  clearTimeout(autoTimer);
+  $('start').style.display = 'none';
+  $('quiz').style.display = 'none';
+  $('result').style.display = 'block';
+
+  const total = activeQuestions.length;
+  const rate = total === 0 ? 0 : Math.round(correctCount / total * 100);
+  const remainingReviewCount = getReviewQuestions().length;
+
+  $('counter').textContent = `${correctCount}/${total}`;
+  $('meterBar').style.width = rate + '%';
+
+  if (mode === 'review') {
+    $('resultTitle').textContent = remainingReviewCount === 0 ? '復習完了！' : '復習結果';
+    $('resultText').textContent = `${total}問中 ${correctCount}問正解です。復習リストに残っている問題は ${remainingReviewCount}問です。`;
+  } else if (mode === 'range') {
+    $('resultTitle').textContent = correctCount === total ? '範囲内 全問正解！' : '範囲指定の結果';
+    $('resultText').textContent = `${currentRangeLabel}の ${total}問中 ${correctCount}問正解です。正答率 ${rate}％。復習リストに残っている問題は ${remainingReviewCount}問です。`;
+  } else {
+    $('resultTitle').textContent = correctCount === total ? '全問正解！' : '結果';
+    $('resultText').textContent = `${total}問中 ${correctCount}問正解です。正答率 ${rate}％。復習リストに残っている問題は ${remainingReviewCount}問です。`;
+  }
+
+  const wrong = activeQuestions.map((q, i) => ({q, i})).filter(x => answers[x.i] !== x.q.answer);
+  if (wrong.length === 0) {
+    const message = mode === 'review'
+      ? '今回の復習問題は全部できました。復習リストから消えました。'
+      : '全部できました。すばらしいです。';
+    $('review').innerHTML = `<div class="review-card"><b>すばらしいです。</b><br>${message}</div>`;
+  } else {
+    $('review').innerHTML = wrong.map(({q, i}) => `
+      <div class="review-card">
+        <b>No.${q.no}　${escapeHtml(q.answer)}</b><br>
+        ${escapeHtml(q.en)}<br>
+        ${escapeHtml(q.ja)}
+        <div class="small">あなたの答え：${escapeHtml(answers[i] || '未回答')}</div>
+      </div>`).join('');
+  }
+
+  updateResultButtons();
+  updateMiniInfo();
+}
+
+function showEmptyReviewMessage() {
+  clearTimeout(autoTimer);
+  $('start').style.display = 'none';
+  $('quiz').style.display = 'none';
+  $('result').style.display = 'block';
+  $('counter').textContent = '0/0';
+  $('meterBar').style.width = '100%';
+  $('resultTitle').textContent = '復習する問題はありません';
+  $('resultText').textContent = '今この端末に残っている復習問題はありません。すばらしいです！';
+  $('review').innerHTML = '<div class="review-card"><b>復習リストは空です。</b><br>通常モードで間違えた問題があると、ここに自動で残ります。</div>';
+  updateResultButtons();
+  updateMiniInfo();
+}
+
+function updateResultButtons() {
+  const reviewCount = getReviewQuestions().length;
+  $('reviewBtn').style.display = reviewCount > 0 ? 'inline-block' : 'none';
+  $('clearReviewBtn').style.display = reviewCount > 0 ? 'inline-block' : 'none';
+  $('reviewBtn').textContent = reviewCount > 0 ? `間違えた問題だけ復習する（${reviewCount}問）` : '間違えた問題だけ復習する';
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>'"]/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'
+  }[ch]));
+}
+
+$('startAllBtn').addEventListener('click', startNormal);
+$('startReviewModeBtn').addEventListener('click', startReview);
+$('startRangeModeBtn').addEventListener('click', startRange);
+$('reviewBtn').addEventListener('click', startReview);
+$('restartBtn').addEventListener('click', startNormal);
+$('menuBtn').addEventListener('click', showStart);
+$('rangeStart').addEventListener('keydown', event => { if (event.key === 'Enter') startRange(); });
+$('rangeEnd').addEventListener('keydown', event => { if (event.key === 'Enter') startRange(); });
+
+$('clearReviewBtn').addEventListener('click', () => {
+  const reviewCount = getReviewQuestions().length;
+  if (reviewCount === 0) return;
+  if (confirm(`復習リスト ${reviewCount}問をリセットしますか？`)) {
+    clearReviewList();
+  }
+});
+
+showStart();
+</script>
+</body>
+</html>
