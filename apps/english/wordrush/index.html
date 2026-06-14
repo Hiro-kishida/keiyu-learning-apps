@@ -55,14 +55,6 @@ button{font-family:inherit;border:none;cursor:pointer;color:inherit}
 .xpfill{height:100%;background:var(--heat);border-radius:99px;width:0%;transition:width .8s cubic-bezier(.2,1,.3,1), background .4s}
 .xptext{font-size:10px;color:var(--sub);margin-top:5px;text-align:right;font-weight:700}
 /* ミッション */
-#missionBox{background:var(--card);border-radius:var(--r);padding:14px}
-#missionBox h3{font-size:11px;letter-spacing:.2em;color:var(--gold);margin-bottom:8px}
-.mi{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px;font-weight:700;border-bottom:1px solid rgba(255,255,255,.05)}
-.mi:last-child{border:none}
-.mi .chk{min-width:22px;height:22px;border-radius:7px;background:#0F0C26;display:flex;align-items:center;justify-content:center;font-size:13px}
-.mi.done{color:var(--good)} .mi.done .chk{background:rgba(94,230,168,.2)}
-.mi .prog{margin-left:auto;color:var(--sub);font-size:11px;font-weight:800}
-.mi.done .prog{color:var(--good)}
 /* 音色 */
 #toneBox{background:var(--card);border-radius:var(--r);padding:14px}
 #toneBox h3{font-size:11px;letter-spacing:.2em;color:var(--sub);margin-bottom:9px}
@@ -113,9 +105,9 @@ button{font-family:inherit;border:none;cursor:pointer;color:inherit}
 body.fever #qcard{border-color:var(--gold);box-shadow:0 0 36px rgba(255,215,94,.25)}
 #qword{font-family:'Archivo Black',sans-serif;font-size:clamp(32px,10.5vw,50px);letter-spacing:-.01em;word-break:break-word}
 #qhint{color:var(--sub);font-size:12px;font-weight:700;margin-top:6px;min-height:17px}
-#choices{display:grid;gap:10px;margin-top:16px;flex:1;align-content:start}
+#choices{display:grid;gap:30px;margin-top:16px;flex:1;align-content:start}
 .choice{
-  background:var(--card2);border-radius:var(--r);padding:15px 14px;font-size:16px;font-weight:700;
+  background:var(--card2);border-radius:var(--r);padding:18px 16px;font-size:20px;font-weight:700;
   text-align:left;display:flex;align-items:center;gap:12px;
   transition:transform .07s, background .15s;border:2px solid transparent;
 }
@@ -159,12 +151,66 @@ body.fever #qcard{border-color:var(--gold);box-shadow:0 0 36px rgba(255,215,94,.
 #zlist{flex:1;overflow-y:auto;background:var(--card);border-radius:var(--r);padding:6px 14px}
 .zw{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-weight:700;font-size:14px}
 .zw span{color:var(--sub);font-weight:500;font-size:13px}
+.znum{color:var(--heat);font-weight:800;font-size:12px;min-width:32px;font-family:'Archivo Black',sans-serif}
+.zleft{display:flex;align-items:center;gap:10px}
 .zw.locked{opacity:.35}
 .zw .tag{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;margin-left:8px}
 .zw .tag.m{background:rgba(255,215,94,.18);color:var(--gold)}
 .zw .tag.t{background:rgba(111,214,255,.15);color:#6FD6FF}
 .zw .tag.w{background:rgba(255,107,129,.15);color:var(--bad)}
 
+/* ===== 全問正解 派手演出 ===== */
+#celebrate{background:transparent}
+#arashiBg{position:absolute;inset:0;opacity:0;background:
+  linear-gradient(120deg,#FF5BA8,#FF9F43,#FFD75E,#5EE6A8,#6FD6FF,#A86CFF,#FF5BA8);
+  background-size:300% 300%}
+#arashiBg.go{animation:arBgFade 3.2s ease-out forwards, rbShift2 3s linear infinite}
+@keyframes arBgFade{0%{opacity:0}12%{opacity:.85}82%{opacity:.85}100%{opacity:0}}
+@keyframes rbShift2{from{background-position:0 0}to{background-position:300% 300%}}
+.praise-word{position:absolute;will-change:transform,opacity;pointer-events:none;
+  font-family:'M PLUS Rounded 1c','Archivo Black',sans-serif;font-weight:900;white-space:nowrap;
+  text-shadow:0 2px 8px rgba(0,0,0,.25),0 0 18px rgba(255,255,255,.5)}
+#arashiMain{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) scale(.2);opacity:0;z-index:5;
+  font-family:'Archivo Black','M PLUS Rounded 1c',sans-serif;font-weight:900;font-size:clamp(48px,15vw,86px);white-space:nowrap;text-align:center;color:#fff;
+  text-shadow:0 0 14px #FF5BA8,0 0 30px #FFD75E,0 0 48px #6FD6FF,0 3px 8px rgba(0,0,0,.3)}
+#arashiMain.go{animation:arMainIn .7s 1.2s cubic-bezier(.2,1.9,.3,1) forwards, arMainGlow .9s 1.9s ease-in-out infinite alternate}
+@keyframes arMainIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-12deg)}60%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(5deg)}100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-2deg)}}
+@keyframes arMainGlow{from{text-shadow:0 0 12px #FF5BA8,0 0 26px #FFD75E,0 3px 8px rgba(0,0,0,.3)}to{text-shadow:0 0 22px #FF5BA8,0 0 44px #FFD75E,0 0 70px #6FD6FF,0 3px 8px rgba(0,0,0,.3)}}
+
+#celebrate{position:fixed;inset:0;z-index:200;pointer-events:none;display:none;overflow:hidden}
+#flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fff,rgba(255,255,255,0));opacity:0}
+#flash.go{animation:flashAnim .5s ease-out}
+@keyframes flashAnim{0%{opacity:.9}100%{opacity:0}}
+#bigWord{
+  position:absolute;top:34%;left:50%;transform:translate(-50%,-50%) scale(.2);
+  font-family:'Archivo Black',sans-serif;font-size:clamp(54px,17vw,96px);
+  font-weight:900;text-align:center;white-space:nowrap;opacity:0;
+  background:linear-gradient(90deg,#FF3D8A,#FFD75E,#5EE6A8,#6FD6FF,#FF3D8A);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(255,215,94,.55));
+}
+#bigWord.go{animation:bigIn .6s cubic-bezier(.2,1.8,.35,1) forwards, hue 1.6s linear infinite}
+@keyframes bigIn{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-12deg)}
+  55%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(4deg)}
+  72%{transform:translate(-50%,-50%) scale(.92) rotate(-2deg)}
+  86%{transform:translate(-50%,-50%) scale(1.06) rotate(1deg)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}
+}
+@keyframes hue{from{background-position:0 0}to{background-position:300% 0}}
+#subWord{
+  position:absolute;top:34%;left:50%;transform:translate(-50%,38px) scale(.8);
+  font-family:'M PLUS Rounded 1c';font-weight:800;font-size:clamp(20px,6vw,30px);
+  color:var(--ink);opacity:0;text-shadow:0 2px 14px rgba(0,0,0,.6);white-space:nowrap;text-align:center;
+}
+#subWord.go{animation:subIn .5s .25s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes subIn{from{opacity:0;transform:translate(-50%,52px) scale(.8)}to{opacity:1;transform:translate(-50%,52px) scale(1)}}
+.cracker{position:absolute;width:12px;height:12px;will-change:transform,opacity}
+@keyframes shoot{
+  0%{opacity:1;transform:translate(0,0) rotate(0)}
+  100%{opacity:0}
+}
 .confetti{position:fixed;width:10px;height:10px;top:-12px;pointer-events:none;z-index:99;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110dvh) rotate(720deg)}}
 /* なまえ */
@@ -186,6 +232,10 @@ body.fever #qcard{border-color:var(--gold);box-shadow:0 0 36px rgba(255,215,94,.
 </head>
 <body>
 <div id="app">
+  <div id="celebrate">
+    <div id="arashiBg"></div>
+    <div id="flash"></div>
+  </div>
   <button id="sndToggle" aria-label="サウンド切り替え">🔊</button>
 
   <!-- ホーム -->
@@ -205,10 +255,6 @@ body.fever #qcard{border-color:var(--gold);box-shadow:0 0 36px rgba(255,215,94,.
       <div id="levelTitle"><span id="rankName">見習いルーキー</span><span id="lvNum">Lv.1</span></div>
       <div class="xpbar"><div class="xpfill" id="xpfill"></div></div>
       <div class="xptext" id="xptext"></div>
-    </div>
-    <div id="missionBox">
-      <h3>★ 今日のミッション</h3>
-      <div id="missionList"></div>
     </div>
     <div id="toneBox">
       <h3>♪ 効果音の音色(タップで試聴)</h3>
@@ -279,45 +325,106 @@ body.fever #qcard{border-color:var(--gold);box-shadow:0 0 36px rgba(255,215,94,.
 <script>
 /* ================= 単語データ ================= */
 const WORDS = [
-["achieve","達成する"],["consider","よく考える"],["require","必要とする"],["provide","提供する"],
-["reduce","減らす"],["increase","増やす"],["improve","改善する"],["develop","発達させる"],
-["describe","描写する"],["explain","説明する"],["suggest","提案する"],["mention","言及する"],
-["avoid","避ける"],["allow","許す"],["prevent","防ぐ"],["protect","守る"],
-["compare","比較する"],["contain","含む"],["create","創り出す"],["destroy","破壊する"],
-["decide","決める"],["depend","頼る"],["discover","発見する"],["encourage","励ます"],
-["establish","設立する"],["expect","予期する"],["express","表現する"],["fail","失敗する"],
-["follow","従う"],["forget","忘れる"],["gather","集める"],["happen","起こる"],
-["imagine","想像する"],["include","含める"],["influence","影響を与える"],["introduce","紹介する"],
-["maintain","維持する"],["manage","なんとかやる"],["measure","測る"],["notice","気づく"],
-["observe","観察する"],["obtain","得る"],["offer","申し出る"],["perform","演じる・行う"],
-["persuade","説得する"],["prepare","準備する"],["produce","生産する"],["promise","約束する"],
-["realize","悟る"],["receive","受け取る"],["recognize","認識する"],["recommend","勧める"],
-["refuse","断る"],["remain","残る"],["remind","思い出させる"],["remove","取り除く"],
-["replace","取り替える"],["respect","尊敬する"],["satisfy","満足させる"],["solve","解決する"],
-["succeed","成功する"],["suffer","苦しむ"],["supply","供給する"],["support","支える"],
-["survive","生き残る"],["accurate","正確な"],["ancient","古代の"],["available","利用できる"],
-["aware","気づいている"],["common","共通の"],["complex","複雑な"],["convenient","便利な"],
-["correct","正しい"],["curious","好奇心の強い"],["dangerous","危険な"],["efficient","効率的な"],
-["enormous","巨大な"],["essential","不可欠な"],["familiar","よく知っている"],["foreign","外国の"],
-["frequent","頻繁な"],["honest","正直な"],["independent","独立した"],["intelligent","知能の高い"],
-["modern","現代の"],["necessary","必要な"],["obvious","明らかな"],["ordinary","普通の"],
-["particular","特定の"],["patient","忍耐強い"],["polite","礼儀正しい"],["popular","人気のある"],
-["positive","前向きな"],["precious","貴重な"],["proper","適切な"],["rapid","急速な"],
-["recent","最近の"],["serious","深刻な"],["significant","重要な"],["silent","静かな"],
-["similar","似ている"],["specific","具体的な"],["strict","厳しい"],["sufficient","十分な"],
-["typical","典型的な"],["various","様々な"],["advantage","利点"],["amount","量"],
-["attitude","態度"],["audience","聴衆"],["behavior","ふるまい"],["benefit","利益"],
-["century","世紀"],["climate","気候"],["culture","文化"],["custom","習慣"],
-["decade","10年間"],["decision","決定"],["disease","病気"],["distance","距離"],
-["effect","効果"],["effort","努力"],["environment","環境"],["evidence","証拠"],
-["experience","経験"],["experiment","実験"],["expert","専門家"],["fact","事実"],
-["feature","特徴"],["generation","世代"],["government","政府"],["habit","癖・習慣"],
-["industry","産業"],["knowledge","知識"],["language","言語"],["material","材料"],
-["medicine","薬・医学"],["memory","記憶"],["method","方法"],["nature","自然"],
-["occasion","機会・場合"],["opinion","意見"],["opportunity","好機"],["population","人口"],
-["purpose","目的"],["quality","質"],["quantity","量(数量)"],["reason","理由"],
-["research","研究"],["resource","資源"],["result","結果"],["situation","状況"],
-["society","社会"],["solution","解決策"],["technology","科学技術"],["tradition","伝統"]
+[401,"demonstrate","論証する"],
+[402,"behave","振る舞う"],
+[403,"educate","教育する"],
+[404,"purchase","購入する"],
+[405,"recommend","勧める"],
+[406,"admit","認める"],
+[407,"generate","生み出す"],
+[408,"explore","調査する"],
+[409,"amaze","びっくりさせる"],
+[410,"tear","引き裂く"],
+[411,"settle","移り住む"],
+[412,"afford","余裕がある"],
+[413,"conclude","と結論づける"],
+[414,"advertise","宣伝する"],
+[415,"encounter","に遭遇する"],
+[416,"remind","思い出させる"],
+[417,"locate","位置する"],
+[418,"aid","援助する"],
+[419,"bite","噛む"],
+[420,"deliver","配達する"],
+[421,"perceive","知覚する"],
+[422,"distinguish","区別する"],
+[423,"imply","暗に意味する"],
+[424,"handle","処理する"],
+[425,"praise","賞賛する"],
+[426,"appeal","訴える"],
+[427,"insist","強く主張する"],
+[428,"compete","競う"],
+[429,"rank","位置づける"],
+[430,"deny","否定する"],
+[431,"reject","拒否する"],
+[432,"intend","意図する"],
+[433,"expose","さらす"],
+[434,"favor","賛成する"],
+[435,"inspire","奮起させる"],
+[436,"propose","提案する"],
+[437,"spell","つづる"],
+[438,"breathe","呼吸する"],
+[439,"repair","修理する"],
+[440,"consist","成る"],
+[441,"comment","意見"],
+[442,"instruction","指示"],
+[443,"religion","宗教"],
+[444,"neighborhood","地域"],
+[445,"laboratory","研究室"],
+[446,"presence","存在"],
+[447,"confidence","自信"],
+[448,"harm","害"],
+[449,"instrument","器具"],
+[450,"category","部類"],
+[451,"capital","資本"],
+[452,"outcome","成果"],
+[453,"notion","概念"],
+[454,"review","論評"],
+[455,"trait","特性"],
+[456,"diversity","多様性"],
+[457,"victim","犠牲者"],
+[458,"occasion","場合"],
+[459,"facility","施設"],
+[460,"stock","在庫品"],
+[461,"conference","会議"],
+[462,"humanity","人類"],
+[463,"dialect","方言"],
+[464,"proportion","割合"],
+[465,"tip","助言"],
+[466,"lawyer","弁護士"],
+[467,"stuff","物"],
+[468,"comfort","快適さ"],
+[469,"philosophy","哲学"],
+[470,"mammal","哺乳動物"],
+[471,"quantity","量"],
+[472,"landscape","風景"],
+[473,"tribe","部族"],
+[474,"organ","器官"],
+[475,"trial","試み"],
+[476,"norm","規範"],
+[477,"code","規定"],
+[478,"substance","物質"],
+[479,"multiple","多様な"],
+[480,"numerous","非常に数の多い"],
+[481,"narrow","狭い"],
+[482,"widespread","広範囲にわたる"],
+[483,"sufficient","十分な"],
+[484,"proper","適切な"],
+[485,"linguistic","言語の"],
+[486,"annual","年１回の"],
+[487,"contemporary","現代の"],
+[488,"contrary","反対の"],
+[489,"strict","厳しい"],
+[490,"civil","市民の"],
+[491,"odd","奇妙な"],
+[492,"unknown","不明の"],
+[493,"superior","よりすぐれた"],
+[494,"sensitive","敏感な"],
+[495,"violent","激しい"],
+[496,"virtual","仮想の"],
+[497,"regardless","かまわない"],
+[498,"immediate","即座の"],
+[499,"crucial","重要な"],
+[500,"somewhat","いくぶん"]
 ];
 
 /* ================= 状態 ================= */
@@ -340,7 +447,7 @@ async function loadState(){
     const v=await storeGet("wordrush_v2");
     if(v)S={...S,...JSON.parse(v)};
   }catch(e){}
-  ensureMissions(); renderHome();
+  renderHome();
   if(!S.name&&!S.askedName){S.askedName=true;saveState();askName(true);}
 }
 async function saveState(){
@@ -349,45 +456,6 @@ async function saveState(){
 function todayStr(){return new Date().toISOString().slice(0,10);}
 
 /* ================= デイリーミッション ================= */
-const MDEFS={
-  combo6:  {t:"コンボ ×6 を出す",        target:1, xp:80},
-  combo8:  {t:"コンボ ×8(オクターブ完成)",target:1, xp:100},
-  perfect: {t:"スプリントで全問正解",     target:1, xp:120},
-  solve20: {t:"合計20問に正解する",       target:20,xp:80},
-  solve30: {t:"合計30問に正解する",       target:30,xp:100},
-  fast8:   {t:"3秒以内の正解 ×8",        target:8, xp:90},
-  surv12:  {t:"サバイバルで12問突破",     target:1, xp:100},
-  fever1:  {t:"フィーバーを発動させる",   target:1, xp:80},
-  review1: {t:"復習ラッシュを1回プレイ",  target:1, xp:80},
-};
-function ensureMissions(){
-  const t=todayStr();
-  if(S.ms&&S.ms.d===t)return;
-  const keys=Object.keys(MDEFS);
-  let seed=parseInt(t.replace(/-/g,""),10);
-  const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
-  const pick=new Set();
-  while(pick.size<3)pick.add(keys[Math.floor(rnd()*keys.length)]);
-  S.ms={d:t,arr:[...pick].map(id=>({id,p:0,done:false}))};
-}
-function missionProg(id,n=1){
-  if(!S.ms)return;
-  const m=S.ms.arr.find(m=>m.id===id&&!m.done);
-  if(!m)return;
-  m.p=Math.min(MDEFS[id].target,m.p+n);
-  if(m.p>=MDEFS[id].target){
-    m.done=true;
-    const up=addXp(MDEFS[id].xp);
-    toast(`★ ミッション達成! +${MDEFS[id].xp} XP`);
-    sfx.lvup();
-    if(up)setTimeout(()=>toast("🎉 LEVEL UP!"),900);
-    if(S.ms.arr.every(x=>x.done)){
-      addXp(150);
-      setTimeout(()=>{toast("👑 本日コンプリート! +150 XP");burstConfetti(50);},1200);
-    }
-    saveState();
-  }
-}
 function toast(msg){
   const t=document.createElement("div");
   t.className="toast";t.textContent=msg;
@@ -420,7 +488,6 @@ function startFever(){
   document.body.classList.add("fever");
   $("feverBanner").style.display="block";
   sfx.fever();burstConfetti(30);
-  missionProg("fever1");
   feverTimer=setTimeout(endFever,FEVER_MS);
 }
 function endFever(){
@@ -534,7 +601,7 @@ const sfx={
 
 /* ================= 出題(苦手優先) ================= */
 function pickWords(reviewOnly,count){
-  let pool=WORDS.map((w,i)=>({i,en:w[0],ja:w[1]}));
+  let pool=WORDS.map((w,i)=>({i,num:w[0],en:w[1],ja:w[2]}));
   if(reviewOnly)pool=pool.filter(w=>{const st=S.word[w.en];return st&&st.wrong>st.right;});
   if(!pool.length)pool=WORDS.map((w,i)=>({i,en:w[0],ja:w[1]}));
   const weight=w=>{
@@ -555,7 +622,7 @@ function pickWords(reviewOnly,count){
 }
 function makeChoices(q){
   const set=new Set([q.ja]);
-  while(set.size<4)set.add(WORDS[Math.floor(Math.random()*WORDS.length)][1]);
+  while(set.size<4)set.add(WORDS[Math.floor(Math.random()*WORDS.length)][2]);
   return [...set].sort(()=>Math.random()-.5);
 }
 
@@ -568,7 +635,7 @@ function startGame(mode){ // "sprint" | "review" | "survival"
   const count=mode==="survival"?WORDS.length:QN;
   G={mode,qs:pickWords(mode==="review",count),idx:0,score:0,combo:0,maxCombo:0,ok:0,
      wrongList:[],lives:3,fever:false,feverUsed:false};
-  if(mode==="review")missionProg("review1");
+  if(mode==="review")
   applyHeat(0);$("score").textContent="0";
   $("lives").textContent=mode==="survival"?"❤️❤️❤️":"";
   show("quiz");nextQ();
@@ -618,10 +685,9 @@ function answer(btn,ok,q,now,timeout=false){
     S.correct++;st.right++;
     G.ok++;G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
     const t=now-G.qStart;
-    if(t<=3000)missionProg("fast8");
-    missionProg("solve20");missionProg("solve30");
-    if(G.combo===6)missionProg("combo6");
-    if(G.combo===8)missionProg("combo8");
+    if(t<=3000)
+    if(G.combo===6)
+    if(G.combo===8)
     if(G.combo===FEVER_AT&&!G.feverUsed)startFever();
     const speedBonus=Math.max(0,Math.round((G.qTime-t)/G.qTime*100));
     let mult=1+Math.min(G.combo*0.1,2);
@@ -661,6 +727,85 @@ function floatPts(btn,text){
   document.body.appendChild(el);
   setTimeout(()=>el.remove(),600);
 }
+function crackerBlast(){
+  const cel=$("celebrate");
+  const colors=["#6FD6FF","#FFC53D","#FF7A45","#FF3D8A","#5EE6A8","#FFD75E","#fff"];
+  const shapes=["star","heart","sq"];
+  const W=window.innerWidth,H=window.innerHeight;
+  // 左下・右下・中央下の3点から噴き上げ
+  const origins=[[W*0.12,H],[W*0.88,H],[W*0.5,H*1.02]];
+  origins.forEach((o,oi)=>{
+    const num=46;
+    for(let i=0;i<num;i++){
+      const c=document.createElement("div");
+      c.className="cracker";
+      const col=colors[Math.floor(Math.random()*colors.length)];
+      const shp=shapes[Math.floor(Math.random()*shapes.length)];
+      if(shp==="star"){c.textContent="★";c.style.cssText="font-size:18px;line-height:1;color:"+col;c.style.width="auto";c.style.height="auto";}
+      else if(shp==="heart"){c.textContent="♥";c.style.cssText="font-size:16px;line-height:1;color:"+col;c.style.width="auto";c.style.height="auto";}
+      else{c.style.background=col;c.style.borderRadius=Math.random()>.5?"50%":"2px";}
+      c.style.left=o[0]+"px";c.style.top=o[1]+"px";c.style.position="absolute";
+      cel.appendChild(c);
+      // 扇状に上向き初速 → 重力で落下
+      const baseAng = oi===0? -60 : oi===1? -120 : -90;
+      const ang=(baseAng + (Math.random()*70-35))*Math.PI/180;
+      const sp=H*(0.55+Math.random()*0.5);
+      const vx=Math.cos(ang)*sp, vy=Math.sin(ang)*sp;
+      const dur=1100+Math.random()*900;
+      const spin=(Math.random()*720-360);
+      c.animate([
+        {transform:"translate(0,0) rotate(0deg)",opacity:1},
+        {transform:`translate(${vx*0.5}px,${vy*0.5 + H*0.12}px) rotate(${spin*0.5}deg)`,opacity:1,offset:.5},
+        {transform:`translate(${vx*0.8}px,${vy*0.55 + H*0.85}px) rotate(${spin}deg)`,opacity:0}
+      ],{duration:dur,easing:"cubic-bezier(.18,.7,.5,1)",fill:"forwards"});
+      setTimeout(()=>c.remove(),dur+60);
+    }
+  });
+}
+const PRAISES=["すごい！","天才！","神！","最高！","完璧！","さすが！","よくやった！","素晴らしい！",
+  "やるね！","パーフェクト！","ブラボー！","AMAZING!","GENIUS!","PERFECT!","WONDERFUL!","BRAVO!",
+  "GREAT!","花マル！","100点！","えらい！","きらきら✨","NICE!","超人！","脱帽！","圧巻！","お見事！"];
+function praiseStorm(){
+  const cel=$("celebrate");
+  const cols=["#fff","#FFD75E","#FF5BA8","#6FD6FF","#5EE6A8","#FFE9A8","#C9A0FF"];
+  const nm=(S.name?S.name+"ちゃん、":"あなた、");
+  const total=32;
+  for(let i=0;i<total;i++){
+    setTimeout(()=>{
+      const el=document.createElement("div");
+      el.className="praise-word";
+      el.textContent=nm+PRAISES[Math.floor(Math.random()*PRAISES.length)];
+      el.style.color=cols[Math.floor(Math.random()*cols.length)];
+      el.style.fontSize=(17+Math.random()*22)+"px";
+      el.style.left=(Math.random()*78)+"vw";
+      el.style.top=(Math.random()*86)+"vh";
+      const rot=Math.random()*24-12;
+      cel.appendChild(el);
+      el.animate([
+        {opacity:0,transform:`scale(.4) rotate(${rot}deg)`},
+        {opacity:1,transform:`scale(1.1) rotate(${rot}deg)`,offset:.22},
+        {opacity:1,transform:`scale(1) rotate(${rot}deg)`,offset:.78},
+        {opacity:0,transform:`scale(1.04) rotate(${rot}deg) translateY(-18px)`}
+      ],{duration:3000,easing:"cubic-bezier(.2,1.4,.4,1)",fill:"forwards"});
+      setTimeout(()=>el.remove(),3040);
+      if(S.sound&&i%3===0){const f=[660,740,880,990][i%4];playNote(f,S.tone,0,.5);}
+    }, i*400);
+  }
+}
+function celebratePerfect(msg){
+  const cel=$("celebrate");
+  cel.style.display="block";
+  ["arashiBg","flash"].forEach(id=>{const e=$(id);e.classList.remove("go");void e.offsetWidth;});
+  $("arashiBg").classList.add("go");
+  $("flash").classList.add("go");
+  praiseStorm();
+  burstConfetti(50);
+  sfx.fanfare();
+  $("app").classList.remove("quake");void $("app").offsetWidth;$("app").classList.add("quake");
+  if(navigator.vibrate)try{navigator.vibrate([0,30,30,30,30,30,30,90]);}catch(e){}
+  setTimeout(()=>{cel.style.display="none";},16200);
+}
+function crackerBlast(){}
 function burstConfetti(n){
   const colors=["#6FD6FF","#FFC53D","#FF7A45","#FF3D8A","#5EE6A8"];
   for(let i=0;i<n;i++){
@@ -683,8 +828,6 @@ async function endGame(){
     S.streakDays=(S.lastDay===y)?S.streakDays+1:1;
     S.lastDay=t;
   }
-  if(G.mode==="sprint"&&G.ok===QN)missionProg("perfect");
-  if(G.mode==="survival"&&G.idx>=12&&G.ok>=12)missionProg("surv12");
   const gained=Math.round(G.score/10)+(G.mode!=="survival"&&G.ok===QN?100:0);
   const up=addXp(gained);
   let newBest=false;
@@ -695,6 +838,7 @@ async function endGame(){
   }
   let praise="";
   const nm=S.name?S.name+"ちゃん":"";
+  let doCelebrate=false;
   if(G.mode!=="survival"&&G.ok===QN){
     S.perfects=(S.perfects||0)+1;
     if(S.perfects===1)praise=(nm?nm+"、":"")+"初の全問正解!オクターブ完成🎵";
@@ -703,7 +847,7 @@ async function endGame(){
                   :["すごい!全問正解!","完璧!ドからドまで登りきった!","見事なオクターブ!"];
       praise=pool[S.perfects%pool.length];
     }
-    sfx.fanfare();
+    doCelebrate=true;
   }else if(newBest){
     praise=G.mode==="survival"?"新記録!耳も頭も冴えてる!":(nm?nm+"、":"")+"記録更新!";
   }
@@ -711,6 +855,7 @@ async function endGame(){
 
   $("praise").textContent=praise;
   $("praise").style.display=praise?"block":"none";
+  if(doCelebrate)setTimeout(()=>celebratePerfect(praise),120);
   $("resMode").textContent=G.mode==="survival"?"SURVIVAL RESULT":G.mode==="review"?"REVIEW RESULT":"SPRINT RESULT";
   $("resScore").textContent=G.mode==="survival"?G.ok:G.score;
   $("resBest").textContent=newBest?(G.mode==="survival"?"🏆 サバイバル記録更新!":"🏆 自己ベスト更新!"):"";
@@ -730,10 +875,9 @@ async function endGame(){
 
 /* ================= ホーム & 図鑑 ================= */
 function masteredCount(){
-  return WORDS.filter(w=>(S.word[w[0]]?.right||0)>=3).length;
+  return WORDS.filter(w=>(S.word[w[1]]?.right||0)>=3).length;
 }
 function renderHome(){
-  ensureMissions();
   $("stBest").textContent=S.best;
   $("stSurv").textContent=S.bestSurv;
   $("stStreak").textContent=S.streakDays;
@@ -749,16 +893,6 @@ function renderHome(){
   $("zukanRate").textContent=Math.round(masteredCount()/WORDS.length*100)+"%";
   $("sndToggle").textContent=S.sound?"🔊":"🔇";
   $("nameBtn").textContent=S.name?`ようこそ、${S.name}ちゃん 🎵`:"✏️ なまえを設定";
-  // ミッション
-  const ml=$("missionList");ml.innerHTML="";
-  S.ms.arr.forEach(m=>{
-    const def=MDEFS[m.id];
-    const d=document.createElement("div");
-    d.className="mi"+(m.done?" done":"");
-    d.innerHTML=`<span class="chk">${m.done?"✓":""}</span>${def.t}
-      <span class="prog">${m.done?"+"+def.xp+"XP":(def.target>1?m.p+"/"+def.target:"")}</span>`;
-    ml.appendChild(d);
-  });
   // 音色チップ
   const tc=$("toneChips");tc.innerHTML="";
   Object.entries(TONES).forEach(([k,name])=>{
@@ -775,7 +909,7 @@ function renderZukan(){
   $("zfill").style.width=(mc/WORDS.length*100)+"%";
   const zl=$("zlist");zl.innerHTML="";
   WORDS.forEach(w=>{
-    const st=S.word[w[0]];
+    const st=S.word[w[1]];
     const d=document.createElement("div");
     let tag="",locked=false;
     if(!st||st.right+st.wrong===0){locked=true;}
@@ -783,7 +917,7 @@ function renderZukan(){
     else if(st.wrong>st.right)tag=`<span class="tag w">⚡ 苦手</span>`;
     else tag=`<span class="tag t">挑戦中</span>`;
     d.className="zw"+(locked?" locked":"");
-    d.innerHTML=`<b>${w[0]}</b><span>${locked?"???":w[1]}${tag}</span>`;
+    d.innerHTML=`<span class="zleft"><span class="znum">${w[0]}</span><b>${w[1]}</b></span><span class="zja">${locked?"???":w[2]}${tag}</span>`;
     zl.appendChild(d);
   });
 }
