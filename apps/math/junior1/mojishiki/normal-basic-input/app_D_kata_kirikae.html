@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D案：型の切り替え練習</title>
+<style>
+:root{--bg:#f8f5ee;--card:#fff;--ink:#232323;--muted:#666;--line:#e7ded0;--accent:#2f6866;--soft:#e9f3f1;--ok:#197447;--bad:#aa3333;--warn:#8a5a00;--shadow:0 12px 28px rgba(0,0,0,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}button,input{font:inherit}.app{width:min(760px,100%);margin:0 auto;padding:16px 14px 32px}header{margin-bottom:12px}h1{font-size:clamp(22px,6vw,34px);margin:0;line-height:1.2}.sub{color:var(--muted);font-size:14px;line-height:1.6}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:18px;margin:14px 0}.progress{display:flex;flex-wrap:wrap;gap:8px}.pill{display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border-radius:999px;background:var(--soft);color:var(--accent);font-weight:800;font-size:14px}.stage{font-size:18px;font-weight:900;color:var(--accent);margin-bottom:8px}.problem{font-size:clamp(36px,11vw,66px);text-align:center;font-weight:900;padding:20px 8px;border-radius:18px;background:#fffdf8;border:1px solid var(--line)}.problem small{display:block;font-size:15px;color:var(--muted);font-weight:700;margin-bottom:8px}.prompt{font-size:clamp(18px,5vw,25px);font-weight:850;line-height:1.45;margin:4px 0 12px}.choice-grid{display:grid;gap:10px}.choice-grid.two{grid-template-columns:1fr 1fr}.choice{width:100%;min-height:58px;padding:12px;border-radius:16px;background:#fff;color:var(--accent);border:2px solid var(--accent);font-size:18px;font-weight:900;cursor:pointer}.choice:active,.key:active{transform:translateY(3px)}.answer-input{width:100%;min-height:64px;border:3px solid var(--accent);border-radius:18px;font-size:clamp(30px,9vw,48px);font-weight:900;text-align:center;padding:8px 12px;color:var(--ink);background:#fff}.answer-input:focus{outline:4px solid #cfe7e3}.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.key{border:2px solid #dfd4c4;border-radius:14px;min-height:50px;font-size:22px;font-weight:900;background:#fff;box-shadow:0 4px 0 #dfd4c4}.actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}@media(min-width:560px){.actions{grid-template-columns:1fr 1fr}.choice-grid.strategy{grid-template-columns:repeat(3,1fr)}}.primary,.ghost{width:100%;border-radius:16px;padding:15px 14px;min-height:58px;font-size:clamp(18px,5vw,24px);font-weight:900;cursor:pointer}.primary{background:var(--accent);color:#fff;border:0;box-shadow:0 6px 0 #214d4b}.ghost{background:#fff;color:var(--accent);border:2px solid var(--accent)}.feedback{min-height:58px;border-radius:16px;padding:12px 14px;margin-top:12px;font-size:17px;line-height:1.55;background:#faf6ec;border:1px solid var(--line)}.feedback.ok{background:#eef8f2;border-color:#bde4cf;color:var(--ok);font-weight:900}.feedback.try{background:#fff7e6;border-color:#efcf91;color:var(--warn);font-weight:800}.hidden{display:none}.shake{animation:shake .24s linear}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}.celebration{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1000}.confetti{position:absolute;top:-60px;font-size:30px;animation:fall 2.7s linear forwards}@keyframes fall{0%{transform:translateY(-80px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(420deg);opacity:0}}.big-celebrate{text-align:center;font-size:clamp(28px,8vw,48px);font-weight:1000;line-height:1.35;color:var(--ok)}
+</style>
+</head>
+<body>
+<main class="app">
+<header><h1>D案：型の切り替え練習</h1><div class="sub">問題の形を見て、使う作戦を選びます。</div></header>
+
+<section class="card"><div class="progress"><span class="pill" id="qPill">1問目 / 5問</span><span class="pill" id="scorePill">できた 0</span><span class="pill">作戦を見分ける</span></div></section>
+
+<section class="card"><div class="stage" id="stageText">まず問題の形を見よう</div><div class="problem"><small>この問題を見てください</small><span id="problemText"></span></div></section>
+
+<section class="card hidden" id="relationCard">
+<div class="prompt">前の問題と同じ作戦？ ちがう作戦？</div>
+<div class="choice-grid two">
+<button class="choice" onclick="checkRelation('same')">同じ作戦</button>
+<button class="choice" onclick="checkRelation('different')">ちがう作戦</button>
+</div>
+<div class="feedback" id="relationFeedback">前の問題で使った作戦と比べます。</div>
+</section>
+
+<section class="card hidden" id="strategyCard">
+<div class="prompt">これはどの作戦？</div>
+<div class="choice-grid strategy">
+<button class="choice" onclick="checkStrategy('combine')">同類項をまとめる</button>
+<button class="choice" onclick="checkStrategy('multiply')">文字式に数をかける</button>
+<button class="choice" onclick="checkStrategy('distribution')">分配法則<br>（かっこを外す）</button>
+</div>
+<div class="feedback" id="strategyFeedback">問題の形に合う作戦を選びます。</div>
+</section>
+
+<section class="card hidden" id="answerCard">
+<div class="prompt">その作戦で計算しよう。</div>
+<input id="answerInput" class="answer-input" autocomplete="off" autocapitalize="none" inputmode="none" readonly placeholder="ここに答え">
+<div class="keypad">
+<button class="key" onclick="addToInput('1')">1</button><button class="key" onclick="addToInput('2')">2</button><button class="key" onclick="addToInput('3')">3</button><button class="key" onclick="addToInput('a')">a</button>
+<button class="key" onclick="addToInput('4')">4</button><button class="key" onclick="addToInput('5')">5</button><button class="key" onclick="addToInput('6')">6</button><button class="key" onclick="addToInput('x')">x</button>
+<button class="key" onclick="addToInput('7')">7</button><button class="key" onclick="addToInput('8')">8</button><button class="key" onclick="addToInput('9')">9</button><button class="key" onclick="addToInput('+')">+</button>
+<button class="key" onclick="addToInput('0')">0</button><button class="key" onclick="addToInput('-')">−</button><button class="key" onclick="deleteInput()">⌫</button><button class="key" onclick="clearInput()">C</button>
+</div>
+<div class="actions"><button class="primary" onclick="checkAnswer()">答え合わせ</button><button class="ghost" onclick="showHint()">ヒント</button></div>
+<div class="feedback" id="answerFeedback">数字と文字をボタンで入力します。</div>
+</section>
+
+<button class="ghost" onclick="restart()">最初からやり直す</button>
+</main>
+
+<script>
+function playCorrectSound(){try{const A=window.AudioContext||window.webkitAudioContext,ctx=new A(),notes=[698,1047];notes.forEach((freq,i)=>{const start=ctx.currentTime+i*.14,o=ctx.createOscillator(),g=ctx.createGain();o.type="triangle";o.frequency.setValueAtTime(freq,start);g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(.16,start+.012);g.gain.exponentialRampToValueAtTime(.0001,start+.16);o.connect(g);g.connect(ctx.destination);o.start(start);o.stop(start+.17)})}catch(e){}}
+function playCelebrationSound(){try{const A=window.AudioContext||window.webkitAudioContext,ctx=new A(),notes=[523,659,784,1046];notes.forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.setValueAtTime(freq,ctx.currentTime+i*.12);g.gain.setValueAtTime(.0001,ctx.currentTime+i*.12);g.gain.exponentialRampToValueAtTime(.16,ctx.currentTime+i*.12+.02);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+i*.12+.18);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.12);o.stop(ctx.currentTime+i*.12+.2)})}catch(e){}}
+function showConfetti(){const layer=document.createElement("div");layer.className="celebration";const pieces=["🎉","✨","🌟","💮","👏","🎊"];for(let i=0;i<38;i++){const s=document.createElement("span");s.className="confetti";s.textContent=pieces[Math.floor(Math.random()*pieces.length)];s.style.left=Math.random()*100+"vw";s.style.animationDelay=Math.random()*.7+"s";s.style.fontSize=22+Math.random()*24+"px";layer.appendChild(s)}document.body.appendChild(layer);setTimeout(()=>layer.remove(),3600)}
+
+const QUESTIONS=[
+{problem:"7a + 5a",answer:"12a",aliases:["12a"],strategy:"combine",hint:"a はそのまま。数字だけ 7 + 5 を計算します。"},
+{problem:"4a + 3 + 5a + 2",answer:"9a + 5",aliases:["9a+5"],strategy:"combine",hint:"a の項どうし、数字どうしでまとめます。"},
+{problem:"3(4a + 5)",answer:"12a + 15",aliases:["12a+15"],strategy:"distribution",hint:"3を、4a と 5 の両方にかけます。"},
+{problem:"x × (-8)",answer:"-8x",aliases:["-8x"],strategy:"multiply",hint:"x は 1x。1 × (-8) を計算します。"},
+{problem:"-x + 10x",answer:"9x",aliases:["9x"],strategy:"combine",hint:"-x は -1x。-1 + 10 = 9 です。"}
+];
+
+let qIndex=0,score=0,answerLocked=false;
+
+function setText(id,value){const el=document.getElementById(id);if(el)el.textContent=value}
+function setVisible(id,visible){document.getElementById(id).classList.toggle("hidden",!visible)}
+function setFeedback(id,text,className=""){const el=document.getElementById(id);el.className=`feedback${className?` ${className}`:""}`;el.textContent=text}
+function markShake(id){const el=document.getElementById(id);el.classList.remove("shake");void el.offsetWidth;el.classList.add("shake")}
+function normalizeAnswer(s){if(!s)return"";const fw="０１２３４５６７８９";let out=s.trim();out=out.replace(/[０-９]/g,ch=>String(fw.indexOf(ch)));out=out.replace(/[ａＡA]/g,"a").replace(/[ｘＸX]/g,"x");out=out.replace(/[＋]/g,"+").replace(/[−ー－]/g,"-");out=out.replace(/[×＊*]/g,"");out=out.replace(/\s+/g,"");return out}
+function isCorrect(input,q){const normalized=normalizeAnswer(input);return[q.answer,...(q.aliases||[])].map(normalizeAnswer).includes(normalized)}
+function expectedRelation(){return QUESTIONS[qIndex].strategy===QUESTIONS[qIndex-1].strategy?"same":"different"}
+
+function render(){
+if(qIndex>=QUESTIONS.length)return showResult();
+const q=QUESTIONS[qIndex];
+setText("qPill",`${qIndex+1}問目 / ${QUESTIONS.length}問`);
+setText("scorePill",`できた ${score}`);
+setText("problemText",q.problem);
+setText("stageText",qIndex===0?"まず問題の形を見よう":"前の問題から作戦を切り替えるか考えよう");
+setVisible("relationCard",qIndex>0);
+setVisible("strategyCard",qIndex===0);
+setVisible("answerCard",false);
+setFeedback("relationFeedback","前の問題で使った作戦と比べます。");
+setFeedback("strategyFeedback","問題の形に合う作戦を選びます。");
+setFeedback("answerFeedback","数字と文字をボタンで入力します。");
+document.getElementById("answerInput").value="";
+answerLocked=false;
+}
+
+function checkRelation(choice){
+if(choice===expectedRelation()){
+setFeedback("relationFeedback","その見分け方で合っています。","ok");
+setVisible("strategyCard",true);
+}else{
+const hint=expectedRelation()==="same"?"前の問題と、式の形をもう一度比べよう。":"前の問題と同じ手順で始めてよいか考えよう。";
+setFeedback("relationFeedback",hint,"try");
+markShake("relationCard");
+}
+}
+
+function checkStrategy(strategy){
+const q=QUESTIONS[qIndex];
+if(strategy===q.strategy){
+setFeedback("strategyFeedback","作戦が合っています。次は計算です。","ok");
+setVisible("answerCard",true);
+}else{
+const hints={
+combine:"同じ文字の項を見つけよう。",
+multiply:"文字式と数の間にある記号を見よう。",
+distribution:"かっこの外の数を、中の両方にかけます。"
+};
+setFeedback("strategyFeedback",hints[q.strategy],"try");
+markShake("strategyCard");
+}
+}
+
+function addToInput(value){if(!answerLocked)document.getElementById("answerInput").value+=value}
+function deleteInput(){if(!answerLocked){const input=document.getElementById("answerInput");input.value=input.value.slice(0,-1)}}
+function clearInput(){if(!answerLocked)document.getElementById("answerInput").value=""}
+
+function checkAnswer(){
+if(answerLocked)return;
+const q=QUESTIONS[qIndex],input=document.getElementById("answerInput");
+if(!normalizeAnswer(input.value)){
+setFeedback("answerFeedback","まず答えを入力してください。","try");
+markShake("answerCard");
+return;
+}
+if(isCorrect(input.value,q)){
+answerLocked=true;
+score++;
+playCorrectSound();
+setText("scorePill",`できた ${score}`);
+setFeedback("answerFeedback",`正解！ 答え：${q.answer}`,"ok");
+setTimeout(()=>{qIndex++;render()},900);
+}else{
+setFeedback("answerFeedback",`もう一度やってみよう。${q.hint}`,"try");
+markShake("answerCard");
+}
+}
+
+function showHint(){setFeedback("answerFeedback",QUESTIONS[qIndex].hint,"try")}
+function restart(){qIndex=0;score=0;render()}
+function showResult(){
+showConfetti();
+playCelebrationSound();
+document.querySelector(".app").innerHTML=`<header><h1>D案：型の切り替え練習</h1><div class="sub">5問おわりました。</div></header><section class="card"><div class="big-celebrate">5問できました！<br>作戦を切り替えられました！</div></section><section class="card"><button class="primary" onclick="location.reload()">もう一度</button></section>`;
+}
+
+document.addEventListener("keydown",event=>{const card=document.getElementById("answerCard");if(event.key==="Enter"&&card&&!card.classList.contains("hidden"))checkAnswer()});
+render();
+</script>
+</body>
+</html>
