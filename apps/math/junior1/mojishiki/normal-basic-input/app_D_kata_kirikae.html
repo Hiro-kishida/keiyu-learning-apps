@@ -6,7 +6,7 @@
 <title>D案：型の切り替え練習</title>
 <style>
 :root{--bg:#f8f5ee;--card:#fff;--ink:#232323;--muted:#666;--line:#e7ded0;--accent:#2f6866;--soft:#e9f3f1;--ok:#197447;--bad:#aa3333;--warn:#8a5a00;--shadow:0 12px 28px rgba(0,0,0,.08)}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}button,input{font:inherit}.app{width:min(760px,100%);margin:0 auto;padding:16px 14px 32px}header{margin-bottom:12px}h1{font-size:clamp(22px,6vw,34px);margin:0;line-height:1.2}.sub{color:var(--muted);font-size:14px;line-height:1.6}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:18px;margin:14px 0}.progress{display:flex;flex-wrap:wrap;gap:8px}.pill{display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border-radius:999px;background:var(--soft);color:var(--accent);font-weight:800;font-size:14px}.stage{font-size:18px;font-weight:900;color:var(--accent);margin-bottom:8px}.problem{font-size:clamp(36px,11vw,66px);text-align:center;font-weight:900;padding:20px 8px;border-radius:18px;background:#fffdf8;border:1px solid var(--line)}.problem small{display:block;font-size:15px;color:var(--muted);font-weight:700;margin-bottom:8px}.prompt{font-size:clamp(18px,5vw,25px);font-weight:850;line-height:1.45;margin:4px 0 12px}.choice-grid{display:grid;gap:10px}.choice-grid.two{grid-template-columns:1fr 1fr}.choice{width:100%;min-height:58px;padding:12px;border-radius:16px;background:#fff;color:var(--accent);border:2px solid var(--accent);font-size:18px;font-weight:900;cursor:pointer}.choice:active,.key:active{transform:translateY(3px)}.answer-input{width:100%;min-height:64px;border:3px solid var(--accent);border-radius:18px;font-size:clamp(30px,9vw,48px);font-weight:900;text-align:center;padding:8px 12px;color:var(--ink);background:#fff}.answer-input:focus{outline:4px solid #cfe7e3}.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.key{border:2px solid #dfd4c4;border-radius:14px;min-height:50px;font-size:22px;font-weight:900;background:#fff;box-shadow:0 4px 0 #dfd4c4}.actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}@media(min-width:560px){.actions{grid-template-columns:1fr 1fr}.choice-grid.strategy{grid-template-columns:repeat(3,1fr)}}.primary,.ghost{width:100%;border-radius:16px;padding:15px 14px;min-height:58px;font-size:clamp(18px,5vw,24px);font-weight:900;cursor:pointer}.primary{background:var(--accent);color:#fff;border:0;box-shadow:0 6px 0 #214d4b}.ghost{background:#fff;color:var(--accent);border:2px solid var(--accent)}.feedback{min-height:58px;border-radius:16px;padding:12px 14px;margin-top:12px;font-size:17px;line-height:1.55;background:#faf6ec;border:1px solid var(--line)}.feedback.ok{background:#eef8f2;border-color:#bde4cf;color:var(--ok);font-weight:900}.feedback.try{background:#fff7e6;border-color:#efcf91;color:var(--warn);font-weight:800}.hidden{display:none}.shake{animation:shake .24s linear}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}.celebration{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1000}.confetti{position:absolute;top:-60px;font-size:30px;animation:fall 2.7s linear forwards}@keyframes fall{0%{transform:translateY(-80px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(420deg);opacity:0}}.big-celebrate{text-align:center;font-size:clamp(28px,8vw,48px);font-weight:1000;line-height:1.35;color:var(--ok)}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}button,input{font:inherit}.app{width:min(760px,100%);margin:0 auto;padding:10px 14px 20px}header{margin-bottom:8px}h1{font-size:clamp(22px,6vw,34px);margin:0;line-height:1.2}.sub{color:var(--muted);font-size:14px;line-height:1.5}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:14px;margin:10px 0}.progress{display:flex;flex-wrap:wrap;gap:6px}.pill{display:inline-flex;align-items:center;min-height:32px;padding:5px 10px;border-radius:999px;background:var(--soft);color:var(--accent);font-weight:800;font-size:13px}.stage{font-size:17px;font-weight:900;color:var(--accent);margin-bottom:6px}.problem{font-size:clamp(34px,10vw,60px);text-align:center;font-weight:900;padding:16px 8px;border-radius:18px;background:#fffdf8;border:1px solid var(--line)}.problem small{display:block;font-size:14px;color:var(--muted);font-weight:700;margin-bottom:6px}.answer-problem{font-size:clamp(28px,8vw,42px);text-align:center;font-weight:900;padding:10px 6px;margin-bottom:10px;border-radius:14px;background:#fffdf8;border:1px solid var(--line)}.prompt{font-size:clamp(18px,5vw,24px);font-weight:850;line-height:1.4;margin:2px 0 10px}.choice-grid{display:grid;gap:8px}.choice{width:100%;min-height:52px;padding:9px;border-radius:16px;background:#fff;color:var(--accent);border:2px solid var(--accent);font-size:17px;font-weight:900;cursor:pointer}.choice:active,.key:active{transform:translateY(3px)}.answer-input{width:100%;min-height:56px;border:3px solid var(--accent);border-radius:16px;font-size:clamp(28px,8vw,42px);font-weight:900;text-align:center;padding:6px 10px;color:var(--ink);background:#fff}.answer-input:focus{outline:4px solid #cfe7e3}.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.key{border:2px solid #dfd4c4;border-radius:12px;min-height:43px;font-size:20px;font-weight:900;background:#fff;box-shadow:0 3px 0 #dfd4c4}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}@media(min-width:560px){.choice-grid.strategy{grid-template-columns:repeat(3,1fr)}}.primary,.ghost{width:100%;border-radius:14px;padding:11px 10px;min-height:50px;font-size:clamp(17px,4.5vw,22px);font-weight:900;cursor:pointer}.primary{background:var(--accent);color:#fff;border:0;box-shadow:0 5px 0 #214d4b}.ghost{background:#fff;color:var(--accent);border:2px solid var(--accent)}.feedback{min-height:48px;border-radius:14px;padding:9px 11px;margin-top:9px;font-size:15px;line-height:1.45;background:#faf6ec;border:1px solid var(--line)}.feedback.ok{background:#eef8f2;border-color:#bde4cf;color:var(--ok);font-weight:900}.feedback.try{background:#fff7e6;border-color:#efcf91;color:var(--warn);font-weight:800}.hidden{display:none}.shake{animation:shake .24s linear}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}.celebration{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1000}.confetti{position:absolute;top:-60px;font-size:30px;animation:fall 2.7s linear forwards}@keyframes fall{0%{transform:translateY(-80px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(420deg);opacity:0}}.big-celebrate{text-align:center;font-size:clamp(28px,8vw,48px);font-weight:1000;line-height:1.35;color:var(--ok)}
 </style>
 </head>
 <body>
@@ -15,18 +15,9 @@
 
 <section class="card"><div class="progress"><span class="pill" id="qPill">1問目 / 5問</span><span class="pill" id="scorePill">できた 0</span><span class="pill">作戦を見分ける</span></div></section>
 
-<section class="card"><div class="stage" id="stageText">まず問題の形を見よう</div><div class="problem"><small>この問題を見てください</small><span id="problemText"></span></div></section>
+<section class="card" id="problemCard"><div class="stage" id="stageText">問題の形を見よう</div><div class="problem"><small>この問題を見てください</small><span id="problemText"></span></div></section>
 
-<section class="card hidden" id="relationCard">
-<div class="prompt">前の問題と同じ作戦？ ちがう作戦？</div>
-<div class="choice-grid two">
-<button class="choice" onclick="checkRelation('same')">同じ作戦</button>
-<button class="choice" onclick="checkRelation('different')">ちがう作戦</button>
-</div>
-<div class="feedback" id="relationFeedback">前の問題で使った作戦と比べます。</div>
-</section>
-
-<section class="card hidden" id="strategyCard">
+<section class="card" id="strategyCard">
 <div class="prompt">これはどの作戦？</div>
 <div class="choice-grid strategy">
 <button class="choice" onclick="checkStrategy('combine')">同類項をまとめる</button>
@@ -38,6 +29,7 @@
 
 <section class="card hidden" id="answerCard">
 <div class="prompt">その作戦で計算しよう。</div>
+<div class="answer-problem" id="answerProblemText"></div>
 <input id="answerInput" class="answer-input" autocomplete="off" autocapitalize="none" inputmode="none" readonly placeholder="ここに答え">
 <div class="keypad">
 <button class="key" onclick="addToInput('1')">1</button><button class="key" onclick="addToInput('2')">2</button><button class="key" onclick="addToInput('3')">3</button><button class="key" onclick="addToInput('a')">a</button>
@@ -73,40 +65,29 @@ function setFeedback(id,text,className=""){const el=document.getElementById(id);
 function markShake(id){const el=document.getElementById(id);el.classList.remove("shake");void el.offsetWidth;el.classList.add("shake")}
 function normalizeAnswer(s){if(!s)return"";const fw="０１２３４５６７８９";let out=s.trim();out=out.replace(/[０-９]/g,ch=>String(fw.indexOf(ch)));out=out.replace(/[ａＡA]/g,"a").replace(/[ｘＸX]/g,"x");out=out.replace(/[＋]/g,"+").replace(/[−ー－]/g,"-");out=out.replace(/[×＊*]/g,"");out=out.replace(/\s+/g,"");return out}
 function isCorrect(input,q){const normalized=normalizeAnswer(input);return[q.answer,...(q.aliases||[])].map(normalizeAnswer).includes(normalized)}
-function expectedRelation(){return QUESTIONS[qIndex].strategy===QUESTIONS[qIndex-1].strategy?"same":"different"}
-
 function render(){
 if(qIndex>=QUESTIONS.length)return showResult();
 const q=QUESTIONS[qIndex];
 setText("qPill",`${qIndex+1}問目 / ${QUESTIONS.length}問`);
 setText("scorePill",`できた ${score}`);
 setText("problemText",q.problem);
-setText("stageText",qIndex===0?"まず問題の形を見よう":"前の問題から作戦を切り替えるか考えよう");
-setVisible("relationCard",qIndex>0);
-setVisible("strategyCard",qIndex===0);
+setText("answerProblemText",q.problem);
+setText("stageText","問題の形を見よう");
+setVisible("problemCard",true);
+setVisible("strategyCard",true);
 setVisible("answerCard",false);
-setFeedback("relationFeedback","前の問題で使った作戦と比べます。");
 setFeedback("strategyFeedback","問題の形に合う作戦を選びます。");
 setFeedback("answerFeedback","数字と文字をボタンで入力します。");
 document.getElementById("answerInput").value="";
 answerLocked=false;
 }
 
-function checkRelation(choice){
-if(choice===expectedRelation()){
-setFeedback("relationFeedback","その見分け方で合っています。","ok");
-setVisible("strategyCard",true);
-}else{
-const hint=expectedRelation()==="same"?"前の問題と、式の形をもう一度比べよう。":"前の問題と同じ手順で始めてよいか考えよう。";
-setFeedback("relationFeedback",hint,"try");
-markShake("relationCard");
-}
-}
-
 function checkStrategy(strategy){
 const q=QUESTIONS[qIndex];
 if(strategy===q.strategy){
 setFeedback("strategyFeedback","作戦が合っています。次は計算です。","ok");
+setVisible("problemCard",false);
+setVisible("strategyCard",false);
 setVisible("answerCard",true);
 }else{
 const hints={
