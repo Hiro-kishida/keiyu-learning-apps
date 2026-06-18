@@ -57,7 +57,7 @@ const QUESTIONS=[
 {problem:"-x + 10x",answer:"9x",aliases:["9x"],strategy:"combine",hint:"-x は -1x。-1 + 10 = 9 です。"}
 ];
 
-let qIndex=0,score=0,answerLocked=false,problemMistakes=[];
+let qIndex=0,score=0,answerLocked=false,problemMistakes=QUESTIONS.map(()=>({strategy:false,answer:false}));
 
 function setText(id,value){const el=document.getElementById(id);if(el)el.textContent=value}
 function setVisible(id,visible){document.getElementById(id).classList.toggle("hidden",!visible)}
