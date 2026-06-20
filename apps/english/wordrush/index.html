@@ -59,6 +59,13 @@ button{font-family:inherit;border:none;cursor:pointer;color:inherit}
 #toneBox{background:var(--card);border-radius:var(--r);padding:14px}
 #toneBox h3{font-size:11px;letter-spacing:.2em;color:var(--sub);margin-bottom:9px}
 #toneChips{display:flex;flex-wrap:wrap;gap:7px}
+#rangeBox{background:var(--card);border-radius:var(--r);padding:14px}
+#rangeBox h3{font-size:11px;letter-spacing:.2em;color:var(--sub);margin-bottom:9px}
+.range-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.range-row input{width:78px;background:var(--card2);border:1.5px solid transparent;border-radius:12px;padding:9px 10px;font-size:15px;font-weight:800;color:var(--ink);text-align:center}
+.range-row input:focus{outline:none;border-color:var(--heat)}
+.range-row .dash{color:var(--sub);font-weight:800}
+.range-now{margin-top:8px;font-size:12px;font-weight:700;color:var(--heat)}
 .chip{
   background:var(--card2);border:1.5px solid transparent;border-radius:999px;
   padding:8px 13px;font-size:12px;font-weight:800;color:var(--sub);
@@ -262,6 +269,17 @@ body.fever #qcard{border-color:var(--gold);box-shadow:0 0 36px rgba(255,215,94,.
     </div>
     <button id="zukanBtn">📖 単語図鑑 <span class="pct" id="zukanRate">0%</span></button>
     <button id="reviewBadge">⚡ 苦手な単語が <b id="weakCount">0</b> 個 — 復習ラッシュで倒そう</button>
+    <div id="rangeBox">
+      <h3>📏 出題範囲(単語番号)</h3>
+      <div class="range-row">
+        <input id="rangeLo" type="number" inputmode="numeric">
+        <span class="dash">〜</span>
+        <input id="rangeHi" type="number" inputmode="numeric">
+        <button id="rangeSet" class="chip sel">セット</button>
+        <button id="rangeAll" class="chip">全部</button>
+      </div>
+      <div id="rangeNow" class="range-now"></div>
+    </div>
     <div style="margin-top:auto;padding-top:8px">
       <button class="big-btn" id="startBtn">スプリント(8問)▶</button>
       <button class="big-btn alt" id="survBtn">🛡 サバイバル(3ミスで終了)</button>
@@ -332,7 +350,7 @@ const WORDS = [
 [405,"recommend","勧める"],
 [406,"admit","認める"],
 [407,"generate","生み出す"],
-[408,"explore","調査する"],
+[408,"explore","探検する"],
 [409,"amaze","びっくりさせる"],
 [410,"tear","引き裂く"],
 [411,"settle","移り住む"],
@@ -424,13 +442,213 @@ const WORDS = [
 [497,"regardless","かまわない"],
 [498,"immediate","即座の"],
 [499,"crucial","重要な"],
-[500,"somewhat","いくぶん"]
+[500,"somewhat","いくぶん"],
+[501,"interpret","解釈する"],
+[502,"translate","翻訳する"],
+[503,"concentrate","集中する"],
+[504,"request","頼む"],
+[505,"criticize","批判する"],
+[506,"overcome","克服する"],
+[507,"obtain","得る"],
+[508,"inform","知らせる"],
+[509,"ensure","確実にする"],
+[510,"announce","発表する"],
+[511,"grant","許可を与える"],
+[512,"freeze","凍る"],
+[513,"oppose","反対する"],
+[514,"differ","異なる"],
+[515,"hate","ひどく嫌う"],
+[516,"emphasize","強調する"],
+[517,"employ","雇う"],
+[518,"credit","帰する"],
+[519,"transform","完全に変える"],
+[520,"construct","建設する"],
+[521,"arise","生じる"],
+[522,"beat","打ち負かす"],
+[523,"regret","後悔する"],
+[524,"alter","部分的に変える"],
+[525,"absorb","吸収する"],
+[526,"disappoint","失望させる"],
+[527,"cure","治す"],
+[528,"transport","輸送する"],
+[529,"rush","急いで行く"],
+[530,"hang","掛ける"],
+[531,"blame","責める"],
+[532,"ban","禁止する"],
+[533,"fascinate","魅了する"],
+[534,"recover","回復する"],
+[535,"celebrate","祝う"],
+[536,"manufacture","製造する"],
+[537,"interact","影響し合う"],
+[538,"arrange","段取りつける"],
+[539,"adjust","調整する"],
+[540,"confirm","確認する"],
+[541,"insight","見識"],
+[542,"innovation","革新"],
+[543,"budget","予算"],
+[544,"fee","料金"],
+[545,"expense","経費"],
+[546,"debt","借金"],
+[547,"loan","貸付金"],
+[548,"duty","義務"],
+[549,"alarm","不安"],
+[550,"emergency","緊急"],
+[551,"democracy","民主主義"],
+[552,"minister","大臣"],
+[553,"fellow","仲間"],
+[554,"candidate","候補者"],
+[555,"corporation","企業"],
+[556,"stereotype","固定観念"],
+[557,"route","道"],
+[558,"disorder","障害"],
+[559,"depression","憂うつ"],
+[560,"weapon","兵器"],
+[561,"immigration","移民"],
+[562,"barrier","障壁"],
+[563,"disadvantage","不利"],
+[564,"mood","気分"],
+[565,"motion","動き"],
+[566,"routine","決まり切った仕事"],
+[567,"discipline","しつけ"],
+[568,"myth","作り話"],
+[569,"hypothesis","仮説"],
+[570,"physician","医師"],
+[571,"client","顧客"],
+[572,"colony","植民地"],
+[573,"statistics","統計"],
+[574,"grain","穀物"],
+[575,"ingredient","材料"],
+[576,"treasure","宝物"],
+[577,"contract","契約"],
+[578,"welfare","福祉"],
+[579,"prime","最重要の"],
+[580,"curious","好奇心の強い"],
+[581,"dramatic","劇的な"],
+[582,"distinct","明らかに異なる"],
+[583,"anxious","心配して"],
+[584,"vital","必要不可欠な"],
+[585,"conventional","従来の"],
+[586,"abstract","抽象的な"],
+[587,"minor","重要でない"],
+[588,"extraordinary","並はずれた"],
+[589,"stable","安定した"],
+[590,"flexible","融通の利く"],
+[591,"brief","簡潔な"],
+[592,"aggressive","攻撃的な"],
+[593,"visible","目に見える"],
+[594,"unexpected","思いがけない"],
+[595,"ethnic","民族の"],
+[596,"alien","異質の"],
+[597,"initial","初めの"],
+[598,"exact","正確な"],
+[599,"precise","精密な"],
+[600,"latter","後者の"],
+[601,"commit","献身する"],
+[602,"stimulate","刺激する"],
+[603,"enhance","高める"],
+[604,"pursue","追求する"],
+[605,"react","反応する"],
+[606,"disagree","不賛成である"],
+[607,"stare","じっと見る"],
+[608,"abandon","捨てる"],
+[609,"quit","止める"],
+[610,"capture","とらえる"],
+[611,"transfer","移す"],
+[612,"bother","悩ます"],
+[613,"persuade","説得する"],
+[614,"rent","賃借りする"],
+[615,"breed","繁殖させる"],
+[616,"invest","投資する"],
+[617,"reserve","予約する"],
+[618,"trace","足跡をたどる"],
+[619,"illustrate","説明する"],
+[620,"advise","忠告する"],
+[621,"convey","伝える"],
+[622,"attach","付ける"],
+[623,"stretch","伸ばす"],
+[624,"puzzle","当惑させる"],
+[625,"disturb","かき乱す"],
+[626,"crash","衝突する"],
+[627,"cope","うまく処理する"],
+[628,"permit","許可する"],
+[629,"impress","感動させる"],
+[630,"suspect","疑う"],
+[631,"upset","動揺させる"],
+[632,"frighten","怖がらせる"],
+[633,"import","輸入する"],
+[634,"export","輸出する"],
+[635,"investigate","調査する"],
+[636,"monitor","監視する"],
+[637,"calculate","計算する"],
+[638,"eliminate","取り除く"],
+[639,"ease","軽減する"],
+[640,"launch","開始する"],
+[641,"sequence","連続"],
+[642,"therapy","療法"],
+[643,"symptom","症状"],
+[644,"incident","出来事"],
+[645,"witness","目撃者"],
+[646,"sum","額"],
+[647,"burden","負担"],
+[648,"tone","口調"],
+[649,"honor","光栄"],
+[650,"award","賞"],
+[651,"priority","優先事項"],
+[652,"logic","論理"],
+[653,"minimum","最小限度"],
+[654,"exception","例外"],
+[655,"clue","手がかり"],
+[656,"bond","絆"],
+[657,"virus","ウイルス"],
+[658,"surgery","手術"],
+[659,"insurance","保険"],
+[660,"frame","枠"],
+[661,"shelter","避難所"],
+[662,"territory","領土"],
+[663,"boundary","境界"],
+[664,"habitat","生息地"],
+[665,"district","地区"],
+[666,"conservation","保護"],
+[667,"harvest","収穫"],
+[668,"predator","捕食動物"],
+[669,"trap","わな"],
+[670,"trick","こつ"],
+[671,"fault","責任"],
+[672,"discount","割引"],
+[673,"bias","偏見"],
+[674,"cooperation","協力"],
+[675,"patent","特許"],
+[676,"dialogue","対話"],
+[677,"component","構成要素"],
+[678,"reputation","評判"],
+[679,"verbal","言葉の"],
+[680,"internal","内部の"],
+[681,"solid","しっかりした"],
+[682,"remote","遠く離れた"],
+[683,"principal","主な"],
+[684,"sophisticated","高性能の"],
+[685,"equivalent","等しい"],
+[686,"rational","理性的な"],
+[687,"relevant","関係がある"],
+[688,"absolute","絶対的な"],
+[689,"frequent","頻繁な"],
+[690,"permanent","永続的な"],
+[691,"intense","強烈な"],
+[692,"meaningful","意味のある"],
+[693,"evil","邪悪な"],
+[694,"extinct","絶滅した"],
+[695,"random","無作為の"],
+[696,"raw","生の"],
+[697,"rude","無礼な"],
+[698,"mere","単なる"],
+[699,"tropical","熱帯の"],
+[700,"forth","前へ"]
 ];
 
 /* ================= 状態 ================= */
 const RANKS=["見習いルーキー","単語ハンター","コンボ職人","スピードスター","語彙の鬼","単語マスター","レジェンド"];
 const QN=8, TIME_MS=7000, FEVER_AT=6, FEVER_MS=8000;
-let S={best:0,bestSurv:0,streakDays:0,lastDay:"",xp:0,level:1,total:0,correct:0,word:{},sound:true,ms:null,tone:"piano",name:"",askedName:false,perfects:0};
+let S={best:0,bestSurv:0,streakDays:0,lastDay:"",xp:0,level:1,total:0,correct:0,word:{},sound:true,ms:null,tone:"piano",name:"",askedName:false,perfects:0,range:null};
 const $=id=>document.getElementById(id);
 
 /* 保存先の自動切り替え: Claude内→window.storage / 通常ブラウザ→localStorage */
@@ -600,13 +818,24 @@ const sfx={
 };
 
 /* ================= 出題(苦手優先) ================= */
+function dataLo(){return Math.min(...WORDS.map(w=>w[0]));}
+function dataHi(){return Math.max(...WORDS.map(w=>w[0]));}
+/* 有効範囲: S.range が null なら全データ。常にデータの最小〜最大にクランプ */
+function activeRange(){
+  const lo=dataLo(),hi=dataHi();
+  if(!S.range)return {lo,hi};
+  return {lo:Math.max(lo,S.range.lo),hi:Math.min(hi,S.range.hi)};
+}
+function rangeCount(){const R=activeRange();return WORDS.filter(w=>w[0]>=R.lo&&w[0]<=R.hi).length;}
 function pickWords(reviewOnly,count){
-  let pool=WORDS.map((w,i)=>({i,num:w[0],en:w[1],ja:w[2]}));
+  const R=activeRange();
+  const inRange=WORDS.map((w,i)=>({i,num:w[0],en:w[1],ja:w[2]})).filter(w=>w.num>=R.lo&&w.num<=R.hi);
+  let pool=inRange;
   if(reviewOnly)pool=pool.filter(w=>{const st=S.word[w.en];return st&&st.wrong>st.right;});
-  if(!pool.length)pool=WORDS.map((w,i)=>({i,en:w[0],ja:w[1]}));
+  if(!pool.length)pool=inRange.length?inRange:WORDS.map((w,i)=>({i,num:w[0],en:w[1],ja:w[2]}));
   const weight=w=>{
     const st=S.word[w.en]||{};
-    return Math.max(.2, 1+(st.wrong||0)*3-Math.min((st.right||0)*.3,.8));
+    return Math.max(.1, 1+(st.wrong||0)*3-Math.min((st.right||0)*.3,.8));
   };
   const picked=[],bag=[...pool];
   while(picked.length<count&&bag.length){
@@ -632,10 +861,10 @@ function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.re
 
 function startGame(mode){ // "sprint" | "review" | "survival"
   endFever();
-  const count=mode==="survival"?WORDS.length:QN;
+  hideCelebrate();
+  const count=mode==="survival"?rangeCount():QN;
   G={mode,qs:pickWords(mode==="review",count),idx:0,score:0,combo:0,maxCombo:0,ok:0,
      wrongList:[],lives:3,fever:false,feverUsed:false};
-  if(mode==="review")
   applyHeat(0);$("score").textContent="0";
   $("lives").textContent=mode==="survival"?"❤️❤️❤️":"";
   show("quiz");nextQ();
@@ -685,10 +914,6 @@ function answer(btn,ok,q,now,timeout=false){
     S.correct++;st.right++;
     G.ok++;G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
     const t=now-G.qStart;
-    if(t<=3000)
-    if(G.combo===6)
-    if(G.combo===8)
-    if(G.combo===FEVER_AT&&!G.feverUsed)startFever();
     const speedBonus=Math.max(0,Math.round((G.qTime-t)/G.qTime*100));
     let mult=1+Math.min(G.combo*0.1,2);
     if(G.fever)mult*=2;
@@ -769,9 +994,10 @@ function praiseStorm(){
   const cel=$("celebrate");
   const cols=["#fff","#FFD75E","#FF5BA8","#6FD6FF","#5EE6A8","#FFE9A8","#C9A0FF"];
   const nm=(S.name?S.name+"ちゃん、":"あなた、");
-  const total=32;
+  const total=12;
   for(let i=0;i<total;i++){
     setTimeout(()=>{
+      if(!celebrating)return;
       const el=document.createElement("div");
       el.className="praise-word";
       el.textContent=nm+PRAISES[Math.floor(Math.random()*PRAISES.length)];
@@ -786,26 +1012,36 @@ function praiseStorm(){
         {opacity:1,transform:`scale(1.1) rotate(${rot}deg)`,offset:.22},
         {opacity:1,transform:`scale(1) rotate(${rot}deg)`,offset:.78},
         {opacity:0,transform:`scale(1.04) rotate(${rot}deg) translateY(-18px)`}
-      ],{duration:3000,easing:"cubic-bezier(.2,1.4,.4,1)",fill:"forwards"});
-      setTimeout(()=>el.remove(),3040);
+      ],{duration:1800,easing:"cubic-bezier(.2,1.4,.4,1)",fill:"forwards"});
+      setTimeout(()=>el.remove(),1840);
       if(S.sound&&i%3===0){const f=[660,740,880,990][i%4];playNote(f,S.tone,0,.5);}
-    }, i*400);
+    }, i*130);
   }
+}
+let celebrating=false;
+function hideCelebrate(){
+  celebrating=false;
+  const c=$("celebrate");
+  c.style.display="none";
+  $("arashiBg").classList.remove("go");
+  $("flash").classList.remove("go");
+  c.querySelectorAll(".praise-word,.cracker").forEach(e=>e.remove());
+  document.querySelectorAll(".confetti").forEach(e=>e.remove());
 }
 function celebratePerfect(msg){
   const cel=$("celebrate");
+  celebrating=true;
   cel.style.display="block";
   ["arashiBg","flash"].forEach(id=>{const e=$(id);e.classList.remove("go");void e.offsetWidth;});
   $("arashiBg").classList.add("go");
   $("flash").classList.add("go");
   praiseStorm();
-  burstConfetti(50);
+  burstConfetti(30);
   sfx.fanfare();
   $("app").classList.remove("quake");void $("app").offsetWidth;$("app").classList.add("quake");
   if(navigator.vibrate)try{navigator.vibrate([0,30,30,30,30,30,30,90]);}catch(e){}
-  setTimeout(()=>{cel.style.display="none";},16200);
+  setTimeout(hideCelebrate,3500);
 }
-function crackerBlast(){}
 function burstConfetti(n){
   const colors=["#6FD6FF","#FFC53D","#FF7A45","#FF3D8A","#5EE6A8"];
   for(let i=0;i<n;i++){
@@ -877,6 +1113,18 @@ async function endGame(){
 function masteredCount(){
   return WORDS.filter(w=>(S.word[w[1]]?.right||0)>=3).length;
 }
+/* 図鑑の段階進捗: 未挑戦=0 / 挑戦中・苦手=0.5 / MASTER(3回正解)=1。合計÷全語数で% */
+function zukanProgress(){
+  const R=activeRange();
+  let p=0;
+  WORDS.forEach(w=>{
+    if(w[0]<R.lo||w[0]>R.hi)return;
+    const st=S.word[w[1]];if(!st)return;
+    if((st.right||0)+(st.wrong||0)===0)return;
+    p+=(st.right||0)>=3?1:0.5;
+  });
+  return p;
+}
 function renderHome(){
   $("stBest").textContent=S.best;
   $("stSurv").textContent=S.bestSurv;
@@ -886,11 +1134,16 @@ function renderHome(){
   $("lvNum").textContent="Lv."+S.level;
   $("xpfill").style.width=Math.min(100,S.xp/xpNeed(S.level)*100)+"%";
   $("xptext").textContent=`次のレベルまで ${xpNeed(S.level)-S.xp} XP`;
-  const weak=Object.entries(S.word).filter(([,v])=>v.wrong>v.right).length;
+  const R=activeRange();
+  const rc=rangeCount();
+  const weak=WORDS.filter(w=>{if(w[0]<R.lo||w[0]>R.hi)return false;const v=S.word[w[1]];return v&&v.wrong>v.right;}).length;
   $("weakCount").textContent=weak;
   $("reviewBadge").style.display=weak>=3?"block":"none";
   $("reviewBtn").style.display=weak>=3?"block":"none";
-  $("zukanRate").textContent=Math.round(masteredCount()/WORDS.length*100)+"%";
+  $("zukanRate").textContent=(rc?Math.round(zukanProgress()/rc*100):0)+"%";
+  if(document.activeElement!==$("rangeLo"))$("rangeLo").value=R.lo;
+  if(document.activeElement!==$("rangeHi"))$("rangeHi").value=R.hi;
+  $("rangeNow").textContent=`いまの範囲: ${R.lo}〜${R.hi}（${rc}語）`;
   $("sndToggle").textContent=S.sound?"🔊":"🔇";
   $("nameBtn").textContent=S.name?`ようこそ、${S.name}ちゃん 🎵`:"✏️ なまえを設定";
   // 音色チップ
@@ -904,11 +1157,15 @@ function renderHome(){
   });
 }
 function renderZukan(){
-  const mc=masteredCount();
-  $("zukanPct").textContent=`${mc} / ${WORDS.length}`;
-  $("zfill").style.width=(mc/WORDS.length*100)+"%";
+  const R=activeRange();
+  const rc=rangeCount();
+  const prog=zukanProgress();
+  const pct=rc?Math.round(prog/rc*100):0;
+  $("zukanPct").textContent=`${pct}%（${R.lo}〜${R.hi}）`;
+  $("zfill").style.width=(rc?prog/rc*100:0)+"%";
   const zl=$("zlist");zl.innerHTML="";
   WORDS.forEach(w=>{
+    if(w[0]<R.lo||w[0]>R.hi)return;
     const st=S.word[w[1]];
     const d=document.createElement("div");
     let tag="",locked=false;
@@ -926,9 +1183,19 @@ function renderZukan(){
 $("startBtn").onclick=()=>startGame("sprint");
 $("survBtn").onclick=()=>startGame("survival");
 $("reviewBtn").onclick=()=>startGame("review");
+$("rangeSet").onclick=()=>{
+  const dlo=dataLo(),dhi=dataHi();
+  let lo=parseInt($("rangeLo").value,10),hi=parseInt($("rangeHi").value,10);
+  if(isNaN(lo))lo=dlo; if(isNaN(hi))hi=dhi;
+  if(lo>hi){const t=lo;lo=hi;hi=t;}
+  lo=Math.max(dlo,Math.min(lo,dhi)); hi=Math.max(dlo,Math.min(hi,dhi));
+  S.range=(lo===dlo&&hi===dhi)?null:{lo,hi};
+  saveState();renderHome();
+};
+$("rangeAll").onclick=()=>{S.range=null;saveState();renderHome();};
 $("reviewBadge").onclick=()=>startGame("review");
 $("againBtn").onclick=()=>startGame(G?G.mode:"sprint");
-$("homeBtn").onclick=()=>{renderHome();show("home");};
+$("homeBtn").onclick=()=>{hideCelebrate();renderHome();show("home");};
 $("zukanBtn").onclick=()=>{renderZukan();show("zukan");};
 $("zukanBack").onclick=()=>{renderHome();show("home");};
 $("sndToggle").onclick=()=>{S.sound=!S.sound;$("sndToggle").textContent=S.sound?"🔊":"🔇";saveState();};
