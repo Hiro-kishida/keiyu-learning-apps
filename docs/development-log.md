@@ -1,4 +1,18 @@
-# 開発ログ：文字式アプリ スプレッドシート記録機能
+2026-06-21
+A案の成功版 app_A_stage.html は残したまま、
+少し難しい版 app_A_stage_plus.html を新規作成。
+
+A+版では mode を A_PLUS とし、
+Spreadsheet上でA案と区別できるようにした。
+
+A+版の追加問題：
+10x - 9x → x
+8x - 9x → -x
+
+GitHub Pages版で動作確認済み。
+Spreadsheetにも mode:A_PLUS で記録成功。
+index.html に A+案リンクを追加し、
+A/B/Cリンクが壊れていないことも確認済み。# 開発ログ：文字式アプリ スプレッドシート記録機能
 
 ## 日付
 
