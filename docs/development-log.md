@@ -1,3 +1,5 @@
+## 日付
+
 2026-06-21
 A案の成功版 app_A_stage.html は残したまま、
 少し難しい版 app_A_stage_plus.html を新規作成。
@@ -13,6 +15,7 @@ GitHub Pages版で動作確認済み。
 Spreadsheetにも mode:A_PLUS で記録成功。
 index.html に A+案リンクを追加し、
 A/B/Cリンクが壊れていないことも確認済み。# 開発ログ：文字式アプリ スプレッドシート記録機能
+
 
 ## 日付
 
