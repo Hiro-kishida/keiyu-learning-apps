@@ -164,6 +164,7 @@ const QUESTIONS=[
 
 const STRATEGY_HINTS={combine:"かっこがないので、同類項を見つけます。",distribution:"かっこがあるので、外の数を中の両方にかけます。"};
 let qIndex=0,score=0,answerLocked=false,transitionLocked=false,finishLocked=false;
+let problemMistakes=QUESTIONS.map(()=>({strategy:false,distribution:false,answer:false,finish:false}));
 
 function setVisible(id,visible){document.getElementById(id).classList.toggle("hidden",!visible)}
 function setText(id,text){document.getElementById(id).textContent=text}
@@ -205,6 +206,7 @@ function checkStrategy(strategy){
     setFeedback("strategyFeedback","その作戦です。","ok");
     setTimeout(()=>q.strategy==="distribution"?showDistributionStep():showAnswerStep(),350);
   }else{
+    problemMistakes[qIndex].strategy=true;
     setFeedback("strategyFeedback",STRATEGY_HINTS[q.strategy],"try");
     markShake("strategyCard");
   }
@@ -224,6 +226,7 @@ function checkDistribution(target){
     setFeedback("distributionFeedback","左と右の両方にかけます。","ok");
     setTimeout(showAnswerStep,350);
   }else{
+    problemMistakes[qIndex].distribution=true;
     setFeedback("distributionFeedback","外の数を、かっこの中の左と右の両方にかけます。","try");
     markShake("distributionCard");
   }
@@ -253,6 +256,7 @@ function checkAnswer(){
     setFeedback("answerFeedback",`正解！ ${q.answer}`,"ok");
     setTimeout(showFinishStep,700);
   }else{
+    problemMistakes[qIndex].answer=true;
     setFeedback("answerFeedback",q.hint,"try");
     markShake("answerCard");
   }
@@ -276,6 +280,7 @@ function checkFinish(choice){
     button.textContent=qIndex===QUESTIONS.length-1?"結果を見る":"次の問題へ";
     setVisible("nextButton",true);
   }else{
+    problemMistakes[qIndex].finish=true;
     setFeedback("finishFeedback","aがついている項と、aがついていない項は、同類項ではありません。","try");
     markShake("finishCard");
   }
@@ -283,9 +288,12 @@ function checkFinish(choice){
 
 function nextQuestion(){qIndex++;render()}
 
+function sendResult(){const correctCount=problemMistakes.filter((mistakes,index)=>!mistakes.strategy&&!mistakes.answer&&!mistakes.finish&&(QUESTIONS[index].strategy!=="distribution"||!mistakes.distribution)).length;const wrongProblems=[];problemMistakes.forEach((mistakes,index)=>{const problem=QUESTIONS[index].problem;if(mistakes.strategy)wrongProblems.push(`[作戦] ${problem}`);if(mistakes.distribution)wrongProblems.push(`[分配先] ${problem}`);if(mistakes.answer)wrongProblems.push(`[答え] ${problem}`);if(mistakes.finish)wrongProblems.push(`[終了判断] ${problem}`)});const data={studentId:"takumi",appId:"mojishiki-normal-basic-input",mode:"D_PLUS",totalQuestions:QUESTIONS.length,correctCount,allCorrect:correctCount===QUESTIONS.length,wrongProblems,device:navigator.userAgent,note:"D+案：かっこありなし・終了判断あり"};fetch("https://script.google.com/macros/s/AKfycbyB1kGi_sCQ5trrAA_o1c-6tn87LY0di6rqIkssJ6vIacZ2IN4Y65jj9vCWoIwaH9aV/exec",{method:"POST",mode:"no-cors",body:JSON.stringify(data)}).catch(error=>console.warn("結果を送信できませんでした。",error))}
+
 function showResult(){
   showConfetti();playCelebrationSound();
   document.querySelector(".app").innerHTML=`<header><div><h1>結果</h1><div class="sub">かっこあり・なし 作戦練習</div></div><a class="toplink" href="index.html">一覧へ</a></header><section class="card result"><div class="big-celebrate">5問ぜんぶできました！</div><p class="result-text">同類項ではない項は、1つにまとめません。<br>ここでおわりを確認できました。</p><button class="primary" type="button" onclick="location.reload()">もう一度</button></section>`;
+  sendResult();
 }
 
 render();
