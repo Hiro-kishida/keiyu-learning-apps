@@ -197,7 +197,8 @@ const QUESTIONS=[
   }
 ];
 
-let qIndex=0,score=0,answerLocked=false,transitionLocked=false;
+let qIndex=0,score=0,answerLocked=false,transitionLocked=false,resultSent=false;
+let problemMistakes=QUESTIONS.map(()=>({substitution:false,order:false,answer:false}));
 
 function setVisible(id,visible){document.getElementById(id).classList.toggle("hidden",!visible)}
 function setText(id,text){document.getElementById(id).textContent=text}
@@ -235,6 +236,7 @@ function checkSubstitution(choice){
     setFeedback("substitutionFeedback","その式です。","ok");
     setTimeout(()=>q.orderCheck?showOrderStep():showAnswerStep(),350);
   }else{
+    problemMistakes[qIndex].substitution=true;
     setFeedback("substitutionFeedback",q.substitutionHint,"try");
     markShake("substitutionCard");
   }
@@ -259,6 +261,7 @@ function checkOrder(choice){
     setFeedback("orderFeedback","かけ算を先にします。","ok");
     setTimeout(showAnswerStep,350);
   }else{
+    problemMistakes[qIndex].order=true;
     setFeedback("orderFeedback",q.orderCheck.hint,"try");
     markShake("orderCard");
   }
@@ -292,14 +295,33 @@ function checkAnswer(){
     setFeedback("answerFeedback",`正解！ 答えは ${q.answer} です。`,"ok");
     setTimeout(()=>{qIndex++;render()},850);
   }else{
+    problemMistakes[qIndex].answer=true;
     setFeedback("answerFeedback",q.answerHint,"try");
     markShake("answerCard");
   }
 }
 
+function problemLabel(q){return `${q.condition} のとき ${q.expression} の値`}
+function isProblemCorrect(m,index){return !m.substitution&&!m.answer&&(!QUESTIONS[index].orderCheck||!m.order)}
+function sendResult(){
+  if(resultSent)return;
+  resultSent=true;
+  const correctCount=problemMistakes.filter(isProblemCorrect).length;
+  const wrongProblems=[];
+  problemMistakes.forEach((m,index)=>{
+    const problem=problemLabel(QUESTIONS[index]);
+    if(m.substitution)wrongProblems.push(`[代入式] ${problem}`);
+    if(m.order)wrongProblems.push(`[計算順序] ${problem}`);
+    if(m.answer)wrongProblems.push(`[答え] ${problem}`);
+  });
+  const data={studentId:"takumi",appId:"mojishiki-normal-basic-input",mode:"E_FRACTION_TRIAL",totalQuestions:QUESTIONS.length,correctCount,allCorrect:correctCount===QUESTIONS.length,wrongProblems,device:navigator.userAgent,note:""};
+  fetch("https://script.google.com/macros/s/AKfycbyB1kGi_sCQ5trrAA_o1c-6tn87LY0di6rqIkssJ6vIacZ2IN4Y65jj9vCWoIwaH9aV/exec",{method:"POST",mode:"no-cors",body:JSON.stringify(data)}).catch(error=>console.warn("結果を送信できませんでした。",error))
+}
+
 function showResult(){
   showConfetti();playCelebrationSound();
   document.querySelector(".app").innerHTML=`<header><div><h1>結果</h1><div class="sub">式の値 ステップ練習</div></div><a class="toplink" href="index.html">一覧へ</a></header><section class="card result"><div class="big-celebrate">8問ぜんぶできました！</div><p class="result-text">代入して、式の値を求められました。</p><button class="primary restart" type="button" onclick="location.reload()">もう一度</button></section>`;
+  sendResult();
 }
 
 render();
