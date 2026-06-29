@@ -954,10 +954,10 @@ function praiseStorm(){
         {opacity:1,transform:`scale(1.1) rotate(${rot}deg)`,offset:.22},
         {opacity:1,transform:`scale(1) rotate(${rot}deg)`,offset:.78},
         {opacity:0,transform:`scale(1.04) rotate(${rot}deg) translateY(-18px)`}
-      ],{duration:1800,easing:"cubic-bezier(.2,1.4,.4,1)",fill:"forwards"});
+      ],{duration:2800,easing:"cubic-bezier(.2,1.4,.4,1)",fill:"forwards"});
       setTimeout(()=>el.remove(),1840);
       if(S.sound&&i%3===0){const f=[660,740,880,990][i%4];playNote(f,S.tone,0,.5);}
-    }, i*130);
+    }, i*330);
   }
 }
 let celebrating=false;
