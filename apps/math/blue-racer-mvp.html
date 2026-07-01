@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>傾きレース＋右親指タップ</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+      overscroll-behavior: none;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #111827;
+      color: white;
+    }
+    #wrap {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    header {
+      width: 100%;
+      height: 74px;
+      padding: 9px 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.38);
+      z-index: 5;
+    }
+    .title {
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1.25;
+    }
+    .small {
+      font-size: 12px;
+      opacity: 0.86;
+      line-height: 1.35;
+    }
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-weight: 800;
+      background: white;
+      color: #111827;
+      cursor: pointer;
+    }
+    #game {
+      width: min(100vw, 460px);
+      height: calc(100vh - 74px);
+      max-height: 820px;
+      background: #0b1220;
+      border-left: 3px solid rgba(255,255,255,0.3);
+      border-right: 3px solid rgba(255,255,255,0.3);
+      display: block;
+    }
+    #hud {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 74px;
+      width: min(100vw, 460px);
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      font-weight: 800;
+      text-shadow: 0 1px 4px #000;
+      z-index: 4;
+      font-size: 13px;
+    }
+    #stimulusBox {
+      position: absolute;
+      top: 112px;
+      right: calc(50% - min(50vw, 230px) + 12px);
+      width: 118px;
+      min-height: 132px;
+      border-radius: 18px;
+      background: rgba(17,24,39,0.86);
+      border: 1px solid rgba(255,255,255,0.22);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+      z-index: 6;
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      text-align: center;
+      pointer-events: none;
+    }
+    #ruleText {
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.25;
+      opacity: 0.95;
+      margin-bottom: 4px;
+    }
+    #stimulus {
+      width: 84px;
+      height: 84px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      font-size: 42px;
+      font-weight: 900;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.2);
+      margin: 2px auto;
+    }
+    #judgeText {
+      font-size: 12px;
+      font-weight: 800;
+      min-height: 18px;
+      opacity: 0.95;
+      margin-top: 4px;
+    }
+    #tapButton {
+      position: absolute;
+      right: calc(50% - min(50vw, 230px) + 12px);
+      bottom: 18px;
+      width: 122px;
+      height: 122px;
+      border-radius: 999px;
+      background: white;
+      color: #111827;
+      border: 6px solid rgba(255,255,255,0.5);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      user-select: none;
+      touch-action: none;
+      font-size: 19px;
+      font-weight: 900;
+    }
+    #tapButton:active, #tapButton.pressed {
+      transform: translateY(3px) scale(0.97);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    }
+    #debug {
+      position: absolute;
+      left: calc(50% - min(50vw, 230px) + 10px);
+      bottom: 14px;
+      width: min(54vw, 250px);
+      background: rgba(0,0,0,0.52);
+      border-radius: 14px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      z-index: 7;
+      pointer-events: none;
+    }
+    .bar {
+      height: 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    #barFill {
+      height: 100%;
+      width: 50%;
+      background: white;
+      border-radius: 999px;
+    }
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0,0,0,0.68);
+      z-index: 20;
+      padding: 22px;
+      text-align: center;
+    }
+    #panel {
+      width: min(92vw, 430px);
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    #panel h1 {
+      margin: 0 0 8px;
+      font-size: 23px;
+      line-height: 1.25;
+    }
+    #panel p {
+      margin: 8px 0;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.9);
+    }
+    #panel button {
+      margin-top: 12px;
+      width: 100%;
+      font-size: 16px;
+      padding: 13px 16px;
+    }
+    .kbd {
+      display: inline-block;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-bottom-width: 3px;
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: 12px;
+      background: rgba(255,255,255,0.08);
+    }
+    @media (max-width: 370px) {
+      #stimulusBox { width: 104px; min-height: 124px; }
+      #stimulus { width: 74px; height: 74px; font-size: 36px; }
+      #tapButton { width: 104px; height: 104px; font-size: 17px; }
+      #debug { width: min(52vw, 210px); font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <header>
+      <div>
+        <div class="title">傾きレース＋右親指タップ</div>
+        <div class="small">スマホを傾けて避ける／青い★だけタップ</div>
+      </div>
+      <button id="resetBtn">リセット</button>
+    </header>
+
+    <div id="hud">
+      <div>スコア <span id="score">0</span></div>
+      <div>運転ミス <span id="crashMiss">0</span>/3</div>
+      <div>反応ミス <span id="reactionMiss">0</span>/5</div>
+    </div>
+
+    <canvas id="game"></canvas>
+
+    <div id="stimulusBox">
+      <div>
+        <div id="ruleText">青い★だけ<br>タップ</div>
+        <div id="stimulus">★</div>
+        <div id="judgeText">準備</div>
+      </div>
+    </div>
+
+    <div id="debug">
+      傾き: <span id="gammaText">0.0</span>°　
+      入力: <span id="inputText">0.00</span>
+      <div class="bar"><div id="barFill"></div></div>
+      <div class="small">PC: <span class="kbd">←</span><span class="kbd">→</span>で運転、<span class="kbd">Space</span>でタップ</div>
+    </div>
+
+    <div id="tapButton">TAP</div>
+  </div>
+
+  <div id="overlay">
+    <div id="panel">
+      <h1>傾き操作＋選択反応</h1>
+      <p>
+        スマホを左右に傾けて、障害物を避けます。
+      </p>
+      <p>
+        右下のボタンは、<b>青い★が出たときだけ</b>右親指でタップします。<br>
+        赤い●・黄色い■・紫の▲は押しません。
+      </p>
+      <button id="startBtn">センサーを開始してスタート</button>
+      <p class="small">
+        iPhoneではセンサー許可が出る場合があります。スマホではHTTPSのURLで開いてください。
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const scoreEl = document.getElementById("score");
+    const crashMissEl = document.getElementById("crashMiss");
+    const reactionMissEl = document.getElementById("reactionMiss");
+    const gammaText = document.getElementById("gammaText");
+    const inputText = document.getElementById("inputText");
+    const barFill = document.getElementById("barFill");
+
+    const stimulusEl = document.getElementById("stimulus");
+    const judgeText = document.getElementById("judgeText");
+    const tapButton = document.getElementById("tapButton");
+    const overlay = document.getElementById("overlay");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let W = 360, H = 640;
+    let running = false;
+    let last = 0;
+
+    let score = 0;
+    let crashMiss = 0;
+    let reactionMiss = 0;
+
+    let correctTap = 0;
+    let falseTap = 0;
+    let missedTarget = 0;
+    let seenTarget = 0;
+    let seenDecoy = 0;
+
+    let rawGamma = 0;
+    let filteredGamma = 0;
+    let keyboardInput = 0;
+
+    const player = {
+      x: 0.5,
+      y: 0.84,
+      vx: 0,
+      width: 42,
+      height: 64
+    };
+
+    let obstacles = [];
+    let spawnTimer = 0;
+    let roadOffset = 0;
+
+    const STIMULI = [
+      { symbol: "★", color: "#38bdf8", bg: "rgba(56,189,248,0.18)", target: true, name: "青い★" },
+      { symbol: "●", color: "#fb7185", bg: "rgba(251,113,133,0.18)", target: false, name: "赤い●" },
+      { symbol: "■", color: "#facc15", bg: "rgba(250,204,21,0.18)", target: false, name: "黄色い■" },
+      { symbol: "▲", color: "#c084fc", bg: "rgba(192,132,252,0.18)", target: false, name: "紫の▲" }
+    ];
+    let currentStimulus = STIMULI[0];
+    let stimulusTimer = 0;
+    let stimulusDuration = 1.25;
+    let respondedThisStimulus = false;
+    let feedbackTimer = 0;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      W = rect.width;
+      H = rect.height;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function updateHud() {
+      scoreEl.textContent = score;
+      crashMissEl.textContent = crashMiss;
+      reactionMissEl.textContent = reactionMiss;
+    }
+
+    function setStimulus(stim) {
+      currentStimulus = stim;
+      stimulusEl.textContent = stim.symbol;
+      stimulusEl.style.color = stim.color;
+      stimulusEl.style.background = stim.bg;
+      stimulusEl.style.borderColor = stim.color;
+      judgeText.textContent = stim.target ? "押す？" : "押さない";
+      respondedThisStimulus = false;
+      stimulusTimer = stimulusDuration;
+      if (stim.target) seenTarget++;
+      else seenDecoy++;
+    }
+
+    function nextStimulus() {
+      const r = Math.random();
+      if (r < 0.45) {
+        setStimulus(STIMULI[0]);
+      } else {
+        const decoy = STIMULI[1 + Math.floor(Math.random() * 3)];
+        setStimulus(decoy);
+      }
+    }
+
+    function resetGame() {
+      score = 0;
+      crashMiss = 0;
+      reactionMiss = 0;
+      correctTap = 0;
+      falseTap = 0;
+      missedTarget = 0;
+      seenTarget = 0;
+      seenDecoy = 0;
+
+      player.x = 0.5;
+      player.vx = 0;
+      obstacles = [];
+      spawnTimer = 0.6;
+      roadOffset = 0;
+      filteredGamma = 0;
+      rawGamma = 0;
+      feedbackTimer = 0;
+      stimulusDuration = 1.25;
+      nextStimulus();
+      updateHud();
+    }
+
+    function gameOver(reason) {
+      running = false;
+      overlay.style.display = "grid";
+      document.querySelector("#panel h1").textContent = "終了！";
+      const accuracy = seenTarget > 0 ? Math.round((correctTap / seenTarget) * 100) : 0;
+      document.querySelector("#panel p").innerHTML =
+        `スコアは <b>${score}</b> です。<br>` +
+        `青い★：${seenTarget}回中 ${correctTap}回タップ（${accuracy}%）<br>` +
+        `押し間違い：${falseTap}回 ／ 見逃し：${missedTarget}回<br>` +
+        `<span class="small">${reason}</span>`;
+      startBtn.textContent = "もう一度スタート";
+    }
+
+    function getControlInput() {
+      filteredGamma = filteredGamma * 0.84 + rawGamma * 0.16;
+      const tiltInput = clamp(filteredGamma / 25, -1, 1);
+      const input = keyboardInput !== 0 ? keyboardInput : tiltInput;
+
+      gammaText.textContent = filteredGamma.toFixed(1);
+      inputText.textContent = input.toFixed(2);
+      barFill.style.width = `${(input + 1) * 50}%`;
+
+      return input;
+    }
+
+    function spawnObstacle() {
+      const laneX = 0.18 + Math.random() * 0.64;
+      const size = 34 + Math.random() * 18;
+      obstacles.push({
+        x: laneX,
+        y: -0.08,
+        w: size,
+        h: size,
+        vy: 0.25 + Math.random() * 0.11,
+        hit: false
+      });
+    }
+
+    function rectsOverlap(a, b) {
+      return Math.abs(a.cx - b.cx) < (a.w + b.w) / 2 &&
+             Math.abs(a.cy - b.cy) < (a.h + b.h) / 2;
+    }
+
+    function handleTap() {
+      if (!running) return;
+
+      tapButton.classList.add("pressed");
+      setTimeout(() => tapButton.classList.remove("pressed"), 90);
+
+      if (currentStimulus.target && !respondedThisStimulus) {
+        correctTap++;
+        score += 15;
+        respondedThisStimulus = true;
+        judgeText.textContent = "OK！";
+        feedbackTimer = 0.25;
+        if (navigator.vibrate) navigator.vibrate(18);
+      } else {
+        falseTap++;
+        reactionMiss++;
+        judgeText.textContent = currentStimulus.target ? "もう押した" : "押さない！";
+        feedbackTimer = 0.35;
+        if (navigator.vibrate) navigator.vibrate(70);
+        if (reactionMiss >= 5) {
+          gameOver("反応ミスが5回になりました。押す／押さないの選択反応をゆっくり確認しましょう。");
+        }
+      }
+      updateHud();
+    }
+
+    function updateStimulus(dt) {
+      if (!running) return;
+
+      stimulusTimer -= dt;
+      feedbackTimer -= dt;
+
+      if (stimulusTimer <= 0) {
+        if (currentStimulus.target && !respondedThisStimulus) {
+          missedTarget++;
+          reactionMiss++;
+          judgeText.textContent = "見逃し";
+          if (navigator.vibrate) navigator.vibrate(45);
+          if (reactionMiss >= 5) {
+            gameOver("青い★の見逃しが増えました。まずは運転をゆっくりにして練習しましょう。");
+            return;
+          }
+        }
+
+        stimulusDuration = Math.max(0.82, 1.25 - score * 0.0012);
+        nextStimulus();
+      }
+    }
+
+    function update(dt) {
+      if (!running) return;
+
+      const input = getControlInput();
+
+      const accel = input * 1.65;
+      player.vx += accel * dt;
+
+      player.vx *= Math.pow(0.08, dt);
+      player.x += player.vx * dt;
+      player.x = clamp(player.x, 0.10, 0.90);
+
+      spawnTimer -= dt;
+      if (spawnTimer <= 0) {
+        spawnObstacle();
+        spawnTimer = Math.max(0.46, 1.04 - score * 0.0015);
+      }
+
+      for (const ob of obstacles) {
+        ob.y += ob.vy * dt;
+      }
+
+      const carRect = {
+        cx: player.x * W,
+        cy: player.y * H,
+        w: player.width,
+        h: player.height
+      };
+
+      for (const ob of obstacles) {
+        if (!ob.hit) {
+          const obRect = { cx: ob.x * W, cy: ob.y * H, w: ob.w, h: ob.h };
+          if (rectsOverlap(carRect, obRect)) {
+            ob.hit = true;
+            crashMiss += 1;
+            if (navigator.vibrate) navigator.vibrate(90);
+            if (crashMiss >= 3) {
+              gameOver("運転ミスが3回になりました。傾きの戻し方を練習しましょう。");
+              return;
+            }
+          }
+        }
+      }
+
+      const before = obstacles.length;
+      obstacles = obstacles.filter(ob => ob.y < 1.15 && !ob.hit);
+      const passed = before - obstacles.length;
+      if (passed > 0) score += passed * 10;
+
+      roadOffset += dt * 260;
+      updateStimulus(dt);
+      updateHud();
+    }
+
+    function drawRoad() {
+      ctx.fillStyle = "#0b1220";
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = "#1f2937";
+      ctx.fillRect(W * 0.08, 0, W * 0.84, H);
+
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.fillRect(W * 0.08, 0, 4, H);
+      ctx.fillRect(W * 0.92 - 4, 0, 4, H);
+
+      ctx.fillStyle = "rgba(255,255,255,0.45)";
+      const dashH = 34;
+      const gap = 34;
+      for (let y = -dashH; y < H + dashH; y += dashH + gap) {
+        const yy = (y + roadOffset) % (dashH + gap) - dashH;
+        ctx.fillRect(W * 0.5 - 3, yy, 6, dashH);
+      }
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
+    }
+
+    function drawCar() {
+      const x = player.x * W;
+      const y = player.y * H;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(player.vx * 0.12);
+
+      ctx.fillStyle = "rgba(0,0,0,0.38)";
+      roundRect(-24, -28, 48, 62, 12);
+      ctx.fill();
+
+      ctx.fillStyle = "#f9fafb";
+      roundRect(-21, -34, 42, 68, 12);
+      ctx.fill();
+
+      ctx.fillStyle = "#60a5fa";
+      roundRect(-13, -22, 26, 22, 7);
+      ctx.fill();
+
+      ctx.fillStyle = "#111827";
+      roundRect(-27, -22, 8, 20, 4);
+      ctx.fill();
+      roundRect(19, -22, 8, 20, 4);
+      ctx.fill();
+      roundRect(-27, 12, 8, 20, 4);
+      ctx.fill();
+      roundRect(19, 12, 8, 20, 4);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawObstacle(ob) {
+      const x = ob.x * W;
+      const y = ob.y * H;
+
+      ctx.save();
+      ctx.translate(x, y);
+
+      ctx.fillStyle = "#f97316";
+      ctx.beginPath();
+      ctx.moveTo(0, -ob.h / 2);
+      ctx.lineTo(ob.w / 2, ob.h / 2);
+      ctx.lineTo(-ob.w / 2, ob.h / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.fillRect(-ob.w * 0.23, -2, ob.w * 0.46, 5);
+      ctx.fillRect(-ob.w * 0.34, ob.h * 0.22, ob.w * 0.68, 5);
+
+      ctx.restore();
+    }
+
+    function drawTapHint() {
+      const x = W - 76;
+      const y = H - 82;
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = currentStimulus.target ? "#38bdf8" : "#ffffff";
+      ctx.beginPath();
+      ctx.arc(x, y, currentStimulus.target ? 56 : 36, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function draw() {
+      drawRoad();
+      for (const ob of obstacles) drawObstacle(ob);
+      drawTapHint();
+      drawCar();
+
+      if (!running) {
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+        ctx.fillRect(0, 0, W, H);
+      }
+    }
+
+    function loop(ts) {
+      const dt = Math.min(0.033, (ts - last) / 1000 || 0);
+      last = ts;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    async function startSensors() {
+      resetGame();
+
+      try {
+        if (
+          typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission === "function"
+        ) {
+          const response = await DeviceOrientationEvent.requestPermission();
+          if (response !== "granted") {
+            alert("傾きセンサーの許可が出ませんでした。PCキー操作またはAndroid/別ブラウザで試してください。");
+          }
+        }
+
+        window.addEventListener("deviceorientation", (event) => {
+          if (typeof event.gamma === "number") {
+            rawGamma = event.gamma;
+          }
+        }, true);
+
+      } catch (e) {
+        console.log(e);
+        alert("センサー開始でエラーが出ました。HTTPSで公開してスマホで開くと動きやすいです。");
+      }
+
+      overlay.style.display = "none";
+      running = true;
+      last = performance.now();
+    }
+
+    startBtn.addEventListener("click", startSensors);
+
+    resetBtn.addEventListener("click", () => {
+      resetGame();
+      running = true;
+      overlay.style.display = "none";
+      last = performance.now();
+    });
+
+    tapButton.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      handleTap();
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") keyboardInput = -1;
+      if (e.key === "ArrowRight") keyboardInput = 1;
+      if (e.code === "Space") {
+        e.preventDefault();
+        handleTap();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft" && keyboardInput < 0) keyboardInput = 0;
+      if (e.key === "ArrowRight" && keyboardInput > 0) keyboardInput = 0;
+    });
+
+    document.addEventListener("gesturestart", (e) => e.preventDefault());
+
+    resetGame();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
