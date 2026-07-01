@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F案：係数 ステップ練習</title>
+<style>
+:root{--bg:#f8f5ee;--card:#fff;--ink:#232323;--muted:#666;--line:#e7ded0;--accent:#2f6866;--soft:#e9f3f1;--ok:#197447;--warn:#8a5a00;--shadow:0 8px 20px rgba(0,0,0,.07)}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+button{font:inherit;letter-spacing:0}
+.app{width:min(680px,100%);min-height:100svh;margin:0 auto;padding:10px 12px 18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+h1{margin:0;font-size:25px;line-height:1.2}
+.sub{margin-top:2px;color:var(--muted);font-size:13px;line-height:1.4}
+.toplink{color:var(--accent);text-decoration:none;font-weight:900;white-space:nowrap}
+.progress{display:flex;gap:6px;margin-bottom:7px}
+.pill{display:inline-flex;align-items:center;min-height:30px;padding:4px 9px;border-radius:999px;background:var(--soft);color:var(--accent);font-size:13px;font-weight:900}
+.pill.step{margin-left:auto;background:#fff;border:1px solid var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:12px;margin:8px 0}
+.problem-card{text-align:center;padding:13px 12px}
+.stage-label{color:var(--accent);font-size:14px;font-weight:900;margin-bottom:4px}
+.expression{font-size:48px;line-height:1.15;font-weight:1000}
+.question{margin:8px 0 0;font-size:24px;line-height:1.35;font-weight:1000;color:var(--accent)}
+.note{margin:7px 0 0;color:var(--muted);font-size:14px;font-weight:800;line-height:1.5}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{width:100%;min-height:56px;padding:8px 10px;border:2px solid var(--accent);border-radius:12px;background:#fff;color:var(--accent);font-size:24px;font-weight:1000;cursor:pointer}
+.choice:active{transform:translateY(2px)}
+.choice:disabled{opacity:.72;cursor:default}
+.feedback{min-height:48px;margin-top:9px;padding:9px 10px;border:1px solid var(--line);border-radius:11px;background:#faf6ec;font-size:15px;line-height:1.45}
+.feedback.ok{background:#eef8f2;border-color:#bde4cf;color:var(--ok);font-weight:900}
+.feedback.try{background:#fff7e6;border-color:#efcf91;color:var(--warn);font-weight:800}
+.hidden{display:none}
+.primary{width:100%;min-height:48px;margin-top:10px;border:0;border-radius:12px;background:var(--accent);box-shadow:0 5px 0 #214d4b;color:#fff;font-size:19px;font-weight:900;cursor:pointer}
+.primary:active{transform:translateY(3px);box-shadow:0 2px 0 #214d4b}
+.shake{animation:shake .24s linear}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.celebration{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1000}
+.confetti{position:absolute;top:-60px;font-size:30px;animation:fall 2.7s linear forwards}
+@keyframes fall{0%{transform:translateY(-80px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(420deg);opacity:0}}
+.result{text-align:center;padding:22px 16px}
+.big-celebrate{font-size:32px;font-weight:1000;line-height:1.35;color:var(--ok)}
+.result-text{font-size:18px;font-weight:800;line-height:1.6}
+.mistake-list{text-align:left;margin-top:10px}
+.mistake-title{margin:0 0 8px;color:var(--accent);font-size:18px;font-weight:1000}
+.mistake-item{padding:10px 0;border-top:1px solid var(--line);line-height:1.55}
+.mistake-item:first-of-type{border-top:0}
+.mistake-problem{font-weight:1000}
+.mistake-meta{color:var(--muted);font-weight:800}
+@media(max-width:420px){
+  h1{font-size:22px}
+  .expression{font-size:42px}
+  .question{font-size:22px}
+  .choice{min-height:52px;font-size:22px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div>
+      <h1>F案：係数</h1>
+      <div class="sub">文字の前の数を見つける練習</div>
+    </div>
+    <a class="toplink" href="index.html">一覧へ</a>
+  </header>
+
+  <div class="progress">
+    <span class="pill" id="qPill">1問目 / 11問</span>
+    <span class="pill" id="scorePill">正解 0</span>
+    <span class="pill step" id="stepPill">係数</span>
+  </div>
+
+  <section class="card problem-card" id="problemCard">
+    <div class="stage-label" id="stageText">Step 1</div>
+    <div class="expression" id="expressionText"></div>
+    <p class="question" id="questionText"></p>
+    <p class="note">係数は、文字の前についている数です。</p>
+  </section>
+
+  <section class="card" id="choiceCard">
+    <div class="choice-grid" id="choiceGrid"></div>
+    <div class="feedback" id="feedback" aria-live="polite">答えを選びます。</div>
+  </section>
+</main>
+
+<script>
+function playCorrectSound(){try{const A=window.AudioContext||window.webkitAudioContext,ctx=new A(),notes=[698,1047];notes.forEach((freq,i)=>{const start=ctx.currentTime+i*.14,o=ctx.createOscillator(),g=ctx.createGain();o.type="triangle";o.frequency.setValueAtTime(freq,start);g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(.16,start+.012);g.gain.exponentialRampToValueAtTime(.0001,start+.16);o.connect(g);g.connect(ctx.destination);o.start(start);o.stop(start+.17)})}catch(e){}}
+function showConfetti(){const layer=document.createElement("div");layer.className="celebration";const pieces=["🎉","✨","🌟","💮","👏","🎊"];for(let i=0;i<38;i++){const piece=document.createElement("span");piece.className="confetti";piece.textContent=pieces[Math.floor(Math.random()*pieces.length)];piece.style.left=Math.random()*100+"vw";piece.style.animationDelay=Math.random()*.7+"s";piece.style.fontSize=22+Math.random()*24+"px";layer.appendChild(piece)}document.body.appendChild(layer);setTimeout(()=>layer.remove(),3600)}
+
+const QUESTIONS=[
+  {step:1,expression:"5x",question:"x の係数は？",answer:"5",choices:["5","1","x","0"],label:"係数",type:"係数ミス",hint:"文字の前についている数を見ます。"},
+  {step:2,expression:"5a",question:"a の係数は？",answer:"5",choices:["1","a","5","0"],label:"係数",type:"係数ミス",hint:"文字の前についている数を見ます。"},
+  {step:3,expression:"x",question:"x の係数は？",answer:"1",choices:["x","1","0","-1"],label:"係数1",type:"係数1の省略",hint:"数が書いていない文字は、1がついていると考えます。"},
+  {step:4,expression:"a",question:"a の係数は？",answer:"1",choices:["a","0","-1","1"],label:"係数1",type:"係数1の省略",hint:"数が書いていない文字は、1がついていると考えます。"},
+  {step:5,expression:"-x",question:"x の係数は？",answer:"-1",choices:["-1","1","x","0"],label:"係数-1",type:"係数-1の省略",hint:"マイナスだけの文字は、-1がついていると考えます。"},
+  {step:6,expression:"-a",question:"a の係数は？",answer:"-1",choices:["1","a","-1","0"],label:"係数-1",type:"係数-1の省略",hint:"マイナスだけの文字は、-1がついていると考えます。"},
+  {step:7,expression:"-6b",question:"b の係数は？",answer:"-6",choices:["6","-6","b","-1"],label:"係数",type:"係数ミス",hint:"文字の前の符号も一緒に見ます。"},
+  {step:8,expression:"3x - 5a",question:"a の係数は？",answer:"-5",choices:["3","5","a","-5"],label:"複数文字",type:"複数文字",hint:"聞かれている文字だけを見ます。文字の前の符号も一緒に見ます。"},
+  {step:9,expression:"3x - 5a",question:"x の係数は？",answer:"3",choices:["3","-5","5","x"],label:"複数文字",type:"複数文字",hint:"聞かれている文字だけを見ます。文字の前の符号も一緒に見ます。"},
+  {step:10,expression:"3a - 5x",question:"a の係数は？",answer:"3",choices:["-5","3","5","a"],label:"複数文字",type:"複数文字",hint:"聞かれている文字だけを見ます。文字の前の符号も一緒に見ます。"},
+  {step:11,expression:"3a - 5x",question:"x の係数は？",answer:"-5",choices:["5","x","-5","3"],label:"複数文字",type:"複数文字",hint:"聞かれている文字だけを見ます。文字の前の符号も一緒に見ます。"}
+];
+
+let qIndex=0,score=0,locked=false,resultSent=false;
+let isReviewMode=false,reviewTargets=[],reviewIndex=0;
+let problemMistakes=QUESTIONS.map(()=>false);
+
+function setText(id,text){document.getElementById(id).textContent=text}
+function setFeedback(text,type=""){const el=document.getElementById("feedback");el.className=`feedback${type?` ${type}`:""}`;el.textContent=text}
+function setVisible(id,visible){document.getElementById(id).classList.toggle("hidden",!visible)}
+function clearShake(){document.querySelectorAll(".shake").forEach(el=>el.classList.remove("shake"))}
+function markShake(){const el=document.getElementById("choiceCard");el.classList.remove("shake");void el.offsetWidth;el.classList.add("shake");el.addEventListener("animationend",()=>el.classList.remove("shake"),{once:true})}
+function makeChoices(q){const grid=document.getElementById("choiceGrid");grid.replaceChildren();q.choices.forEach(choice=>{const button=document.createElement("button");button.type="button";button.className="choice";button.textContent=choice;button.addEventListener("click",()=>checkChoice(choice));grid.appendChild(button)})}
+function currentQuestionIndex(){return isReviewMode?reviewTargets[reviewIndex]:qIndex}
+function advanceQuestion(){if(isReviewMode){reviewIndex++}else{qIndex++}render()}
+function problemText(q){return `${q.expression}：${q.question}`}
+function buildReviewTargets(){return problemMistakes.reduce((targets,missed,index)=>{if(missed)targets.push(index);return targets},[])}
+function correctCount(){return problemMistakes.filter(missed=>!missed).length}
+function finishFirstRound(){reviewTargets=buildReviewTargets();if(reviewTargets.length){showReviewIntro();return}showResult()}
+function mistakeMemoHtml(){
+  return `<div class="mistake-list"><h2 class="mistake-title">間違いメモ</h2>${reviewTargets.map(index=>{const q=QUESTIONS[index];return `<div class="mistake-item"><div class="mistake-problem">${q.expression}</div><div class="mistake-meta">分類：${q.type}</div><div>ヒント：${q.hint}</div></div>`}).join("")}</div>`;
+}
+
+function render(){
+  if(isReviewMode){if(reviewIndex>=reviewTargets.length){showResult();return}}else if(qIndex>=QUESTIONS.length){finishFirstRound();return}
+  clearShake();
+  const q=QUESTIONS[currentQuestionIndex()];
+  locked=false;
+  setVisible("problemCard",true);
+  setVisible("choiceCard",true);
+  setText("qPill",isReviewMode?`復習 ${reviewIndex+1}問目 / ${reviewTargets.length}問`:`${qIndex+1}問目 / ${QUESTIONS.length}問`);
+  setText("scorePill",`正解 ${score}`);
+  setText("stepPill","係数");
+  setText("stageText",`Step ${q.step}`);
+  setText("expressionText",q.expression);
+  setText("questionText",q.question);
+  setFeedback("答えを選びます。");
+  makeChoices(q);
+}
+
+function checkChoice(choice){
+  if(locked)return;
+  const q=QUESTIONS[currentQuestionIndex()];
+  if(choice===q.answer){
+    locked=true;
+    if(!isReviewMode){score++;setText("scorePill",`正解 ${score}`)}
+    document.querySelectorAll(".choice").forEach(button=>button.disabled=true);
+    playCorrectSound();
+    setFeedback("正解！ その数が係数です。","ok");
+    setTimeout(advanceQuestion,850);
+  }else{
+    if(!isReviewMode)problemMistakes[currentQuestionIndex()]=true;
+    setFeedback(`もう一度見てみよう。${q.hint}`,"try");
+    markShake();
+  }
+}
+
+function showReviewIntro(){
+  clearShake();
+  setText("qPill",`復習 ${reviewTargets.length}問`);
+  setText("stepPill","復習");
+  setVisible("problemCard",false);
+  setVisible("choiceCard",false);
+  let card=document.getElementById("reviewIntroCard");
+  if(!card){card=document.createElement("section");card.id="reviewIntroCard";card.className="card result";document.querySelector(".app").appendChild(card)}
+  card.innerHTML=`<p class="question">${QUESTIONS.length}問中 ${correctCount()}問 正解</p><p class="result-text">まちがえた問題をもう一度やってみよう。</p>${mistakeMemoHtml()}<button class="primary" type="button" onclick="startReview()">もう一度</button>`;
+}
+function startReview(){clearShake();const card=document.getElementById("reviewIntroCard");if(card)card.remove();isReviewMode=true;reviewIndex=0;render()}
+function sendResult(){
+  if(resultSent)return;
+  resultSent=true;
+  const count=correctCount();
+  const wrongProblems=[];
+  problemMistakes.forEach((missed,index)=>{if(missed){const q=QUESTIONS[index];wrongProblems.push(`[${q.label}] ${problemText(q)}`)}});
+  const note=reviewTargets.length?`F案：係数ステップ・復習あり・全復習クリア（対象${reviewTargets.length}問）`:"F案：係数ステップ・復習なし・1周目ノーミス";
+  const data={studentId:"takumi",appId:"mojishiki-normal-basic-input",mode:"F",totalQuestions:QUESTIONS.length,correctCount:count,allCorrect:count===QUESTIONS.length,wrongProblems,device:navigator.userAgent,note};
+  fetch("https://script.google.com/macros/s/AKfycbyB1kGi_sCQ5trrAA_o1c-6tn87LY0di6rqIkssJ6vIacZ2IN4Y65jj9vCWoIwaH9aV/exec",{method:"POST",mode:"no-cors",body:JSON.stringify(data)}).catch(error=>console.warn("結果を送信できませんでした。",error))
+}
+
+function showResult(){
+  const reviewed=reviewTargets.length>0;
+  clearShake();
+  showConfetti();
+  document.querySelector(".app").innerHTML=`<header><div><h1>結果</h1><div class="sub">係数 ステップ練習</div></div><a class="toplink" href="index.html">一覧へ</a></header><section class="card result"><div class="big-celebrate">${reviewed?"クリア！よく直せたね！":"係数を見つけられました！"}</div><p class="result-text">${reviewed?"まちがえた問題も、もう一度正解できました。":"文字の前の数を、ていねいに見る練習ができました。"}</p><button class="primary" type="button" onclick="location.reload()">もう一度</button></section>`;
+  sendResult();
+}
+
+render();
+</script>
+</body>
+</html>
