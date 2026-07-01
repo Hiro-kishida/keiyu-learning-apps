@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>傾きレース＋右親指タップ v2</title>
+  <title>傾きレース＋右親指タップ v3</title>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
@@ -267,11 +267,24 @@
     }
 
     function spawnObstacle() {
+      const size = 34 + Math.random() * 18;
+      let laneX;
+
+      // 端っこ待機対策：
+      // 以前は 0.18〜0.82 にしか出なかったので、左右端が安全地帯になりやすかった。
+      // 1) 障害物の出現範囲を 0.11〜0.89 まで広げる。
+      // 2) 約35%の確率で、今の車の近くにも出す。
+      if (Math.random() < 0.35) {
+        laneX = clamp(player.x + (Math.random() - 0.5) * 0.16, 0.11, 0.89);
+      } else {
+        laneX = 0.11 + Math.random() * 0.78;
+      }
+
       obstacles.push({
-        x: 0.18 + Math.random() * 0.64,
+        x: laneX,
         y: -0.08,
-        w: 34 + Math.random() * 18,
-        h: 34 + Math.random() * 18,
+        w: size,
+        h: size,
         vy: 0.25 + Math.random() * 0.11,
         hit: false
       });
@@ -331,7 +344,7 @@
       player.vx += accel * dt;
       player.vx *= Math.pow(0.08, dt);
       player.x += player.vx * dt;
-      player.x = clamp(player.x, 0.10, 0.90);
+      player.x = clamp(player.x, 0.14, 0.86);
 
       spawnTimer -= dt;
       if (spawnTimer <= 0) {
