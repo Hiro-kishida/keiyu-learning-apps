@@ -547,7 +547,10 @@ const WORDS = [
 [202,"deflate","空気を抜く，しぼませる(動詞)"],
 [203,"dawn","夜明け，暁(名詞)"],
 [204,"filament","細糸，線条(名詞)"],
-[205,"be prone to","する傾向がある，しがちである(熟語)"],
+  
+[205,"be prone to","しがちである、する傾向がある"],
+
+  
 [206,"injure","を傷つける(動詞)"],
 [207,"end up with","で終わる，の羽目になる(熟語)"],
 [208,"weep","泣く，涙を流す(動詞)"],
@@ -946,8 +949,8 @@ function praiseStorm(){
       el.textContent=nm+PRAISES[Math.floor(Math.random()*PRAISES.length)];
       el.style.color=cols[Math.floor(Math.random()*cols.length)];
       el.style.fontSize=(45+Math.random()*2)+"px";
-      el.style.left=(Math.random()*30)+"vw";
-      el.style.top=(Math.random()*86)+"vh";
+      el.style.left=(Math.random()*10)+"vw";
+      el.style.top=(20 + Math.random()*36)+"vh";
       const rot=Math.random()*24-12;
       cel.appendChild(el);
       el.animate([
