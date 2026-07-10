@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>WORD RUSH 3 — 英単語スプリント</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161233; --card:#221C4D; --card2:#2B2460;
+  --ink:#F6F2FF; --sub:#9D93C9;
+  --heat:#6FD6FF; --heat-soft:rgba(111,214,255,.18);
+  --good:#5EE6A8; --bad:#FF6B81; --gold:#FFD75E;
+  --r:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN',sans-serif;
+  overflow:hidden; user-select:none; transition:background .6s;
+}
+body.fever{animation:feverBg 1s infinite alternate}
+@keyframes feverBg{from{background:#2A1040}to{background:#3A0E33}}
+#app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;padding:16px;position:relative}
+
+.screen{display:none;flex-direction:column;flex:1;min-height:0}
+.screen.active{display:flex;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+button{font-family:inherit;border:none;cursor:pointer;color:inherit}
+.big-btn{
+  background:var(--heat); color:#161233;
+  font-weight:800;font-size:19px;padding:17px;border-radius:999px;width:100%;
+  box-shadow:0 6px 0 rgba(0,0,0,.35); transition:transform .08s, background .4s;
+}
+.big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.big-btn.alt{background:var(--card2);color:var(--ink);margin-top:10px}
+.ghost-btn{background:var(--card);color:var(--sub);font-weight:700;font-size:14px;padding:13px;border-radius:999px;width:100%;margin-top:10px}
+.eyebrow{font-size:11px;letter-spacing:.25em;color:var(--sub);font-weight:700}
+
+/* ===== ホーム ===== */
+#home{justify-content:flex-start;gap:12px;overflow-y:auto;padding-top:2vh}
+.logo{font-family:'Archivo Black',sans-serif;font-size:38px;line-height:1;letter-spacing:-.02em}
+.logo .rush{color:var(--heat);transition:color .4s}
+.stat-row{display:flex;gap:8px}
+.stat{flex:1;background:var(--card);border-radius:var(--r);padding:12px 8px;text-align:center}
+.stat b{display:block;font-size:21px;font-weight:800}
+.stat span{font-size:10px;color:var(--sub);font-weight:700}
+#levelBox{background:var(--card);border-radius:var(--r);padding:14px}
+#levelTitle{display:flex;justify-content:space-between;align-items:baseline;font-weight:800}
+#rankName{font-size:15px}
+#lvNum{color:var(--heat);font-family:'Archivo Black';transition:color .4s}
+.xpbar{height:9px;background:#0F0C26;border-radius:99px;margin-top:9px;overflow:hidden}
+.xpfill{height:100%;background:var(--heat);border-radius:99px;width:0%;transition:width .8s cubic-bezier(.2,1,.3,1), background .4s}
+.xptext{font-size:10px;color:var(--sub);margin-top:5px;text-align:right;font-weight:700}
+/* ミッション */
+/* 音色 */
+#toneBox{background:var(--card);border-radius:var(--r);padding:14px}
+#toneBox h3{font-size:11px;letter-spacing:.2em;color:var(--sub);margin-bottom:9px}
+#toneChips{display:flex;flex-wrap:wrap;gap:7px}
+#rangeBox{background:var(--card);border-radius:var(--r);padding:14px}
+#rangeBox h3{font-size:11px;letter-spacing:.2em;color:var(--sub);margin-bottom:9px}
+.range-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.range-row input{width:78px;background:var(--card2);border:1.5px solid transparent;border-radius:12px;padding:9px 10px;font-size:15px;font-weight:800;color:var(--ink);text-align:center}
+.range-row input:focus{outline:none;border-color:var(--heat)}
+.range-row .dash{color:var(--sub);font-weight:800}
+.range-now{margin-top:8px;font-size:12px;font-weight:700;color:var(--heat)}
+.chip{
+  background:var(--card2);border:1.5px solid transparent;border-radius:999px;
+  padding:8px 13px;font-size:12px;font-weight:800;color:var(--sub);
+  transition:transform .07s;
+}
+.chip:active{transform:scale(.94)}
+.chip.sel{border-color:var(--heat);color:var(--heat);background:var(--heat-soft)}
+#reviewBadge{display:none;background:var(--heat-soft);border:1.5px dashed var(--heat);color:var(--heat);border-radius:var(--r);padding:11px 14px;font-size:13px;font-weight:700;width:100%;text-align:left;transition:border-color .4s,color .4s}
+#zukanBtn{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:var(--r);padding:13px 14px;width:100%;font-size:13px;font-weight:800;text-align:left}
+#zukanBtn .pct{color:var(--gold)}
+
+/* ===== クイズ ===== */
+#hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+#qnum{font-weight:800;color:var(--sub);font-size:14px}
+#lives{font-size:14px;letter-spacing:2px}
+#score{font-family:'Archivo Black';font-size:22px}
+#feverBanner{
+  display:none;position:absolute;top:48px;left:0;right:0;text-align:center;
+  font-family:'Archivo Black';font-size:16px;color:var(--gold);letter-spacing:.15em;
+  pointer-events:none;z-index:4;text-shadow:0 2px 10px rgba(0,0,0,.6);
+  animation:feverPulse .5s infinite alternate;
+}
+@keyframes feverPulse{from{transform:scale(1);opacity:.85}to{transform:scale(1.08);opacity:1}}
+#combo{
+  position:absolute;top:42%;right:14px;text-align:right;pointer-events:none;z-index:4;
+  font-family:'Archivo Black';font-size:26px;color:var(--heat);opacity:0;
+  text-shadow:0 2px 10px rgba(0,0,0,.55);
+}
+#combo.show{animation:comboPop .9s cubic-bezier(.2,1.8,.4,1) forwards}
+@keyframes comboPop{
+  0%{opacity:0;transform:scale(.4) rotate(-8deg)}
+  18%{opacity:1;transform:scale(1) rotate(-4deg)}
+  70%{opacity:1;transform:scale(1) rotate(-4deg)}
+  100%{opacity:0;transform:scale(.9) translateY(-14px) rotate(-4deg)}
+}
+#combo small{display:block;font-size:11px;font-family:'M PLUS Rounded 1c';font-weight:800;letter-spacing:.2em}
+.timerbar{height:8px;background:#0F0C26;border-radius:99px;overflow:hidden;margin-bottom:14px}
+#timerfill{height:100%;background:var(--heat);width:100%;border-radius:99px;transition:background .4s}
+#qcard{
+  background:var(--card);border-radius:24px;padding:30px 20px 26px;text-align:center;
+  position:relative;border:2px solid transparent;transition:border-color .3s;
+}
+#qcard.heat3{border-color:var(--heat);box-shadow:0 0 30px var(--heat-soft)}
+body.fever #qcard{border-color:var(--gold);box-shadow:0 0 36px rgba(255,215,94,.25)}
+#qword{font-family:'Archivo Black',sans-serif;font-size:clamp(32px,10.5vw,50px);letter-spacing:-.01em;word-break:break-word}
+#qhint{color:var(--sub);font-size:12px;font-weight:700;margin-top:6px;min-height:17px}
+#choices{display:grid;gap:30px;margin-top:16px;flex:1;align-content:start}
+.choice{
+  background:var(--card2);border-radius:var(--r);padding:18px 16px;font-size:20px;font-weight:700;
+  text-align:left;display:flex;align-items:center;gap:12px;
+  transition:transform .07s, background .15s;border:2px solid transparent;
+}
+.choice:active{transform:scale(.97)}
+.choice .key{min-width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--sub)}
+.choice.correct{background:rgba(94,230,168,.16);border-color:var(--good);color:var(--good)}
+.choice.wrong{background:rgba(255,107,129,.14);border-color:var(--bad);color:var(--bad);animation:shake .35s}
+.choice.dim{opacity:.35}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.float-pt{position:absolute;font-family:'Archivo Black';font-size:24px;color:var(--heat);pointer-events:none;animation:floatUp .55s ease-out forwards;text-shadow:0 2px 8px rgba(0,0,0,.4);z-index:4}
+@keyframes floatUp{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-36px)}}
+#app.quake{animation:quake .25s}
+@keyframes quake{25%{transform:translate(3px,-2px)}50%{transform:translate(-3px,2px)}75%{transform:translate(2px,1px)}}
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:90;
+  background:var(--gold);color:#161233;font-weight:800;font-size:13px;
+  padding:9px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.4);
+  animation:toastIn 2.2s forwards;white-space:nowrap;pointer-events:none;
+}
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,16px)}12%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,10px)}}
+
+/* ===== 結果 ===== */
+#result{justify-content:center;text-align:center}
+#resScore{font-family:'Archivo Black';font-size:60px;color:var(--heat);transition:color .4s}
+#resMode{font-size:12px;color:var(--sub);font-weight:800;letter-spacing:.2em}
+#resBest{font-size:13px;font-weight:800;color:var(--good);min-height:20px;margin-top:2px}
+.res-stats{display:flex;gap:8px;margin:16px 0}
+#resWrong{background:var(--card);border-radius:var(--r);padding:14px;text-align:left;font-size:14px;max-height:22dvh;overflow-y:auto;margin-bottom:14px}
+#resWrong h4{font-size:11px;color:var(--sub);letter-spacing:.15em;margin-bottom:8px}
+#resWrong .w{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-weight:700}
+#resWrong .w span{color:var(--sub);font-weight:500}
+#lvup{display:none;font-weight:800;color:var(--heat);font-size:16px;animation:pop .5s;margin-bottom:8px}
+
+/* ===== 図鑑 ===== */
+#zukan{overflow:hidden}
+#zukanHead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+#zukanHead h2{font-family:'Archivo Black';font-size:22px}
+#zukanPct{color:var(--gold);font-weight:800}
+.zbar{height:9px;background:#0F0C26;border-radius:99px;overflow:hidden;margin-bottom:12px}
+#zfill{height:100%;background:var(--gold);width:0%;border-radius:99px}
+#zlist{flex:1;overflow-y:auto;background:var(--card);border-radius:var(--r);padding:6px 14px}
+.zw{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-weight:700;font-size:14px}
+.zw span{color:var(--sub);font-weight:500;font-size:13px}
+.znum{color:var(--heat);font-weight:800;font-size:12px;min-width:32px;font-family:'Archivo Black',sans-serif}
+.zleft{display:flex;align-items:center;gap:10px}
+.zw.locked{opacity:.35}
+.zw .tag{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;margin-left:8px}
+.zw .tag.m{background:rgba(255,215,94,.18);color:var(--gold)}
+.zw .tag.t{background:rgba(111,214,255,.15);color:#6FD6FF}
+.zw .tag.w{background:rgba(255,107,129,.15);color:var(--bad)}
+
+/* ===== 全問正解 派手演出 ===== */
+#celebrate{background:transparent}
+#arashiBg{position:absolute;inset:0;opacity:0;background:
+  linear-gradient(120deg,#FF5BA8,#FF9F43,#FFD75E,#5EE6A8,#6FD6FF,#A86CFF,#FF5BA8);
+  background-size:300% 300%}
+#arashiBg.go{animation:arBgFade 3.2s ease-out forwards, rbShift2 3s linear infinite}
+@keyframes arBgFade{0%{opacity:0}12%{opacity:.85}82%{opacity:.85}100%{opacity:0}}
+@keyframes rbShift2{from{background-position:0 0}to{background-position:300% 300%}}
+.praise-word{position:absolute;will-change:transform,opacity;pointer-events:none;
+  font-family:'M PLUS Rounded 1c','Archivo Black',sans-serif;font-weight:900;white-space:nowrap;
+  text-shadow:0 2px 8px rgba(0,0,0,.25),0 0 18px rgba(255,255,255,.5)}
+#arashiMain{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) scale(.2);opacity:0;z-index:5;
+  font-family:'Archivo Black','M PLUS Rounded 1c',sans-serif;font-weight:900;font-size:clamp(48px,15vw,86px);white-space:nowrap;text-align:center;color:#fff;
+  text-shadow:0 0 14px #FF5BA8,0 0 30px #FFD75E,0 0 48px #6FD6FF,0 3px 8px rgba(0,0,0,.3)}
+#arashiMain.go{animation:arMainIn .7s 1.2s cubic-bezier(.2,1.9,.3,1) forwards, arMainGlow .9s 1.9s ease-in-out infinite alternate}
+@keyframes arMainIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-12deg)}60%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(5deg)}100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-2deg)}}
+@keyframes arMainGlow{from{text-shadow:0 0 12px #FF5BA8,0 0 26px #FFD75E,0 3px 8px rgba(0,0,0,.3)}to{text-shadow:0 0 22px #FF5BA8,0 0 44px #FFD75E,0 0 70px #6FD6FF,0 3px 8px rgba(0,0,0,.3)}}
+
+#celebrate{position:fixed;inset:0;z-index:200;pointer-events:none;display:none;overflow:hidden}
+#flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fff,rgba(255,255,255,0));opacity:0}
+#flash.go{animation:flashAnim .5s ease-out}
+@keyframes flashAnim{0%{opacity:.9}100%{opacity:0}}
+#bigWord{
+  position:absolute;top:34%;left:50%;transform:translate(-50%,-50%) scale(.2);
+  font-family:'Archivo Black',sans-serif;font-size:clamp(54px,17vw,96px);
+  font-weight:900;text-align:center;white-space:nowrap;opacity:0;
+  background:linear-gradient(90deg,#FF3D8A,#FFD75E,#5EE6A8,#6FD6FF,#FF3D8A);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(255,215,94,.55));
+}
+#bigWord.go{animation:bigIn .6s cubic-bezier(.2,1.8,.35,1) forwards, hue 1.6s linear infinite}
+@keyframes bigIn{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-12deg)}
+  55%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(4deg)}
+  72%{transform:translate(-50%,-50%) scale(.92) rotate(-2deg)}
+  86%{transform:translate(-50%,-50%) scale(1.06) rotate(1deg)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}
+}
+@keyframes hue{from{background-position:0 0}to{background-position:300% 0}}
+#subWord{
+  position:absolute;top:34%;left:50%;transform:translate(-50%,38px) scale(.8);
+  font-family:'M PLUS Rounded 1c';font-weight:800;font-size:clamp(20px,6vw,30px);
+  color:var(--ink);opacity:0;text-shadow:0 2px 14px rgba(0,0,0,.6);white-space:nowrap;text-align:center;
+}
+#subWord.go{animation:subIn .5s .25s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes subIn{from{opacity:0;transform:translate(-50%,52px) scale(.8)}to{opacity:1;transform:translate(-50%,52px) scale(1)}}
+.cracker{position:absolute;width:12px;height:12px;will-change:transform,opacity}
+@keyframes shoot{
+  0%{opacity:1;transform:translate(0,0) rotate(0)}
+  100%{opacity:0}
+}
+.confetti{position:fixed;width:10px;height:10px;top:-12px;pointer-events:none;z-index:99;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110dvh) rotate(720deg)}}
+/* なまえ */
+#nameBtn{background:none;color:var(--sub);font-size:13px;font-weight:700;padding:4px 0 0;text-align:left}
+#nameModal{display:none;position:fixed;inset:0;background:rgba(10,8,30,.75);z-index:100;align-items:center;justify-content:center;padding:24px}
+#nameCard{background:var(--card);border-radius:22px;padding:24px 20px;width:100%;max-width:340px;text-align:center;animation:pop .3s}
+#nameCard h3{font-size:16px;font-weight:800;margin-bottom:4px}
+#nameCard p{font-size:12px;color:var(--sub);margin-bottom:14px}
+#nameInput{width:100%;background:#0F0C26;border:1.5px solid var(--card2);border-radius:14px;color:var(--ink);font-family:inherit;font-size:17px;font-weight:700;padding:13px;text-align:center;user-select:text;-webkit-user-select:text;outline:none}
+#nameInput:focus{border-color:var(--heat)}
+#nameBtns{display:flex;gap:10px;margin-top:14px}
+#nameBtns button{flex:1;border-radius:999px;padding:12px;font-weight:800;font-size:14px}
+#nameOk{background:var(--heat);color:#161233}
+#nameSkip{background:var(--card2);color:var(--sub)}
+#praise{display:none;font-size:17px;font-weight:800;color:var(--gold);margin-bottom:6px;animation:pop .5s}
+#sndToggle{position:absolute;top:16px;right:16px;background:var(--card);width:40px;height:40px;border-radius:12px;font-size:18px;z-index:5}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="celebrate">
+    <div id="arashiBg"></div>
+    <div id="flash"></div>
+  </div>
+  <button id="sndToggle" aria-label="サウンド切り替え">🔊</button>
+
+  <!-- ホーム -->
+  <section id="home" class="screen active">
+    <div>
+      <p class="eyebrow">英単語スプリント</p>
+      <h1 class="logo">WORD <span class="rush">RUSH</span></h1>
+      <button id="nameBtn"></button>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><b id="stBest">0</b><span>ベスト</span></div>
+      <div class="stat"><b id="stSurv">0</b><span>サバイバル記録</span></div>
+      <div class="stat"><b>🔥<span id="stStreak">0</span></b><span>連続日数</span></div>
+      <div class="stat"><b id="stAcc">-%</b><span>正答率</span></div>
+    </div>
+    <div id="levelBox">
+      <div id="levelTitle"><span id="rankName">見習いルーキー</span><span id="lvNum">Lv.1</span></div>
+      <div class="xpbar"><div class="xpfill" id="xpfill"></div></div>
+      <div class="xptext" id="xptext"></div>
+    </div>
+    <div id="toneBox">
+      <h3>♪ 効果音の音色(タップで試聴)</h3>
+      <div id="toneChips"></div>
+    </div>
+    <button id="zukanBtn">📖 単語図鑑 <span class="pct" id="zukanRate">0%</span></button>
+    <button id="reviewBadge">⚡ 苦手な単語が <b id="weakCount">0</b> 個 — 復習ラッシュで倒そう</button>
+    <div id="rangeBox">
+      <h3>📏 出題範囲(単語番号)</h3>
+      <div class="range-row">
+        <input id="rangeLo" type="number" inputmode="numeric">
+        <span class="dash">〜</span>
+        <input id="rangeHi" type="number" inputmode="numeric">
+        <button id="rangeSet" class="chip sel">セット</button>
+        <button id="rangeAll" class="chip">全部</button>
+      </div>
+      <div id="rangeNow" class="range-now"></div>
+    </div>
+    <div style="margin-top:auto;padding-top:8px">
+      <button class="big-btn" id="startBtn">スプリント(8問)▶</button>
+      <button class="big-btn alt" id="survBtn">🛡 サバイバル(3ミスで終了)</button>
+      <button class="ghost-btn" id="reviewBtn" style="display:none">苦手だけ復習する</button>
+    </div>
+  </section>
+
+  <!-- クイズ -->
+  <section id="quiz" class="screen">
+    <div id="hud">
+      <span id="qnum">Q1 / 8</span>
+      <span id="lives"></span>
+      <span id="score">0</span>
+    </div>
+    <div id="feverBanner">★ FEVER TIME ×2 ★</div>
+    <div class="timerbar"><div id="timerfill"></div></div>
+    <div id="qcard">
+      <div id="qword">apple</div>
+      <div id="qhint"></div>
+    </div>
+    <div id="choices"></div>
+    <div id="combo"><small>COMBO</small>×0</div>
+  </section>
+
+  <!-- 結果 -->
+  <section id="result" class="screen">
+    <p class="eyebrow" id="resMode">RESULT</p>
+    <div id="lvup">🎉 LEVEL UP!</div>
+    <div id="praise"></div>
+    <div id="resScore">0</div>
+    <div id="resBest"></div>
+    <div class="res-stats">
+      <div class="stat"><b id="resCorrect">0/8</b><span>正解</span></div>
+      <div class="stat"><b id="resMaxCombo">×0</b><span>最大コンボ</span></div>
+      <div class="stat"><b id="resXp">+0</b><span>XP</span></div>
+    </div>
+    <div id="resWrong" style="display:none"><h4>とりこぼした単語</h4><div id="resWrongList"></div></div>
+    <button class="big-btn" id="againBtn">もう1回 ▶</button>
+    <button class="ghost-btn" id="homeBtn">ホームへ</button>
+  </section>
+
+  <!-- 図鑑 -->
+  <section id="zukan" class="screen">
+    <div id="zukanHead"><h2>単語図鑑</h2><span id="zukanPct">0 / 0</span></div>
+    <div class="zbar"><div id="zfill"></div></div>
+    <div id="zlist"></div>
+    <button class="ghost-btn" id="zukanBack">ホームへ戻る</button>
+  </section>
+
+  <!-- なまえ入力 -->
+  <div id="nameModal">
+    <div id="nameCard">
+      <h3>なまえを教えてね</h3>
+      <p>あとで「ようこそ」のところから変えられます</p>
+      <input id="nameInput" maxlength="10" placeholder="ニックネームでもOK">
+      <div id="nameBtns"><button id="nameSkip">あとで</button><button id="nameOk">けってい</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= 単語データ ================= */
+const WORDS = [
+[1,"create","創造する"],
+[2,"increase","増加する"],
+[3,"improve","向上する"],
+[4,"mean","意味する"],
+[5,"own","所有する"],
+[6,"include","（構成要素として）含める"],
+[7,"consider","考える"],
+[8,"allow","許す"],
+[9,"suggest","提案する，示唆する"],
+[10,"produce","生産する"],
+[11,"decide","決める"],
+[12,"offer","提供する"],
+[13,"require","必要とする"],
+[14,"share","共有する"],
+[15,"store","蓄える，保管する"],
+[16,"tend","傾向がある"],
+[17,"concern","関係する"],
+[18,"describe","（言葉で）描写する，述べる"],
+[19,"involve","伴う"],
+[20,"reduce","減らす"],
+[21,"design","設計する"],
+[22,"force","強いる"],
+[23,"limit","限定する"],
+[24,"bear","耐える"],
+[25,"affect","影響を及ぼす"],
+[26,"deal","（deal withで）対処する，扱う"],
+[27,"avoid","避ける"],
+[28,"relate","関連する"],
+[29,"realize","（頭で）悟る，実感する"],
+[30,"encourage","励ます"],
+[31,"compare","比較する"],
+[32,"measure","測る"],
+[33,"exist","存在する"],
+[34,"mark","印をつける"],
+[35,"challenge","挑む"],
+[36,"depend","依存する，次第である"],
+[37,"object","異議を唱える"],
+[38,"demand","要求する"],
+[39,"found","設立する"],
+[40,"complete","完成させる"],
+[41,"idea","考え"],
+[42,"accord","一致"],
+[43,"company","会社"],
+[44,"interest","興味"],
+[45,"research","研究"],
+[46,"cause","原因"],
+[47,"reason","理由"],
+[48,"effect","影響，効果"],
+[49,"influence","影響（力）"],
+[50,"situation","状況，事態"],
+[51,"environment","環境"],
+[52,"skill","技能"],
+[53,"matter","問題，事柄"],
+[54,"view","見解"],
+[55,"value","価値"],
+[56,"species","種"],
+[57,"thought","思考，考えること"],
+[58,"knowledge","知識"],
+[59,"memory","記憶"],
+[60,"practice","実践"],
+[61,"benefit","恩恵，利点"],
+[62,"theory","理論"],
+[63,"issue","問題（点），論点"],
+[64,"experiment","実験"],
+[65,"article","記事"],
+[66,"focus","焦点"],
+[67,"subject","科目"],
+[68,"project","計画"],
+[69,"quality","質"],
+[70,"role","役割"],
+[71,"term","用語"],
+[72,"statement","声明"],
+[73,"material","素材，資料"],
+[74,"evidence","証拠"],
+[75,"source","源"],
+[76,"community","地域社会"],
+[77,"technology","科学技術"],
+[78,"culture","文化"],
+[79,"appropriate","ふさわしい"],
+[80,"likely","ありそうな"],
+[81,"possible","可能な"],
+[82,"individual","個々の"],
+[83,"public","公の"],
+[84,"common","共通の"],
+[85,"certain","確かな"],
+[86,"similar","似ている"],
+[87,"recent","最近の"],
+[88,"major","主要な"],
+[89,"patient","忍耐強い"],
+[90,"particular","特定の，個々の"],
+[91,"physical","身体の"],
+[92,"various","さまざまな"],
+[93,"available","利用できる"],
+[94,"native","生まれつきの"],
+[95,"political","政治の"],
+[96,"due","予定された"],
+[97,"blank","空白の"],
+[98,"ancient","古代の"],
+[99,"correct","正しい"],
+[100,"despite","にもかかわらず"],
+[101,"notice","（目・耳で）気づく，注目する"],
+[102,"refer","言及する，参照する"],
+[103,"approach","近づく"],
+[104,"wonder","かなと思う"],
+[105,"imagine","想像する"],
+[106,"recognize","識別する"],
+[107,"solve","解決する"],
+[108,"occur","起こる"],
+[109,"argue","論じる，主張する"],
+[110,"claim","（当然のこととして）主張する，要求する"],
+[111,"express","表す"],
+[112,"draw","引き出す"],
+[113,"waste","浪費する"],
+[114,"advance","進める"],
+[115,"spread","広がる"],
+[116,"prepare","準備する"],
+[117,"gain","獲得する"],
+[118,"achieve","達成する"],
+[119,"establish","確立する"],
+[120,"supply","供給する"],
+[121,"suppose","思う"],
+[122,"perform","行う"],
+[123,"prefer","好む"],
+[124,"determine","決定する"],
+[125,"treat","扱う"],
+[126,"prove","証明する"],
+[127,"apply","適用する"],
+[128,"mention","（ちょっと）触れる，述べる"],
+[129,"communicate","意思疎通する，伝達する"],
+[130,"contain","（中に）含んでいる"],
+[131,"contact","連絡を取る"],
+[132,"regard","見なす"],
+[133,"respect","尊重する"],
+[134,"search","探す"],
+[135,"connect","つなぐ"],
+[136,"decline","減少する"],
+[137,"prevent","防ぐ"],
+[138,"suffer","苦しむ"],
+[139,"survive","生き残る"],
+[140,"publish","出版する"],
+[141,"opportunity","機会"],
+[142,"task","課題"],
+[143,"industry","産業"],
+[144,"medium","媒体"],
+[145,"economy","経済"],
+[146,"policy","方針"],
+[147,"account","説明"],
+[148,"trade","貿易"],
+[149,"model","模範"],
+[150,"figure","数字"],
+[151,"cell","細胞"],
+[152,"image","印象"],
+[153,"emotion","感情"],
+[154,"stress","ストレス"],
+[155,"decade","10年間"],
+[156,"range","範囲"],
+[157,"character","性格，人柄"],
+[158,"advantage","利点"],
+[159,"phrase","句"],
+[160,"damage","損害"],
+[161,"impact","影響"],
+[162,"method","方法，方式"],
+[163,"resource","資源"],
+[164,"region","地方，地域（広め）"],
+[165,"medicine","薬"],
+[166,"detail","詳細"],
+[167,"feature","特徴"],
+[168,"function","機能"],
+[169,"access","利用"],
+[170,"item","項目"],
+[171,"income","収入"],
+[172,"attitude","態度"],
+[173,"site","場所"],
+[174,"aspect","側面"],
+[175,"structure","構造"],
+[176,"habit","習慣"],
+[177,"link","関連"],
+[178,"instance","例"],
+[179,"positive","肯定的な"],
+[180,"negative","否定的な"],
+[181,"complex","複雑な"],
+[182,"current","現在の"],
+[183,"mental","精神の"],
+[184,"specific","具体的な，明確な"],
+[185,"significant","重大な，意義深い"],
+[186,"essential","不可欠な"],
+[187,"official","公式の"],
+[188,"financial","財政の"],
+[189,"academic","学問の"],
+[190,"aware","気づいている"],
+[191,"worth","価値がある"],
+[192,"potential","潜在的な"],
+[193,"active","活動的な"],
+[194,"digital","デジタルの"],
+[195,"mobile","移動式の"],
+[196,"novel","斬新な"],
+[197,"plastic","柔軟な"],
+[198,"chemical","化学の"],
+[199,"necessary","必要な"],
+[200,"eventually","結局"],
+[201,"identify","特定する"],
+[202,"represent","代表する，表現する"],
+[203,"indicate","指し示す，示唆する"],
+[204,"manage","管理する"],
+[205,"attend","出席する"],
+[206,"maintain","維持する"],
+[207,"survey","（全体を）調査する，概観する"],
+[208,"replace","取り替える"],
+[209,"sort","分類する"],
+[210,"conduct","実施する"],
+[211,"associate","関連づける"],
+[212,"attempt","試みる"],
+[213,"promote","促進する"],
+[214,"earn","稼ぐ"],
+[215,"unite","団結させる"],
+[216,"feed","食べ物を与える"],
+[217,"seek","求める"],
+[218,"observe","観察する"],
+[219,"reveal","明らかにする"],
+[220,"estimate","推定する"],
+[221,"reflect","反映する"],
+[222,"attract","引きつける"],
+[223,"decrease","減る，減少させる"],
+[224,"ignore","無視する"],
+[225,"match","合う"],
+[226,"define","定義する"],
+[227,"adapt","適応する"],
+[228,"contribute","貢献する"],
+[229,"exchange","交換する"],
+[230,"display","（見せて）示す，展示する"],
+[231,"respond","応答する，返答する"],
+[232,"hide","隠す"],
+[233,"doubt","（真偽を）疑う，信じない"],
+[234,"remove","取り去る，移動する"],
+[235,"wind","巻く"],
+[236,"assume","仮定する"],
+[237,"relax","くつろぐ"],
+[238,"satisfy","満足させる"],
+[239,"desire","強く望む"],
+[240,"succeed","成功する"],
+[241,"concept","概念，考え方"],
+[242,"fashion","流行"],
+[243,"device","装置"],
+[244,"charge","請求金額，手数料"],
+[245,"contrast","対照"],
+[246,"colleague","同僚"],
+[247,"pain","痛み"],
+[248,"bill","請求書"],
+[249,"content","内容"],
+[250,"section","部分"],
+[251,"audience","観客"],
+[252,"surface","表面"],
+[253,"crop","作物"],
+[254,"topic","話題"],
+[255,"technique","技術"],
+[256,"status","地位"],
+[257,"option","選択肢"],
+[258,"reward","報酬"],
+[259,"race","人種"],
+[260,"crime","犯罪"],
+[261,"conflict","争い"],
+[262,"struggle","闘い"],
+[263,"context","文脈"],
+[264,"debate","討論"],
+[265,"fuel","燃料"],
+[266,"pollution","汚染"],
+[267,"trend","傾向"],
+[268,"balance","均衡"],
+[269,"traffic","交通"],
+[270,"strategy","戦略"],
+[271,"basis","基礎"],
+[272,"consequence","結果"],
+[273,"aim","目的"],
+[274,"ancestor","祖先"],
+[275,"gene","遺伝子"],
+[276,"track","跡"],
+[277,"revolution","革命"],
+[278,"progress","進歩"],
+[279,"cognitive","認知の"],
+[280,"ideal","理想的な"],
+[281,"efficient","効率的な"],
+[282,"universal","普遍的な"],
+[283,"vast","広大な"],
+[284,"extra","追加の"],
+[285,"entire","全体の"],
+[286,"familiar","精通している"],
+[287,"obvious","明白な，見え見えの"],
+[288,"moral","道徳的な"],
+[289,"ordinary","普通の"],
+[290,"equal","等しい，平等な"],
+[291,"previous","以前の"],
+[292,"false","誤った"],
+[293,"rare","まれな"],
+[294,"legal","法律の"],
+[295,"independent","独立した"],
+[296,"extreme","極端な"],
+[297,"actual","実際の"],
+[298,"willing","いとわない"],
+[299,"urban","都市の"],
+[300,"whereas","一方で"],
+[301,"predict","予測する"],
+[302,"examine","調べる"],
+[303,"trust","信頼する"],
+[304,"stick","くっつく"],
+[305,"emerge","現れる"],
+[306,"vary","変わる"],
+[307,"release","公開する，発売する"],
+[308,"divide","分ける"],
+[309,"enable","可能にする"],
+[310,"judge","判断する"],
+[311,"rely","信頼して頼る，当てにする"],
+[312,"engage","従事する"],
+[313,"shift","変える"],
+[314,"adopt","採用する"],
+[315,"acquire","習得する，身につける"],
+[316,"expand","拡大する"],
+[317,"refuse","断る"],
+[318,"strike","打つ"],
+[319,"repeat","繰り返す"],
+[320,"consume","消費する"],
+[321,"confuse","混同する"],
+[322,"select","選ぶ"],
+[323,"evolve","発展する"],
+[324,"convince","納得させる"],
+[325,"recall","思い出す"],
+[326,"destroy","破壊する"],
+[327,"preserve","保護する，保つ"],
+[328,"organize","組織する"],
+[329,"warn","警告する"],
+[330,"address","（問題に）取り組む"],
+[331,"operate","操作する"],
+[332,"participate","参加する"],
+[333,"surround","取り巻く"],
+[334,"flow","流れる"],
+[335,"bore","退屈させる"],
+[336,"complain","不平を言う"],
+[337,"host","主催する"],
+[338,"combine","結びつける"],
+[339,"extend","延長する，拡張する"],
+[340,"appreciate","正当に評価する"],
+[341,"target","目標"],
+[342,"element","要素"],
+[343,"principle","原則"],
+[344,"phenomenon","現象"],
+[345,"atmosphere","雰囲気"],
+[346,"origin","起源"],
+[347,"personality","人格，個性"],
+[348,"capacity","能力"],
+[349,"profit","（金銭的）利益，もうけ"],
+[350,"circumstance","事情，状況"],
+[351,"manner","やり方，態度"],
+[352,"threat","脅威"],
+[353,"resident","居住者"],
+[354,"wealth","富"],
+[355,"institution","機関"],
+[356,"authority","権威"],
+[357,"vote","投票"],
+[358,"sight","光景"],
+[359,"campaign","運動"],
+[360,"fund","資金"],
+[361,"web","ウェブ"],
+[362,"symbol","象徴"],
+[363,"analysis","分析"],
+[364,"version","版"],
+[365,"perspective","観点"],
+[366,"crisis","危機"],
+[367,"disaster","災害"],
+[368,"lecture","講義"],
+[369,"psychology","心理学"],
+[370,"gender","性別"],
+[371,"custom","慣習"],
+[372,"court","裁判所"],
+[373,"desert","砂漠"],
+[374,"soil","土壌"],
+[375,"agriculture","農業"],
+[376,"fossil","化石"],
+[377,"document","書類"],
+[378,"vocabulary","語彙"],
+[379,"intelligent","聡明な"],
+[380,"conscious","意識している"],
+[381,"capable","能力がある"],
+[382,"accurate","正確な，精密な"],
+[383,"fundamental","基本的な"],
+[384,"artificial","人工の"],
+[385,"firm","確固たる"],
+[386,"overall","全体的な"],
+[387,"rural","田舎の"],
+[388,"military","軍事の"],
+[389,"nuclear","核の"],
+[390,"biological","生物学の"],
+[391,"constant","一定の"],
+[392,"severe","深刻な，過酷な"],
+[393,"visual","視覚の"],
+[394,"enormous","巨大な"],
+[395,"convenient","便利な"],
+[396,"domestic","国内の"],
+[397,"mass","大量の"],
+[398,"typical","典型的な"],
+[399,"overseas","海外に"],
+[400,"nevertheless","それにもかかわらず"],
+[401,"demonstrate","論証する"],
+[402,"behave","振る舞う"],
+[403,"educate","教育する"],
+[404,"purchase","購入する"],
+[405,"recommend","勧める"],
+[406,"admit","認める"],
+[407,"generate","生み出す"],
+[408,"explore","探検する"],
+[409,"amaze","びっくりさせる"],
+[410,"tear","引き裂く"],
+[411,"settle","移り住む"],
+[412,"afford","余裕がある"],
+[413,"conclude","と結論づける"],
+[414,"advertise","宣伝する"],
+[415,"encounter","に遭遇する"],
+[416,"remind","思い出させる"],
+[417,"locate","位置する"],
+[418,"aid","援助する"],
+[419,"bite","噛む"],
+[420,"deliver","配達する"],
+[421,"perceive","知覚する"],
+[422,"distinguish","区別する"],
+[423,"imply","暗に意味する"],
+[424,"handle","処理する"],
+[425,"praise","賞賛する"],
+[426,"appeal","訴える"],
+[427,"insist","強く主張する"],
+[428,"compete","競う"],
+[429,"rank","位置づける"],
+[430,"deny","否定する"],
+[431,"reject","拒否する"],
+[432,"intend","意図する"],
+[433,"expose","さらす"],
+[434,"favor","賛成する"],
+[435,"inspire","奮起させる"],
+[436,"propose","提案する"],
+[437,"spell","つづる"],
+[438,"breathe","呼吸する"],
+[439,"repair","修理する"],
+[440,"consist","成る"],
+[441,"comment","意見"],
+[442,"instruction","指示"],
+[443,"religion","宗教"],
+[444,"neighborhood","近所，界隈"],
+[445,"laboratory","研究室"],
+[446,"presence","存在"],
+[447,"confidence","自信"],
+[448,"harm","害"],
+[449,"instrument","器具"],
+[450,"category","部類"],
+[451,"capital","資本"],
+[452,"outcome","成果"],
+[453,"notion","観念，漠然とした考え"],
+[454,"review","論評"],
+[455,"trait","特性"],
+[456,"diversity","多様性"],
+[457,"victim","犠牲者"],
+[458,"occasion","場合"],
+[459,"facility","施設"],
+[460,"stock","在庫品"],
+[461,"conference","会議"],
+[462,"humanity","人類"],
+[463,"dialect","方言"],
+[464,"proportion","割合"],
+[465,"tip","助言"],
+[466,"lawyer","弁護士"],
+[467,"stuff","物"],
+[468,"comfort","快適さ"],
+[469,"philosophy","哲学"],
+[470,"mammal","哺乳動物"],
+[471,"quantity","量"],
+[472,"landscape","風景"],
+[473,"tribe","部族"],
+[474,"organ","器官"],
+[475,"trial","試み"],
+[476,"norm","規範"],
+[477,"code","規定"],
+[478,"substance","物質"],
+[479,"multiple","多様な"],
+[480,"numerous","非常に数の多い"],
+[481,"narrow","狭い"],
+[482,"widespread","広範囲にわたる"],
+[483,"sufficient","十分な"],
+[484,"proper","適切な"],
+[485,"linguistic","言語の"],
+[486,"annual","年１回の"],
+[487,"contemporary","現代の"],
+[488,"contrary","反対の"],
+[489,"strict","厳格な，厳しい"],
+[490,"civil","市民の"],
+[491,"odd","奇妙な"],
+[492,"unknown","不明の"],
+[493,"superior","よりすぐれた"],
+[494,"sensitive","敏感な"],
+[495,"violent","激しい"],
+[496,"virtual","仮想の"],
+[497,"regardless","かまわない"],
+[498,"immediate","即座の"],
+[499,"crucial","決定的に重要な"],
+[500,"somewhat","いくぶん"],
+[501,"interpret","解釈する"],
+[502,"translate","翻訳する"],
+[503,"concentrate","集中する"],
+[504,"request","頼む"],
+[505,"criticize","批判する"],
+[506,"overcome","克服する"],
+[507,"obtain","得る"],
+[508,"inform","知らせる"],
+[509,"ensure","確実にする"],
+[510,"announce","発表する"],
+[511,"grant","許可を与える"],
+[512,"freeze","凍る"],
+[513,"oppose","反対する"],
+[514,"differ","異なる"],
+[515,"hate","ひどく嫌う"],
+[516,"emphasize","強調する"],
+[517,"employ","雇う"],
+[518,"credit","帰する"],
+[519,"transform","完全に変える"],
+[520,"construct","建設する"],
+[521,"arise","生じる"],
+[522,"beat","打ち負かす"],
+[523,"regret","後悔する"],
+[524,"alter","部分的に変える"],
+[525,"absorb","吸収する"],
+[526,"disappoint","失望させる"],
+[527,"cure","治す"],
+[528,"transport","輸送する"],
+[529,"rush","急いで行く"],
+[530,"hang","掛ける"],
+[531,"blame","責める"],
+[532,"ban","禁止する"],
+[533,"fascinate","魅了する"],
+[534,"recover","回復する"],
+[535,"celebrate","祝う"],
+[536,"manufacture","製造する"],
+[537,"interact","影響し合う"],
+[538,"arrange","段取りつける"],
+[539,"adjust","調整する"],
+[540,"confirm","確認する"],
+[541,"insight","見識"],
+[542,"innovation","革新"],
+[543,"budget","予算"],
+[544,"fee","（専門職・入場などの）料金"],
+[545,"expense","経費"],
+[546,"debt","借金"],
+[547,"loan","貸付金"],
+[548,"duty","義務"],
+[549,"alarm","不安"],
+[550,"emergency","緊急"],
+[551,"democracy","民主主義"],
+[552,"minister","大臣"],
+[553,"fellow","仲間"],
+[554,"candidate","候補者"],
+[555,"corporation","企業"],
+[556,"stereotype","固定観念"],
+[557,"route","道"],
+[558,"disorder","障害"],
+[559,"depression","憂うつ"],
+[560,"weapon","兵器"],
+[561,"immigration","移民"],
+[562,"barrier","障壁"],
+[563,"disadvantage","不利"],
+[564,"mood","気分"],
+[565,"motion","動き"],
+[566,"routine","決まり切った仕事"],
+[567,"discipline","しつけ"],
+[568,"myth","作り話"],
+[569,"hypothesis","仮説"],
+[570,"physician","医師"],
+[571,"client","顧客"],
+[572,"colony","植民地"],
+[573,"statistics","統計"],
+[574,"grain","穀物"],
+[575,"ingredient","材料"],
+[576,"treasure","宝物"],
+[577,"contract","契約"],
+[578,"welfare","福祉"],
+[579,"prime","最重要の"],
+[580,"curious","好奇心の強い"],
+[581,"dramatic","劇的な"],
+[582,"distinct","明らかに異なる"],
+[583,"anxious","心配して"],
+[584,"vital","必要不可欠な"],
+[585,"conventional","従来の"],
+[586,"abstract","抽象的な"],
+[587,"minor","重要でない"],
+[588,"extraordinary","並はずれた"],
+[589,"stable","安定した"],
+[590,"flexible","融通の利く"],
+[591,"brief","簡潔な"],
+[592,"aggressive","攻撃的な"],
+[593,"visible","目に見える"],
+[594,"unexpected","思いがけない"],
+[595,"ethnic","民族の"],
+[596,"alien","異質の"],
+[597,"initial","初めの"],
+[598,"exact","ぴったりの，厳密な"],
+[599,"precise","精密な"],
+[600,"latter","後者の"],
+[601,"commit","献身する"],
+[602,"stimulate","刺激する"],
+[603,"enhance","高める"],
+[604,"pursue","追求する"],
+[605,"react","反応する"],
+[606,"disagree","不賛成である"],
+[607,"stare","じっと見る"],
+[608,"abandon","捨てる"],
+[609,"quit","止める"],
+[610,"capture","とらえる"],
+[611,"transfer","移す"],
+[612,"bother","悩ます"],
+[613,"persuade","説得する"],
+[614,"rent","賃借りする"],
+[615,"breed","繁殖させる"],
+[616,"invest","投資する"],
+[617,"reserve","予約する"],
+[618,"trace","足跡をたどる"],
+[619,"illustrate","説明する"],
+[620,"advise","忠告する"],
+[621,"convey","伝える"],
+[622,"attach","付ける"],
+[623,"stretch","伸ばす"],
+[624,"puzzle","当惑させる"],
+[625,"disturb","かき乱す"],
+[626,"crash","衝突する"],
+[627,"cope","うまく処理する"],
+[628,"permit","許可する"],
+[629,"impress","感動させる"],
+[630,"suspect","（怪しいと）思う，感づく"],
+[631,"upset","動揺させる"],
+[632,"frighten","怖がらせる"],
+[633,"import","輸入する"],
+[634,"export","輸出する"],
+[635,"investigate","調査する"],
+[636,"monitor","監視する"],
+[637,"calculate","計算する"],
+[638,"eliminate","取り除く"],
+[639,"ease","軽減する"],
+[640,"launch","開始する"],
+[641,"sequence","連続"],
+[642,"therapy","療法"],
+[643,"symptom","症状"],
+[644,"incident","出来事"],
+[645,"witness","目撃者"],
+[646,"sum","額"],
+[647,"burden","負担"],
+[648,"tone","口調"],
+[649,"honor","光栄"],
+[650,"award","賞"],
+[651,"priority","優先事項"],
+[652,"logic","論理"],
+[653,"minimum","最小限度"],
+[654,"exception","例外"],
+[655,"clue","手がかり"],
+[656,"bond","絆"],
+[657,"virus","ウイルス"],
+[658,"surgery","手術"],
+[659,"insurance","保険"],
+[660,"frame","枠"],
+[661,"shelter","避難所"],
+[662,"territory","領土"],
+[663,"boundary","境界"],
+[664,"habitat","生息地"],
+[665,"district","地区"],
+[666,"conservation","保護"],
+[667,"harvest","収穫"],
+[668,"predator","捕食動物"],
+[669,"trap","わな"],
+[670,"trick","こつ"],
+[671,"fault","責任"],
+[672,"discount","割引"],
+[673,"bias","偏見"],
+[674,"cooperation","協力"],
+[675,"patent","特許"],
+[676,"dialogue","対話"],
+[677,"component","構成要素"],
+[678,"reputation","評判"],
+[679,"verbal","言葉の"],
+[680,"internal","内部の"],
+[681,"solid","しっかりした"],
+[682,"remote","遠く離れた"],
+[683,"principal","主な"],
+[684,"sophisticated","高性能の"],
+[685,"equivalent","同等の，相当する"],
+[686,"rational","理性的な"],
+[687,"relevant","関係がある"],
+[688,"absolute","絶対的な"],
+[689,"frequent","頻繁な"],
+[690,"permanent","永続的な"],
+[691,"intense","強烈な"],
+[692,"meaningful","意味のある"],
+[693,"evil","邪悪な"],
+[694,"extinct","絶滅した"],
+[695,"random","無作為の"],
+[696,"raw","生の"],
+[697,"rude","無礼な"],
+[698,"mere","単なる"],
+[699,"tropical","熱帯の"],
+[700,"forth","前へ"],
+[701,"possess","所有している"],
+[702,"dominate","支配する"],
+[703,"guarantee","保証する"],
+[704,"melt","溶ける"],
+[705,"embarrass","に恥ずかしい思いさせる"],
+[706,"discourage","にやる気なくさせる"],
+[707,"detect","感知する"],
+[708,"devote","ささげる"],
+[709,"urge","に（強く）促す"],
+[710,"lend","貸す"],
+[711,"restrict","制限する"],
+[712,"isolate","孤立させる"],
+[713,"accompany","同行する"],
+[714,"exhaust","疲れ果てさせる"],
+[715,"annoy","いらいらさせる"],
+[716,"endanger","危険にさらす"],
+[717,"acknowledge","（事実など）認める"],
+[718,"admire","に敬服する"],
+[719,"evaluate","評価する"],
+[720,"declare","宣言する"],
+[721,"secure","確保する"],
+[722,"specialize","専門とする"],
+[723,"attribute","（結果など）（〜に）帰する"],
+[724,"pretend","（の）ふりする"],
+[725,"bury","埋める"],
+[726,"reverse","逆転させる"],
+[727,"resist","抵抗する"],
+[728,"scare","おびえさせる"],
+[729,"imitate","まねる"],
+[730,"assist","手伝う，補助する"],
+[731,"resemble","に似ている"],
+[732,"retire","引退する"],
+[733,"neglect","おろそかにする"],
+[734,"collapse","崩壊する"],
+[735,"reform","改革する"],
+[736,"protest","抗議する"],
+[737,"owe","に借りがある"],
+[738,"sustain","持続させる"],
+[739,"assign","割り当てる"],
+[740,"accomplish","成し遂げる"],
+[741,"wisdom","知恵"],
+[742,"literacy","読み書きの能力"],
+[743,"heritage","遺産"],
+[744,"mission","使命"],
+[745,"license","免許（証）"],
+[746,"elite","〔集合的に〕エリート"],
+[747,"layer","層"],
+[748,"motor","モーター"],
+[749,"protein","たんぱく質"],
+[750,"profession","職業"],
+[751,"editor","編集者"],
+[752,"agent","仲介者"],
+[753,"globe","地球"],
+[754,"haven","安息地，安全な場所"],
+[755,"row","列"],
+[756,"sacrifice","犠牲"],
+[757,"means","手段"],
+[758,"session","集まり"],
+[759,"league","（競技）連盟"],
+[760,"contest","競技会"],
+[761,"guard","警備員"],
+[762,"opponent","（試合・論争などの）相手"],
+[763,"glance","ちらっと見ること"],
+[764,"divorce","離婚"],
+[765,"tissue","生物の組織"],
+[766,"liquid","液体"],
+[767,"inequality","不平等"],
+[768,"prejudice","（〜に対する）偏見"],
+[769,"justice","公正、正義"],
+[770,"guideline","指針"],
+[771,"platform","演壇；舞台"],
+[772,"sector","（社会・経済などの）部門"],
+[773,"channel","海峡"],
+[774,"glacier","氷河"],
+[775,"primate","霊長目の動物"],
+[776,"usage","用法"],
+[777,"fortune","幸運、財産"],
+[778,"correlation","相互関係"],
+[779,"artistic","芸術的な"],
+[780,"literary","文学の"],
+[781,"classic","第一級の"],
+[782,"liberal","自由主義の"],
+[783,"concrete","具体的な"],
+[784,"slight","わずかな"],
+[785,"federal","連邦（政府）の"],
+[786,"primitive","原始的な"],
+[787,"unfamiliar","不慣れな"],
+[788,"subtle","微妙な"],
+[789,"plain","明らかな，飾らない"],
+[790,"marine","海の；船舶の"],
+[791,"apparent","明白な"],
+[792,"reluctant","気が進まない、嫌がる"],
+[793,"temporary","一時的な"],
+[794,"guilty","罪悪感のある"],
+[795,"royal","王の"],
+[796,"pure","純粋な"],
+[797,"incredible","信じられない"],
+[798,"eager","熱望して"],
+[799,"adequate","適切な，まずまず十分な"],
+[800,"via","〜経由で"]
+];
+
+/* ================= 状態 ================= */
+const RANKS=["見習いルーキー","単語ハンター","コンボ職人","スピードスター","語彙の鬼","単語マスター","レジェンド"];
+const QN=8, TIME_MS=7000, FEVER_AT=6, FEVER_MS=8000;
+let S={best:0,bestSurv:0,streakDays:0,lastDay:"",xp:0,level:1,total:0,correct:0,word:{},sound:true,ms:null,tone:"piano",name:"",askedName:false,perfects:0,range:null};
+const $=id=>document.getElementById(id);
+
+/* 保存先の自動切り替え: Claude内→window.storage / 通常ブラウザ→localStorage */
+async function storeGet(k){
+  if(window.storage){const r=await window.storage.get(k);return r?r.value:null;}
+  try{return localStorage.getItem(k);}catch(e){return null;}
+}
+async function storeSet(k,v){
+  if(window.storage)return window.storage.set(k,v);
+  try{localStorage.setItem(k,v);}catch(e){}
+}
+async function loadState(){
+  try{
+    const v=await storeGet("wordrush_v2");
+    if(v)S={...S,...JSON.parse(v)};
+  }catch(e){}
+  renderHome();
+  if(!S.name&&!S.askedName){S.askedName=true;saveState();askName(true);}
+}
+async function saveState(){
+  try{ await storeSet("wordrush_v2",JSON.stringify(S)); }catch(e){}
+}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+
+/* ================= デイリーミッション ================= */
+function toast(msg){
+  const t=document.createElement("div");
+  t.className="toast";t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2300);
+}
+
+/* ================= レベル ================= */
+const xpNeed=lv=>200+lv*120;
+function rankFor(lv){return RANKS[Math.min(RANKS.length-1,Math.floor((lv-1)/3))];}
+function addXp(n){
+  S.xp+=n;let up=false;
+  while(S.xp>=xpNeed(S.level)){S.xp-=xpNeed(S.level);S.level++;up=true;}
+  return up;
+}
+
+/* ================= ヒート&フィーバー ================= */
+const HEAT=[["#6FD6FF","rgba(111,214,255,.18)"],["#FFC53D","rgba(255,197,61,.2)"],["#FF7A45","rgba(255,122,69,.2)"],["#FF3D8A","rgba(255,61,138,.22)"]];
+function heatLevel(c){return c>=10?3:c>=6?2:c>=3?1:0;}
+function applyHeat(c){
+  const h=heatLevel(c);
+  document.documentElement.style.setProperty("--heat",HEAT[h][0]);
+  document.documentElement.style.setProperty("--heat-soft",HEAT[h][1]);
+  $("qcard").classList.toggle("heat3",h>=2);
+}
+let feverTimer=null;
+function startFever(){
+  if(G.fever)return;
+  G.fever=true;G.feverUsed=true;
+  document.body.classList.add("fever");
+  $("feverBanner").style.display="block";
+  sfx.fever();burstConfetti(30);
+  feverTimer=setTimeout(endFever,FEVER_MS);
+}
+function endFever(){
+  clearTimeout(feverTimer);
+  G&&(G.fever=false);
+  document.body.classList.remove("fever");
+  $("feverBanner").style.display="none";
+}
+
+/* ================= サウンドエンジン ================= */
+/* 音階: ドレミファソラシド(8音)。サバイバルの長コンボは上のオクターブへ続く */
+const SCALE=[523.25,587.33,659.25,698.46,783.99,880,987.77,1046.5,
+             1174.66,1318.5,1396.9,1568,1760,1975.5,2093];
+const TONES={piano:"ピアノ",clar:"クラリネット",bari:"バリトンサックス",mbox:"オルゴール",bit:"8bit"};
+let AC=null;
+function ctx(){AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC;}
+
+function playNote(freq,tone,delay=0,vol=1){
+  if(!S.sound)return;
+  try{
+    const ac=ctx(),t=ac.currentTime+delay;
+    const out=ac.createGain();out.connect(ac.destination);
+    const env=(g,a,peak,dec,end)=>{ // attack→exponential decay
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.linearRampToValueAtTime(peak*vol,t+a);
+      g.gain.exponentialRampToValueAtTime(.0001,t+dec);
+      return dec;
+    };
+    let dur=1;
+    if(tone==="piano"){
+      [[1,"triangle",.16],[2,"sine",.05],[3,"sine",.02]].forEach(([m,w,p])=>{
+        const o=ac.createOscillator(),g=ac.createGain();
+        o.type=w;o.frequency.value=freq*m;
+        env(g,.004,p,.012+.85);
+        o.connect(g).connect(out);o.start(t);o.stop(t+.9);
+      });
+      dur=.9;
+    }else if(tone==="mbox"){
+      [[1,.14,1.3],[4,.05,.45],[5.4,.02,.3]].forEach(([m,p,d])=>{
+        const o=ac.createOscillator(),g=ac.createGain();
+        o.type="sine";o.frequency.value=freq*m;
+        env(g,.002,p,d);
+        o.connect(g).connect(out);o.start(t);o.stop(t+d+.05);
+      });
+      dur=1.3;
+    }else if(tone==="clar"){
+      const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+      o.type="square";o.frequency.value=freq/2; // 実音域に寄せて1オクターブ下
+      f.type="lowpass";f.frequency.value=freq*1.8;f.Q.value=.8;
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.linearRampToValueAtTime(.09*vol,t+.05);
+      g.gain.setValueAtTime(.09*vol,t+.22);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.38);
+      o.connect(f).connect(g).connect(out);o.start(t);o.stop(t+.4);
+      dur=.4;
+    }else if(tone==="bari"){
+      [0,-7].forEach(cents=>{ // わずかなデチューンでリード感
+        const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+        o.type="sawtooth";o.frequency.value=(freq/4)*Math.pow(2,cents/1200);
+        f.type="lowpass";f.frequency.value=freq*1.1;f.Q.value=1;
+        g.gain.setValueAtTime(.0001,t);
+        g.gain.linearRampToValueAtTime(.07*vol,t+.06);
+        g.gain.setValueAtTime(.07*vol,t+.24);
+        g.gain.exponentialRampToValueAtTime(.0001,t+.42);
+        o.connect(f).connect(g).connect(out);o.start(t);o.stop(t+.45);
+      });
+      dur=.45;
+    }else{ // 8bit
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type="square";o.frequency.value=freq;
+      g.gain.setValueAtTime(.06*vol,t);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.12);
+      o.connect(g).connect(out);o.start(t);o.stop(t+.13);
+      dur=.13;
+    }
+    setTimeout(()=>out.disconnect(),(delay+dur+.2)*1000);
+  }catch(e){}
+}
+function playChord(freqs,tone,delay=0,vol=.6){
+  freqs.forEach(f=>playNote(f,tone,delay,vol));
+}
+function beep(freq,dur=.09,type="square",gain=.06){
+  if(!S.sound)return;
+  try{
+    const ac=ctx();
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(gain,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);
+    o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+dur);
+  }catch(e){}
+}
+const sfx={
+  ok:c=>{
+    const i=Math.min(Math.max(c-1,0),SCALE.length-1);
+    playNote(SCALE[i],S.tone);
+    if(c===8)playChord([523.25,659.25,783.99],S.tone,0,.4); // オクターブ登頂: ドミソを薄く重ねる
+  },
+  ng:()=>beep(160,.18,"sawtooth",.05),
+  lvup:()=>[523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.13,"triangle",.07),i*80)),
+  fever:()=>[392,523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.12,"triangle",.08),i*70)),
+  tick:()=>beep(880,.04,"sine",.03),
+  fanfare:()=>{
+    [523.25,659.25,783.99,1046.5].forEach((f,i)=>playNote(f,S.tone,i*.13));
+    playChord([523.25,659.25,783.99,1046.5],S.tone,.55,.5);
+  },
+  preview:tone=>{ // 試聴: ド・ミ・ソ・ド
+    [523.25,659.25,783.99,1046.5].forEach((f,i)=>playNote(f,tone,i*.16));
+  }
+};
+
+/* ================= 出題(苦手優先) ================= */
+function dataLo(){return Math.min(...WORDS.map(w=>w[0]));}
+function dataHi(){return Math.max(...WORDS.map(w=>w[0]));}
+/* 有効範囲: S.range が null なら全データ。常にデータの最小〜最大にクランプ */
+function activeRange(){
+  const lo=dataLo(),hi=dataHi();
+  if(!S.range)return {lo,hi};
+  return {lo:Math.max(lo,S.range.lo),hi:Math.min(hi,S.range.hi)};
+}
+function rangeCount(){const R=activeRange();return WORDS.filter(w=>w[0]>=R.lo&&w[0]<=R.hi).length;}
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+/* 軽量SRS: MASTER(3回正解)済み かつ 当日すでに正解した語は、その日もう出さない */
+function isRestingToday(en){const st=S.word[en];return !!(st&&(st.right||0)>=3&&st.okDay===todayStr());}
+function eligiblePool(){const R=activeRange();return WORDS.filter(w=>w[0]>=R.lo&&w[0]<=R.hi&&!isRestingToday(w[1]));}
+function pickWords(reviewOnly,count){
+  const R=activeRange();
+  let inRange=WORDS.map((w,i)=>({i,num:w[0],en:w[1],ja:w[2]})).filter(w=>w.num>=R.lo&&w.num<=R.hi);
+  inRange=inRange.filter(w=>!isRestingToday(w.en));
+  let pool=inRange;
+  if(reviewOnly)pool=pool.filter(w=>{const st=S.word[w.en];return st&&st.wrong>st.right;});
+  if(!pool.length)pool=inRange.length?inRange:WORDS.map((w,i)=>({i,num:w[0],en:w[1],ja:w[2]}));
+  const weight=w=>{
+    const st=S.word[w.en]||{};
+    return Math.max(.1, 1+(st.wrong||0)*3-Math.min((st.right||0)*.3,.8));
+  };
+  const picked=[],bag=[...pool];
+  while(picked.length<count&&bag.length){
+    const tot=bag.reduce((s,w)=>s+weight(w),0);
+    let r=Math.random()*tot;
+    for(let k=0;k<bag.length;k++){
+      r-=weight(bag[k]);
+      if(r<=0){picked.push(bag.splice(k,1)[0]);break;}
+    }
+  }
+  while(picked.length<count)picked.push(pool[Math.floor(Math.random()*pool.length)]);
+  return picked;
+}
+function makeChoices(q){
+  const set=new Set([q.ja]);
+  while(set.size<4)set.add(WORDS[Math.floor(Math.random()*WORDS.length)][2]);
+  return [...set].sort(()=>Math.random()-.5);
+}
+
+/* ================= ゲーム進行 ================= */
+let G=null,timerId=null,tickId=null;
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");}
+
+function startGame(mode){ // "sprint" | "review" | "survival"
+  endFever();
+  hideCelebrate();
+  if(mode!=="review" && eligiblePool().length===0){ showDoneToday(); return; }
+  const count=mode==="survival"?eligiblePool().length:QN;
+  G={mode,qs:pickWords(mode==="review",count),idx:0,score:0,combo:0,maxCombo:0,ok:0,
+     wrongList:[],lives:3,fever:false,feverUsed:false};
+  applyHeat(0);$("score").textContent="0";
+  $("lives").textContent=mode==="survival"?"❤️❤️❤️":"";
+  show("quiz");nextQ();
+}
+function showDoneToday(){
+  const d=document.createElement("div");
+  d.innerHTML="🎉 今日のぶんは完了！<br>また明日ね";
+  d.style.cssText="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:500;background:var(--card);color:var(--ink);padding:20px 24px;border-radius:16px;font-weight:800;font-size:16px;line-height:1.6;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,.5);border:1px solid #3a3270;max-width:80%";
+  document.body.appendChild(d);
+  setTimeout(()=>{d.style.transition="opacity .4s";d.style.opacity="0";},2400);
+  setTimeout(()=>d.remove(),2900);
+}
+function curTime(){
+  if(G.mode!=="survival")return TIME_MS;
+  return Math.max(3500, TIME_MS - G.idx*150);
+}
+function nextQ(){
+  clearTimeout(timerId);clearInterval(tickId);
+  const isOver = G.mode==="survival" ? (G.lives<=0||G.idx>=G.qs.length) : (G.idx>=QN);
+  if(isOver)return endGame();
+  const q=G.qs[G.idx];
+  $("qnum").textContent=G.mode==="survival"?`Q${G.idx+1}`:`Q${G.idx+1} / ${QN}`;
+  $("qword").textContent=q.en;
+  const st=S.word[q.en];
+  $("qhint").textContent=(st&&st.wrong>st.right)?"⚡ 苦手マーク":"";
+  const cs=makeChoices(q);
+  $("choices").innerHTML="";
+  cs.forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.innerHTML=`<span class="key">${i+1}</span>${c}`;
+    b.dataset.ja=c;
+    b.onclick=()=>answer(b,c===q.ja,q,Date.now());
+    $("choices").appendChild(b);
+  });
+  const f=$("timerfill"),tm=curTime();
+  f.style.transition="none";f.style.width="100%";
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    f.style.transition=`width ${tm}ms linear`;f.style.width="0%";
+  });});
+  G.qStart=Date.now();G.qTime=tm;
+  timerId=setTimeout(()=>answer(null,false,q,Date.now(),true),tm);
+  tickId=setInterval(()=>{ if(Date.now()-G.qStart>G.qTime-2000) sfx.tick(); },500);
+}
+function answer(btn,ok,q,now,timeout=false){
+  clearTimeout(timerId);clearInterval(tickId);
+  document.querySelectorAll(".choice").forEach(b=>{
+    b.onclick=null;
+    if(b.dataset.ja===q.ja)b.classList.add("correct");
+    else if(b!==btn)b.classList.add("dim");
+  });
+  const st=S.word[q.en]=S.word[q.en]||{right:0,wrong:0};
+  S.total++;
+  if(ok){
+    S.correct++;st.right++;st.okDay=todayStr();
+    G.ok++;G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
+    const t=now-G.qStart;
+    const speedBonus=Math.max(0,Math.round((G.qTime-t)/G.qTime*100));
+    let mult=1+Math.min(G.combo*0.1,2);
+    if(G.fever)mult*=2;
+    const pts=Math.round((100+speedBonus)*mult);
+    G.score+=pts;
+    $("score").textContent=G.score;
+    applyHeat(G.combo);
+    const cb=$("combo");
+    cb.innerHTML=`<small>COMBO</small>×${G.combo}`;
+    cb.classList.remove("show");void cb.offsetWidth;cb.classList.add("show");
+    floatPts(btn,`+${pts}`);
+    sfx.ok(G.combo);
+    if(G.combo>0&&G.combo%5===0)burstConfetti(20);
+  }else{
+    st.wrong++;
+    if(btn)btn.classList.add("wrong");
+    G.combo=0;applyHeat(0);endFever();
+    $("combo").classList.remove("show");
+    G.wrongList.push(q);
+    if(G.mode==="survival"){
+      G.lives--;
+      $("lives").textContent="❤️".repeat(G.lives)+"🖤".repeat(3-G.lives);
+    }
+    sfx.ng();
+    $("app").classList.remove("quake");void $("app").offsetWidth;$("app").classList.add("quake");
+  }
+  G.idx++;
+  setTimeout(nextQ, ok?550:1050);
+}
+function floatPts(btn,text){
+  const el=document.createElement("div");
+  el.className="float-pt";el.textContent=text;
+  const r=(btn||$("choices")).getBoundingClientRect();
+  el.style.left=(r.left+r.width/2-30)+"px";
+  el.style.top=(r.top+r.height/2-14)+"px";el.style.position="fixed";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),600);
+}
+function crackerBlast(){
+  const cel=$("celebrate");
+  const colors=["#6FD6FF","#FFC53D","#FF7A45","#FF3D8A","#5EE6A8","#FFD75E","#fff"];
+  const shapes=["star","heart","sq"];
+  const W=window.innerWidth,H=window.innerHeight;
+  // 左下・右下・中央下の3点から噴き上げ
+  const origins=[[W*0.12,H],[W*0.88,H],[W*0.5,H*1.02]];
+  origins.forEach((o,oi)=>{
+    const num=46;
+    for(let i=0;i<num;i++){
+      const c=document.createElement("div");
+      c.className="cracker";
+      const col=colors[Math.floor(Math.random()*colors.length)];
+      const shp=shapes[Math.floor(Math.random()*shapes.length)];
+      if(shp==="star"){c.textContent="★";c.style.cssText="font-size:18px;line-height:1;color:"+col;c.style.width="auto";c.style.height="auto";}
+      else if(shp==="heart"){c.textContent="♥";c.style.cssText="font-size:16px;line-height:1;color:"+col;c.style.width="auto";c.style.height="auto";}
+      else{c.style.background=col;c.style.borderRadius=Math.random()>.5?"50%":"2px";}
+      c.style.left=o[0]+"px";c.style.top=o[1]+"px";c.style.position="absolute";
+      cel.appendChild(c);
+      // 扇状に上向き初速 → 重力で落下
+      const baseAng = oi===0? -60 : oi===1? -120 : -90;
+      const ang=(baseAng + (Math.random()*70-35))*Math.PI/180;
+      const sp=H*(0.55+Math.random()*0.5);
+      const vx=Math.cos(ang)*sp, vy=Math.sin(ang)*sp;
+      const dur=1100+Math.random()*900;
+      const spin=(Math.random()*720-360);
+      c.animate([
+        {transform:"translate(0,0) rotate(0deg)",opacity:1},
+        {transform:`translate(${vx*0.5}px,${vy*0.5 + H*0.12}px) rotate(${spin*0.5}deg)`,opacity:1,offset:.5},
+        {transform:`translate(${vx*0.8}px,${vy*0.55 + H*0.85}px) rotate(${spin}deg)`,opacity:0}
+      ],{duration:dur,easing:"cubic-bezier(.18,.7,.5,1)",fill:"forwards"});
+      setTimeout(()=>c.remove(),dur+60);
+    }
+  });
+}
+const PRAISES=["すごい！","天才！","神！","最高！","完璧！","さすが！","よくやった！","素晴らしい！",
+  "やるね！","パーフェクト！","ブラボー！","AMAZING!","GENIUS!","PERFECT!","WONDERFUL!","BRAVO!",
+  "GREAT!","花マル！","100点！","えらい！","きらきら✨","NICE!","超人！","脱帽！","圧巻！","お見事！"];
+function praiseStorm(){
+  const cel=$("celebrate");
+  const cols=["#fff","#FFD75E","#FF5BA8","#6FD6FF","#5EE6A8","#FFE9A8","#C9A0FF"];
+  const nm=(S.name?S.name+"ちゃん、":"あなた、");
+  const total=12;
+  for(let i=0;i<total;i++){
+    setTimeout(()=>{
+      if(!celebrating)return;
+      const el=document.createElement("div");
+      el.className="praise-word";
+      el.textContent=nm+PRAISES[Math.floor(Math.random()*PRAISES.length)];
+      el.style.color=cols[Math.floor(Math.random()*cols.length)];
+      el.style.fontSize=(17+Math.random()*22)+"px";
+      el.style.left=(Math.random()*78)+"vw";
+      el.style.top=(Math.random()*86)+"vh";
+      const rot=Math.random()*24-12;
+      cel.appendChild(el);
+      el.animate([
+        {opacity:0,transform:`scale(.4) rotate(${rot}deg)`},
+        {opacity:1,transform:`scale(1.1) rotate(${rot}deg)`,offset:.22},
+        {opacity:1,transform:`scale(1) rotate(${rot}deg)`,offset:.78},
+        {opacity:0,transform:`scale(1.04) rotate(${rot}deg) translateY(-18px)`}
+      ],{duration:1800,easing:"cubic-bezier(.2,1.4,.4,1)",fill:"forwards"});
+      setTimeout(()=>el.remove(),1840);
+      if(S.sound&&i%3===0){const f=[660,740,880,990][i%4];playNote(f,S.tone,0,.5);}
+    }, i*130);
+  }
+}
+let celebrating=false;
+function hideCelebrate(){
+  celebrating=false;
+  const c=$("celebrate");
+  c.style.display="none";
+  $("arashiBg").classList.remove("go");
+  $("flash").classList.remove("go");
+  c.querySelectorAll(".praise-word,.cracker").forEach(e=>e.remove());
+  document.querySelectorAll(".confetti").forEach(e=>e.remove());
+}
+function celebratePerfect(msg){
+  const cel=$("celebrate");
+  celebrating=true;
+  cel.style.display="block";
+  ["arashiBg","flash"].forEach(id=>{const e=$(id);e.classList.remove("go");void e.offsetWidth;});
+  $("arashiBg").classList.add("go");
+  $("flash").classList.add("go");
+  praiseStorm();
+  burstConfetti(30);
+  sfx.fanfare();
+  $("app").classList.remove("quake");void $("app").offsetWidth;$("app").classList.add("quake");
+  if(navigator.vibrate)try{navigator.vibrate([0,30,30,30,30,30,30,90]);}catch(e){}
+  setTimeout(hideCelebrate,3500);
+}
+function burstConfetti(n){
+  const colors=["#6FD6FF","#FFC53D","#FF7A45","#FF3D8A","#5EE6A8"];
+  for(let i=0;i<n;i++){
+    const c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"vw";
+    c.style.background=colors[i%colors.length];
+    c.style.animationDuration=(1.2+Math.random())+"s";
+    c.style.borderRadius=Math.random()>.5?"50%":"2px";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2400);
+  }
+}
+
+async function endGame(){
+  endFever();
+  const t=todayStr();
+  if(S.lastDay!==t){
+    const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+    S.streakDays=(S.lastDay===y)?S.streakDays+1:1;
+    S.lastDay=t;
+  }
+  const gained=Math.round(G.score/10)+(G.mode!=="survival"&&G.ok===QN?100:0);
+  const up=addXp(gained);
+  let newBest=false;
+  if(G.mode==="survival"){
+    if(G.ok>S.bestSurv){S.bestSurv=G.ok;newBest=true;}
+  }else{
+    if(G.score>S.best){S.best=G.score;newBest=true;}
+  }
+  let praise="";
+  const nm=S.name?S.name+"ちゃん":"";
+  let doCelebrate=false;
+  if(G.mode!=="survival"&&G.ok===QN){
+    S.perfects=(S.perfects||0)+1;
+    if(S.perfects===1)praise=(nm?nm+"、":"")+"初の全問正解!オクターブ完成🎵";
+    else{
+      const pool=nm?[nm+"、すごい!","完璧!ドからドまで登りきった!",nm+"、見事なオクターブ!"]
+                  :["すごい!全問正解!","完璧!ドからドまで登りきった!","見事なオクターブ!"];
+      praise=pool[S.perfects%pool.length];
+    }
+    doCelebrate=true;
+  }else if(newBest){
+    praise=G.mode==="survival"?"新記録!耳も頭も冴えてる!":(nm?nm+"、":"")+"記録更新!";
+  }
+  await saveState();
+
+  $("praise").textContent=praise;
+  $("praise").style.display=praise?"block":"none";
+  if(doCelebrate)setTimeout(()=>celebratePerfect(praise),120);
+  $("resMode").textContent=G.mode==="survival"?"SURVIVAL RESULT":G.mode==="review"?"REVIEW RESULT":"SPRINT RESULT";
+  $("resScore").textContent=G.mode==="survival"?G.ok:G.score;
+  $("resBest").textContent=newBest?(G.mode==="survival"?"🏆 サバイバル記録更新!":"🏆 自己ベスト更新!"):"";
+  $("resCorrect").textContent=G.mode==="survival"?`${G.ok}問突破`:`${G.ok}/${QN}`;
+  $("resMaxCombo").textContent=`×${G.maxCombo}`;
+  $("resXp").textContent=`+${gained}`;
+  $("lvup").style.display=up?"block":"none";
+  if(up){sfx.lvup();burstConfetti(50);}
+  else if(G.mode!=="survival"&&G.ok===QN){burstConfetti(40);}
+  const box=$("resWrong"),list=$("resWrongList");
+  if(G.wrongList.length){
+    box.style.display="block";
+    list.innerHTML=G.wrongList.map(q=>`<div class="w"><b>${q.en}</b><span>${q.ja}</span></div>`).join("");
+  }else box.style.display="none";
+  show("result");
+}
+
+/* ================= ホーム & 図鑑 ================= */
+function masteredCount(){
+  return WORDS.filter(w=>(S.word[w[1]]?.right||0)>=3).length;
+}
+/* 図鑑の段階進捗: 未挑戦=0 / 挑戦中・苦手=0.5 / MASTER(3回正解)=1。合計÷全語数で% */
+function zukanProgress(){
+  const R=activeRange();
+  let p=0;
+  WORDS.forEach(w=>{
+    if(w[0]<R.lo||w[0]>R.hi)return;
+    const st=S.word[w[1]];if(!st)return;
+    if((st.right||0)+(st.wrong||0)===0)return;
+    p+=(st.right||0)>=3?1:0.5;
+  });
+  return p;
+}
+function renderHome(){
+  $("stBest").textContent=S.best;
+  $("stSurv").textContent=S.bestSurv;
+  $("stStreak").textContent=S.streakDays;
+  $("stAcc").textContent=S.total?Math.round(S.correct/S.total*100)+"%":"-%";
+  $("rankName").textContent=rankFor(S.level);
+  $("lvNum").textContent="Lv."+S.level;
+  $("xpfill").style.width=Math.min(100,S.xp/xpNeed(S.level)*100)+"%";
+  $("xptext").textContent=`次のレベルまで ${xpNeed(S.level)-S.xp} XP`;
+  const R=activeRange();
+  const rc=rangeCount();
+  const weak=WORDS.filter(w=>{if(w[0]<R.lo||w[0]>R.hi)return false;const v=S.word[w[1]];return v&&v.wrong>v.right;}).length;
+  $("weakCount").textContent=weak;
+  $("reviewBadge").style.display=weak>=3?"block":"none";
+  $("reviewBtn").style.display=weak>=3?"block":"none";
+  $("zukanRate").textContent=(rc?Math.round(zukanProgress()/rc*100):0)+"%";
+  if(document.activeElement!==$("rangeLo"))$("rangeLo").value=R.lo;
+  if(document.activeElement!==$("rangeHi"))$("rangeHi").value=R.hi;
+  $("rangeNow").textContent=`いまの範囲: ${R.lo}〜${R.hi}（${rc}語）`;
+  $("sndToggle").textContent=S.sound?"🔊":"🔇";
+  $("nameBtn").textContent=S.name?`ようこそ、${S.name}ちゃん 🎵`:"✏️ なまえを設定";
+  // 音色チップ
+  const tc=$("toneChips");tc.innerHTML="";
+  Object.entries(TONES).forEach(([k,name])=>{
+    const b=document.createElement("button");
+    b.className="chip"+(S.tone===k?" sel":"");
+    b.textContent=name;
+    b.onclick=()=>{S.tone=k;saveState();renderHome();sfx.preview(k);};
+    tc.appendChild(b);
+  });
+}
+function renderZukan(){
+  const R=activeRange();
+  const rc=rangeCount();
+  const prog=zukanProgress();
+  const pct=rc?Math.round(prog/rc*100):0;
+  $("zukanPct").textContent=`${pct}%（${R.lo}〜${R.hi}）`;
+  $("zfill").style.width=(rc?prog/rc*100:0)+"%";
+  const zl=$("zlist");zl.innerHTML="";
+  WORDS.forEach(w=>{
+    if(w[0]<R.lo||w[0]>R.hi)return;
+    const st=S.word[w[1]];
+    const d=document.createElement("div");
+    let tag="",locked=false;
+    if(!st||st.right+st.wrong===0){locked=true;}
+    else if(st.right>=3)tag=`<span class="tag m">★ MASTER</span>`;
+    else if(st.wrong>st.right)tag=`<span class="tag w">⚡ 苦手</span>`;
+    else tag=`<span class="tag t">挑戦中</span>`;
+    d.className="zw"+(locked?" locked":"");
+    d.innerHTML=`<span class="zleft"><span class="znum">${w[0]}</span><b>${w[1]}</b></span><span class="zja">${locked?"???":w[2]}${tag}</span>`;
+    zl.appendChild(d);
+  });
+}
+
+/* ================= イベント ================= */
+$("startBtn").onclick=()=>startGame("sprint");
+$("survBtn").onclick=()=>startGame("survival");
+$("reviewBtn").onclick=()=>startGame("review");
+$("rangeSet").onclick=()=>{
+  const dlo=dataLo(),dhi=dataHi();
+  let lo=parseInt($("rangeLo").value,10),hi=parseInt($("rangeHi").value,10);
+  if(isNaN(lo))lo=dlo; if(isNaN(hi))hi=dhi;
+  if(lo>hi){const t=lo;lo=hi;hi=t;}
+  lo=Math.max(dlo,Math.min(lo,dhi)); hi=Math.max(dlo,Math.min(hi,dhi));
+  S.range=(lo===dlo&&hi===dhi)?null:{lo,hi};
+  saveState();renderHome();
+};
+$("rangeAll").onclick=()=>{S.range=null;saveState();renderHome();};
+$("reviewBadge").onclick=()=>startGame("review");
+$("againBtn").onclick=()=>startGame(G?G.mode:"sprint");
+$("homeBtn").onclick=()=>{hideCelebrate();renderHome();show("home");};
+$("zukanBtn").onclick=()=>{renderZukan();show("zukan");};
+$("zukanBack").onclick=()=>{renderHome();show("home");};
+$("sndToggle").onclick=()=>{S.sound=!S.sound;$("sndToggle").textContent=S.sound?"🔊":"🔇";saveState();};
+function askName(first){
+  $("nameInput").value=S.name||"";
+  $("nameSkip").textContent=first?"あとで":"キャンセル";
+  $("nameModal").style.display="flex";
+  setTimeout(()=>$("nameInput").focus(),100);
+}
+$("nameBtn").onclick=()=>askName(false);
+$("nameOk").onclick=()=>{
+  S.name=$("nameInput").value.trim().slice(0,10);
+  $("nameModal").style.display="none";
+  saveState();renderHome();
+};
+$("nameSkip").onclick=()=>{$("nameModal").style.display="none";};
+$("nameInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("nameOk").click();});
+document.addEventListener("keydown",e=>{
+  if($("nameModal").style.display==="flex")return;
+  if(!$("quiz").classList.contains("active"))return;
+  const n=parseInt(e.key);
+  if(n>=1&&n<=4){const b=$("choices").children[n-1];if(b&&b.onclick)b.click();}
+});
+
+loadState();
+</script>
+</body>
+</html>
