@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>文章から文字式へ｜代金編</title>
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --text:#1f2937;
+    --sub:#64748b;
+    --line:#dbe3ef;
+    --accent:#2563eb;
+    --accent-soft:#eaf2ff;
+    --ok:#15803d;
+    --ok-soft:#ecfdf3;
+    --bad:#b42318;
+    --bad-soft:#fff1f0;
+    --shadow:0 8px 24px rgba(15,23,42,.08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  }
+  button,input{font:inherit}
+  button{touch-action:manipulation}
+  .app{
+    width:min(760px,100%);
+    margin:0 auto;
+    padding:14px 14px 36px;
+  }
+  .topbar{
+    position:sticky;
+    top:0;
+    z-index:10;
+    padding:10px 0 12px;
+    background:linear-gradient(var(--bg) 82%,rgba(245,247,251,0));
+  }
+  .title-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  h1{
+    font-size:clamp(20px,5vw,30px);
+    margin:0;
+    letter-spacing:.02em;
+  }
+  .chapter{
+    font-weight:800;
+    font-size:13px;
+    color:var(--accent);
+    background:var(--accent-soft);
+    border:1px solid #cfe0ff;
+    padding:6px 10px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .progress-wrap{margin-top:10px}
+  .progress-label{
+    display:flex;
+    justify-content:space-between;
+    color:var(--sub);
+    font-size:13px;
+    font-weight:700;
+    margin-bottom:5px;
+  }
+  .progress{
+    height:10px;
+    background:#e4eaf3;
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .progress > div{
+    height:100%;
+    width:0%;
+    background:var(--accent);
+    border-radius:inherit;
+    transition:width .25s ease;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    box-shadow:var(--shadow);
+    border-radius:var(--radius);
+    padding:clamp(16px,4vw,24px);
+    margin-top:12px;
+  }
+  .intro{
+    background:linear-gradient(135deg,#fff,#f4f8ff);
+  }
+  .intro strong{color:var(--accent)}
+  .intro p{
+    margin:6px 0;
+    line-height:1.75;
+  }
+  .problem-number{
+    color:var(--accent);
+    font-weight:900;
+    font-size:14px;
+    margin-bottom:8px;
+  }
+  .problem-text{
+    font-size:clamp(19px,5vw,26px);
+    line-height:1.75;
+    font-weight:750;
+    white-space:pre-line;
+  }
+  .x-highlight{
+    display:inline-block;
+    background:#fff7cc;
+    border-bottom:3px solid #f4c430;
+    padding:0 .14em;
+    border-radius:5px;
+  }
+  .prompt{
+    font-size:clamp(18px,4.8vw,24px);
+    font-weight:900;
+    line-height:1.55;
+    margin:0 0 14px;
+  }
+  .hint-line{
+    margin:0 0 12px;
+    color:var(--sub);
+    font-weight:700;
+    line-height:1.55;
+  }
+  .choices{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .choice{
+    width:100%;
+    min-height:54px;
+    text-align:left;
+    padding:13px 15px;
+    border:2px solid var(--line);
+    border-radius:14px;
+    background:#fff;
+    font-weight:800;
+    color:var(--text);
+    cursor:pointer;
+  }
+  .choice:hover,.choice:focus-visible{
+    border-color:#8bb2ff;
+    background:#f8fbff;
+    outline:none;
+  }
+  .choice.correct{
+    border-color:#56b870;
+    background:var(--ok-soft);
+    color:var(--ok);
+  }
+  .choice.wrong{
+    border-color:#ef8b84;
+    background:var(--bad-soft);
+    color:var(--bad);
+  }
+  .formula-box{
+    min-height:72px;
+    border:3px solid #bfd2f7;
+    background:#f8fbff;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 16px;
+    font-size:clamp(30px,9vw,48px);
+    font-weight:900;
+    letter-spacing:.03em;
+    margin-bottom:12px;
+    overflow-wrap:anywhere;
+  }
+  .formula-box.empty{
+    color:#94a3b8;
+    font-size:18px;
+    letter-spacing:0;
+  }
+  .keypad{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+  }
+  .key{
+    min-height:52px;
+    border:1px solid #cdd8e8;
+    border-radius:13px;
+    background:#fff;
+    font-size:22px;
+    font-weight:900;
+    cursor:pointer;
+  }
+  .key:active{transform:translateY(1px)}
+  .key.function{
+    background:#edf3fb;
+    color:#334155;
+  }
+  .key.answer{
+    grid-column:span 2;
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .message{
+    display:none;
+    margin-top:13px;
+    border-radius:14px;
+    padding:13px 15px;
+    line-height:1.65;
+    font-weight:800;
+  }
+  .message.show{display:block}
+  .message.ok{
+    color:var(--ok);
+    background:var(--ok-soft);
+    border:1px solid #b7e4c4;
+  }
+  .message.bad{
+    color:var(--bad);
+    background:var(--bad-soft);
+    border:1px solid #f2b8b5;
+  }
+  .relation{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:8px;
+    margin:8px 0 16px;
+    text-align:center;
+    font-weight:900;
+  }
+  .relation > span{
+    background:#f8fafc;
+    border:1px solid var(--line);
+    padding:12px 8px;
+    border-radius:12px;
+  }
+  .relation .arrow{
+    border:0;
+    background:transparent;
+    color:var(--accent);
+    font-size:22px;
+  }
+  .completion{
+    font-size:clamp(20px,5.4vw,29px);
+    font-weight:900;
+    line-height:1.7;
+    text-align:center;
+    padding:16px;
+    border-radius:16px;
+    background:var(--ok-soft);
+    border:2px solid #9fd7ae;
+    color:#14532d;
+  }
+  .paper-bridge{
+    margin-top:14px;
+    border:2px dashed #8ba6c8;
+    border-radius:16px;
+    padding:16px;
+    background:#fbfdff;
+  }
+  .paper-bridge h3{margin:0 0 8px}
+  .paper-bridge p{margin:5px 0;line-height:1.65}
+  .primary,.secondary{
+    width:100%;
+    min-height:54px;
+    margin-top:14px;
+    border-radius:14px;
+    font-weight:900;
+    cursor:pointer;
+  }
+  .primary{
+    border:0;
+    background:var(--accent);
+    color:#fff;
+  }
+  .secondary{
+    border:2px solid #b8c6d9;
+    background:#fff;
+    color:#334155;
+  }
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin:14px 0;
+  }
+  .summary-item{
+    background:#f8fafc;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:13px;
+  }
+  .summary-item b{
+    display:block;
+    font-size:24px;
+    margin-top:3px;
+  }
+  .small{font-size:13px;color:var(--sub);line-height:1.6}
+  .hidden{display:none!important}
+  @media (min-width:600px){
+    .choices.two{grid-template-columns:repeat(2,1fr)}
+    .keypad{grid-template-columns:repeat(6,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="title-row">
+      <h1>文章から文字式へ｜代金編</h1>
+      <div class="chapter">第2章 文字式</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progressText">準備</span>
+        <span id="stepText">0 / 10</span>
+      </div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+  </div>
+
+  <section id="introCard" class="card intro">
+    <p><strong>このアプリでは、x が何を表すかは問題文に書いてあります。</strong></p>
+    <p>文章を読んで、代金・残金・おつりを文字式で表します。</p>
+    <p class="small">前半は選択問題で考え方を確認し、後半は文字式を自分で入力します。</p>
+    <button id="startBtn" class="primary">はじめる</button>
+  </section>
+
+  <section id="problemCard" class="card hidden">
+    <div id="problemNumber" class="problem-number"></div>
+    <div id="problemText" class="problem-text"></div>
+  </section>
+
+  <section id="workCard" class="card hidden">
+    <div id="workArea"></div>
+    <div id="feedback" class="message"></div>
+    <button id="nextBtn" class="primary hidden">次へ</button>
+  </section>
+
+  <section id="finishCard" class="card hidden">
+    <h2>代金編、おわり！</h2>
+    <div id="finishMessage" class="completion"></div>
+    <div id="summaryGrid" class="summary-grid"></div>
+    <p class="small">間違えた種類を分けて記録しています。もう一度行うと、同じ10問を最初から練習できます。</p>
+    <button id="downloadBtn" class="secondary">今回の記録をCSVで保存</button>
+    <button id="restartBtn" class="primary">もう一度</button>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/*
+  Spreadsheetへ送信する場合は、GASのWebアプリURLを入れてください。
+  空欄のままでもアプリは正常に動き、記録は端末内に保存されます。
+*/
+const GAS_URL = "";
+const MODE = "H_DAIKIN";
+
+const problems = [
+  {
+    text:"みかん1個の値段を x 円とします。\nみかん3個の代金を、文字式で表しなさい。",
+    xMeaning:"みかん1個の値段",
+    xChoices:["みかん1個の値段","みかんの個数","みかん3個の代金","持っているお金"],
+    target:"みかん3個の代金",
+    targetChoices:["みかん1個の値段","みかん3個の代金","みかんの個数","おつり"],
+    operation:"1個の値段 × 個数",
+    operationChoices:["1個の値段 ＋ 個数","1個の値段 × 個数","1個の値段 － 個数","1個の値段 ÷ 個数"],
+    answer:"3x",
+    accepted:["3x","x×3","3×x","x*3","3*x","x+x+x"],
+    unit:"円",
+    unitChoices:["円","個","本","人"],
+    completed:"みかん3個の代金は 3x 円です。",
+    scaffold:"full",
+    hints:{
+      expression:"x 円のみかんが3個分あります。",
+      operation:"代金は「1個の値段×個数」で求めます。"
+    }
+  },
+  {
+    text:"ノート1冊の値段を x 円とします。\nノート5冊の代金を、文字式で表しなさい。",
+    xMeaning:"ノート1冊の値段",
+    xChoices:["ノート5冊の代金","ノート1冊の値段","ノートの冊数","おつり"],
+    target:"ノート5冊の代金",
+    targetChoices:["ノートの冊数","ノート1冊の値段","ノート5冊の代金","持っているお金"],
+    operation:"1冊の値段 × 冊数",
+    operationChoices:["1冊の値段 × 冊数","1冊の値段 ＋ 冊数","冊数 － 1冊の値段","1冊の値段 ÷ 冊数"],
+    answer:"5x",
+    accepted:["5x","x×5","5×x","x*5","5*x","x+x+x+x+x"],
+    unit:"円",
+    unitChoices:["冊","円","個","m"],
+    completed:"ノート5冊の代金は 5x 円です。",
+    scaffold:"full",
+    hints:{
+      expression:"x 円のノートが5冊分あります。",
+      operation:"代金は「1冊の値段×冊数」で求めます。"
+    }
+  },
+  {
+    text:"鉛筆1本の値段を x 円とします。\n鉛筆4本の代金を、文字式で表しなさい。",
+    xMeaning:"鉛筆1本の値段",
+    xChoices:["鉛筆4本の代金","鉛筆1本の値段","鉛筆の本数","残金"],
+    target:"鉛筆4本の代金",
+    targetChoices:["鉛筆1本の値段","鉛筆の本数","鉛筆4本の代金","残金"],
+    operation:"1本の値段 × 本数",
+    operationChoices:["1本の値段 － 本数","1本の値段 × 本数","1本の値段 ＋ 本数","1本の値段 ÷ 本数"],
+    answer:"4x",
+    accepted:["4x","x×4","4×x","x*4","4*x","x+x+x+x"],
+    unit:"円",
+    unitChoices:["本","個","円","冊"],
+    completed:"鉛筆4本の代金は 4x 円です。",
+    scaffold:"full",
+    hints:{
+      expression:"x 円の鉛筆が4本分あります。",
+      operation:"代金は「1本の値段×本数」で求めます。"
+    }
+  },
+  {
+    text:"消しゴム1個の値段は80円です。\n消しゴムを x 個買ったときの代金を、文字式で表しなさい。",
+    xMeaning:"買う消しゴムの個数",
+    xChoices:["消しゴム1個の値段","買う消しゴムの個数","消しゴム全部の代金","残金"],
+    target:"消しゴム x 個の代金",
+    targetChoices:["消しゴム1個の値段","消しゴム x 個の代金","買う個数","おつり"],
+    operation:"1個の値段 × 個数",
+    operationChoices:["1個の値段 × 個数","1個の値段 ＋ 個数","個数 － 1個の値段","1個の値段 ÷ 個数"],
+    answer:"80x",
+    accepted:["80x","x×80","80×x","x*80","80*x"],
+    unit:"円",
+    unitChoices:["個","円","本","人"],
+    completed:"消しゴム x 個の代金は 80x 円です。",
+    scaffold:"full",
+    hints:{
+      expression:"80円が x 個分あります。",
+      operation:"x は個数を表しています。80円と x 個をかけます。"
+    }
+  },
+  {
+    text:"ペン1本の値段は120円です。\nペンを x 本買ったときの代金を、文字式で表しなさい。",
+    target:"ペン x 本の代金",
+    targetChoices:["ペン1本の値段","ペン x 本の代金","ペンの本数","持っているお金"],
+    operation:"1本の値段 × 本数",
+    operationChoices:["1本の値段 ＋ 本数","1本の値段 × 本数","1本の値段 － 本数","1本の値段 ÷ 本数"],
+    answer:"120x",
+    accepted:["120x","x×120","120×x","x*120","120*x"],
+    unit:"円",
+    unitChoices:["本","個","円","冊"],
+    completed:"ペン x 本の代金は 120x 円です。",
+    scaffold:"partial",
+    hints:{
+      expression:"120円が x 本分あります。",
+      operation:"1本の値段と本数をかけます。"
+    }
+  },
+  {
+    text:"鉛筆1本の値段を x 円とします。\n鉛筆を3本と、80円の消しゴムを1個買いました。\n代金の合計を、文字式で表しなさい。",
+    target:"鉛筆3本と消しゴム1個の代金の合計",
+    targetChoices:["鉛筆1本の値段","鉛筆3本の代金","消しゴム1個の値段","鉛筆と消しゴムの代金の合計"],
+    operation:"鉛筆3本の代金 ＋ 消しゴムの代金",
+    operationChoices:["鉛筆3本の代金 ＋ 消しゴムの代金","鉛筆1本の値段 ＋ 80","鉛筆3本の代金 － 80","80 － 鉛筆3本の代金"],
+    answer:"3x+80",
+    accepted:["3x+80","80+3x","3×x+80","80+3×x","3*x+80","80+3*x"],
+    unit:"円",
+    unitChoices:["本","個","円","冊"],
+    completed:"代金の合計は 3x＋80 円です。",
+    scaffold:"partial",
+    hints:{
+      expression:"まず鉛筆3本の代金を 3x と表し、80円を足します。",
+      operation:"鉛筆は3本です。x ではなく 3x にしてから80円を足します。"
+    }
+  },
+  {
+    text:"ノート1冊の値段を x 円とします。\nノートを2冊と、150円のファイルを1冊買いました。\n代金の合計を、文字式で表しなさい。",
+    target:"ノート2冊とファイル1冊の代金の合計",
+    targetChoices:["ノート1冊の値段","ノート2冊の代金","ファイルの値段","ノートとファイルの代金の合計"],
+    operation:"ノート2冊の代金 ＋ ファイルの代金",
+    operationChoices:["ノート1冊の値段 ＋ 150","ノート2冊の代金 ＋ ファイルの代金","ノート2冊の代金 － 150","150 － ノート2冊の代金"],
+    answer:"2x+150",
+    accepted:["2x+150","150+2x","2×x+150","150+2×x","2*x+150","150+2*x"],
+    unit:"円",
+    unitChoices:["円","冊","個","本"],
+    completed:"代金の合計は 2x＋150 円です。",
+    scaffold:"partial",
+    hints:{
+      expression:"ノート2冊の代金は 2x 円です。それに150円を足します。",
+      operation:"ノートは2冊です。まず 2x を作ります。"
+    }
+  },
+  {
+    text:"x 円持っています。\n120円のジュースを買いました。\n残金を、文字式で表しなさい。",
+    answer:"x-120",
+    accepted:["x-120","x−120"],
+    unit:"円",
+    unitChoices:["円","本","個","人"],
+    completed:"残金は x－120 円です。",
+    scaffold:"direct",
+    hints:{
+      expression:"残金は「持っていた金額－使った金額」です。"
+    }
+  },
+  {
+    text:"1000円持っています。\nx 円の本を1冊買いました。\n残金を、文字式で表しなさい。",
+    answer:"1000-x",
+    accepted:["1000-x","1000−x"],
+    unit:"円",
+    unitChoices:["冊","円","個","本"],
+    completed:"残金は 1000－x 円です。",
+    scaffold:"direct",
+    hints:{
+      expression:"文章の順ではなく、「持っていた金額－使った金額」です。"
+    }
+  },
+  {
+    text:"ノート1冊の値段を x 円とします。\nノートを3冊買い、1000円を出しました。\nおつりを、文字式で表しなさい。",
+    answer:"1000-3x",
+    accepted:["1000-3x","1000-(3x)","1000-3×x","1000-3*x","1000−3x"],
+    unit:"円",
+    unitChoices:["円","冊","個","本"],
+    completed:"おつりは 1000－3x 円です。",
+    scaffold:"direct-paper",
+    hints:{
+      expression:"ノート3冊の代金は 3x 円。おつりは「1000円－代金」です。"
+    }
+  }
+];
+
+const state = {
+  index:0,
+  phaseIndex:0,
+  phases:[],
+  input:"",
+  attempts:[],
+  mistakes:{
+    xMeaningMistake:0,
+    targetQuantityMistake:0,
+    operationMistake:0,
+    expressionMistake:0,
+    subtractionOrderMistake:0,
+    unitMistake:0
+  },
+  problemMistakes:problems.map(()=>({
+    xMeaning:false,
+    target:false,
+    operation:false,
+    expression:false,
+    subtractionOrder:false,
+    unit:false
+  })),
+  startedAt:null
+};
+
+const $ = (id)=>document.getElementById(id);
+const introCard=$("introCard");
+const problemCard=$("problemCard");
+const workCard=$("workCard");
+const finishCard=$("finishCard");
+const workArea=$("workArea");
+const feedback=$("feedback");
+const nextBtn=$("nextBtn");
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+function displayProblemText(text){
+  return escapeHtml(text).replace(/\bx\b/g,'<span class="x-highlight">x</span>').replace(/\n/g,"<br>");
+}
+function buildPhases(p){
+  if(p.scaffold==="full") return ["xMeaning","target","operation","expression","unit","complete"];
+  if(p.scaffold==="partial") return ["target","operation","expression","unit","complete"];
+  if(p.scaffold==="direct-paper") return ["expression","unit","complete","paper"];
+  return ["expression","unit","complete"];
+}
+function updateProgress(){
+  const done=state.index;
+  $("progressText").textContent=done>=problems.length?"完了":`問題 ${state.index+1}`;
+  $("stepText").textContent=`${Math.min(done,problems.length)} / ${problems.length}`;
+  $("progressBar").style.width=`${(done/problems.length)*100}%`;
+}
+function resetFeedback(){
+  feedback.className="message";
+  feedback.textContent="";
+  nextBtn.classList.add("hidden");
+}
+function showFeedback(type,html){
+  feedback.className=`message show ${type}`;
+  feedback.innerHTML=html;
+}
+function playCorrectSound(){
+  try{
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    const ctx=new AudioCtx();
+    const now=ctx.currentTime;
+    [523.25,659.25].forEach((freq,i)=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.frequency.value=freq;
+      osc.type="sine";
+      gain.gain.setValueAtTime(0.0001,now+i*.1);
+      gain.gain.exponentialRampToValueAtTime(.12,now+i*.1+.015);
+      gain.gain.exponentialRampToValueAtTime(.0001,now+i*.1+.16);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now+i*.1);
+      osc.stop(now+i*.1+.18);
+    });
+  }catch(e){}
+}
+function renderProblem(){
+  const p=problems[state.index];
+  state.phases=buildPhases(p);
+  state.phaseIndex=0;
+  state.input="";
+  $("problemNumber").textContent=`問題 ${state.index+1} / ${problems.length}`;
+  $("problemText").innerHTML=displayProblemText(p.text);
+  problemCard.classList.remove("hidden");
+  workCard.classList.remove("hidden");
+  finishCard.classList.add("hidden");
+  renderPhase();
+  updateProgress();
+}
+function renderPhase(){
+  resetFeedback();
+  const p=problems[state.index];
+  const phase=state.phases[state.phaseIndex];
+  if(phase==="xMeaning"){
+    renderChoices("x が表しているものはどれですか。",p.xChoices,p.xMeaning,"xMeaning");
+  }else if(phase==="target"){
+    renderChoices("今回は、何を表す式を作りますか。",p.targetChoices,p.target,"target");
+  }else if(phase==="operation"){
+    renderChoices("どの数量の関係を使いますか。",p.operationChoices,p.operation,"operation");
+  }else if(phase==="expression"){
+    renderExpression(p);
+  }else if(phase==="unit"){
+    renderChoices("作った文字式の単位はどれですか。",p.unitChoices,p.unit,"unit");
+  }else if(phase==="complete"){
+    renderComplete(p);
+  }else if(phase==="paper"){
+    renderPaper(p);
+  }
+}
+function renderChoices(prompt,choices,correct,kind){
+  workArea.innerHTML=`
+    <div class="prompt">${escapeHtml(prompt)}</div>
+    <div class="choices two">
+      ${choices.map((c,i)=>`<button class="choice" data-choice="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("")}
+    </div>`;
+  workArea.querySelectorAll(".choice").forEach(btn=>{
+    btn.addEventListener("click",()=>checkChoice(btn,btn.dataset.choice,correct,kind));
+  });
+}
+function markMistake(kind){
+  const pm=state.problemMistakes[state.index];
+  if(kind==="xMeaning" && !pm.xMeaning){
+    pm.xMeaning=true; state.mistakes.xMeaningMistake++;
+  }
+  if(kind==="target" && !pm.target){
+    pm.target=true; state.mistakes.targetQuantityMistake++;
+  }
+  if(kind==="operation" && !pm.operation){
+    pm.operation=true; state.mistakes.operationMistake++;
+  }
+  if(kind==="unit" && !pm.unit){
+    pm.unit=true; state.mistakes.unitMistake++;
+  }
+}
+function checkChoice(btn,value,correct,kind){
+  const all=[...workArea.querySelectorAll(".choice")];
+  if(value===correct){
+    all.forEach(b=>b.disabled=true);
+    btn.classList.add("correct");
+    playCorrectSound();
+    showFeedback("ok","正解です。");
+    nextBtn.textContent="次へ";
+    nextBtn.classList.remove("hidden");
+  }else{
+    markMistake(kind);
+    btn.classList.add("wrong");
+    btn.disabled=true;
+    let msg="もう一度、問題文の数量を確認しましょう。";
+    if(kind==="operation") msg=problems[state.index].hints.operation || msg;
+    if(kind==="xMeaning") msg="「x」のすぐ前に書かれている数量に注目しましょう。";
+    if(kind==="target") msg="問題文の最後の「何を表しなさい」に注目しましょう。";
+    if(kind==="unit") msg="作った式が何の数量を表しているか確認しましょう。";
+    showFeedback("bad",escapeHtml(msg));
+  }
+}
+function renderExpression(p){
+  state.input="";
+  const showRelation = p.scaffold!=="direct" && p.scaffold!=="direct-paper";
+  let relation="";
+  if(showRelation && p.operation){
+    relation=`<div class="relation">
+      <span>${escapeHtml(p.operation.split(" × ")[0] || p.operation)}</span>
+      <span class="arrow">→</span>
+      <span>${escapeHtml(p.target || "求める数量")}</span>
+    </div>`;
+  }
+  workArea.innerHTML=`
+    <div class="prompt">文字式を入力しましょう。</div>
+    ${relation}
+    <div id="formulaBox" class="formula-box empty">ここに式が入ります</div>
+    <div class="keypad">
+      ${["1","2","3","4","5","6","7","8","9","0","x","+","−","×","÷","(",")"].map(k=>`<button class="key" data-key="${k}">${k}</button>`).join("")}
+      <button class="key function" data-key="back">⌫</button>
+      <button class="key function" data-key="clear">クリア</button>
+      <button class="key answer" data-key="check">答え合わせ</button>
+    </div>`;
+  workArea.querySelectorAll("[data-key]").forEach(btn=>{
+    btn.addEventListener("click",()=>handleKey(btn.dataset.key,p));
+  });
+}
+function renderInput(){
+  const box=$("formulaBox");
+  if(!state.input){
+    box.textContent="ここに式が入ります";
+    box.classList.add("empty");
+  }else{
+    box.textContent=state.input;
+    box.classList.remove("empty");
+  }
+}
+function handleKey(key,p){
+  if(key==="back"){
+    state.input=state.input.slice(0,-1);
+    renderInput();
+    return;
+  }
+  if(key==="clear"){
+    state.input="";
+    renderInput();
+    return;
+  }
+  if(key==="check"){
+    checkExpression(p);
+    return;
+  }
+  if(state.input.length<24){
+    state.input+=key;
+    renderInput();
+  }
+}
+function normalizeExpression(s){
+  return String(s)
+    .replace(/\s+/g,"")
+    .replace(/−/g,"-")
+    .replace(/×/g,"*")
+    .replace(/÷/g,"/")
+    .replace(/＋/g,"+")
+    .replace(/[（）]/g,m=>m==="（"?"(":")")
+    .toLowerCase();
+}
+function isEquivalentSimple(user,accepted){
+  const u=normalizeExpression(user);
+  return accepted.some(a=>normalizeExpression(a)===u);
+}
+function looksLikeSubtractionOrderMistake(user,p){
+  const u=normalizeExpression(user);
+  if(p.answer==="x-120") return u==="120-x";
+  if(p.answer==="1000-x") return u==="x-1000";
+  if(p.answer==="1000-3x") return ["3x-1000","3*x-1000","x*3-1000"].includes(u);
+  return false;
+}
+function checkExpression(p){
+  if(!state.input){
+    showFeedback("bad","式を入力してから、答え合わせを押しましょう。");
+    return;
+  }
+  state.attempts.push({
+    problem:state.index+1,
+    input:state.input,
+    correct:isEquivalentSimple(state.input,p.accepted),
+    time:new Date().toISOString()
+  });
+  if(isEquivalentSimple(state.input,p.accepted)){
+    [...workArea.querySelectorAll("button")].forEach(b=>b.disabled=true);
+    playCorrectSound();
+    showFeedback("ok",`正解です。<strong>${escapeHtml(p.answer)}</strong> と表せます。`);
+    nextBtn.textContent="次へ";
+    nextBtn.classList.remove("hidden");
+  }else{
+    const pm=state.problemMistakes[state.index];
+    if(looksLikeSubtractionOrderMistake(state.input,p)){
+      if(!pm.subtractionOrder){
+        pm.subtractionOrder=true;
+        state.mistakes.subtractionOrderMistake++;
+      }
+      showFeedback("bad","引く順序を確認しましょう。残金・おつりは「もとの金額－使った金額（代金）」です。");
+    }else{
+      if(!pm.expression){
+        pm.expression=true;
+        state.mistakes.expressionMistake++;
+      }
+      showFeedback("bad",escapeHtml(p.hints.expression || "問題文の数量の関係を、もう一度確認しましょう。"));
+    }
+  }
+}
+function renderComplete(p){
+  workArea.innerHTML=`
+    <div class="completion">${escapeHtml(p.completed)}</div>
+    <p class="hint-line" style="margin-top:12px">式と単位を一つのまとまりとして確認しましょう。</p>`;
+  playCorrectSound();
+  nextBtn.textContent=state.index===problems.length-1 && !state.phases.includes("paper") ? "結果を見る" : "次へ";
+  nextBtn.classList.remove("hidden");
+}
+function renderPaper(p){
+  workArea.innerHTML=`
+    <div class="paper-bridge">
+      <h3>紙に書いてみよう</h3>
+      <p>ノートに、次の答えを自分で書きましょう。</p>
+      <p><strong>おつりは（　　　　　　　）円</strong></p>
+      <p class="small">画面の完成文を見ずに書いてから、下のボタンを押します。</p>
+    </div>`;
+  nextBtn.textContent="書けた";
+  nextBtn.classList.remove("hidden");
+}
+function nextPhase(){
+  state.phaseIndex++;
+  if(state.phaseIndex<state.phases.length){
+    renderPhase();
+  }else{
+    state.index++;
+    if(state.index<problems.length){
+      renderProblem();
+    }else{
+      finish();
+    }
+  }
+}
+function finish(){
+  problemCard.classList.add("hidden");
+  workCard.classList.add("hidden");
+  finishCard.classList.remove("hidden");
+  $("progressText").textContent="完了";
+  $("stepText").textContent=`${problems.length} / ${problems.length}`;
+  $("progressBar").style.width="100%";
+  const totalMistakes=Object.values(state.mistakes).reduce((a,b)=>a+b,0);
+  $("finishMessage").textContent=totalMistakes===0
+    ?"10問すべて、最初から正解できました！"
+    :`10問完了しました。間違いの種類は合計 ${totalMistakes} 件でした。`;
+  const labels={
+    xMeaningMistake:"x の意味",
+    targetQuantityMistake:"表す数量",
+    operationMistake:"数量の関係",
+    expressionMistake:"文字式",
+    subtractionOrderMistake:"引く順序",
+    unitMistake:"単位"
+  };
+  $("summaryGrid").innerHTML=Object.entries(state.mistakes).map(([k,v])=>
+    `<div class="summary-item"><span>${labels[k]}</span><b>${v}</b></div>`
+  ).join("");
+  saveRecord();
+}
+function buildRecord(){
+  return {
+    mode:MODE,
+    note:"第2章文字式：文章から文字式へ・代金編",
+    finishedAt:new Date().toISOString(),
+    startedAt:state.startedAt,
+    mistakes:state.mistakes,
+    problemMistakes:state.problemMistakes,
+    attempts:state.attempts
+  };
+}
+function saveRecord(){
+  const record=buildRecord();
+  try{
+    localStorage.setItem("H_DAIKIN_LAST_RESULT",JSON.stringify(record));
+  }catch(e){}
+  if(GAS_URL){
+    fetch(GAS_URL,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify(record)
+    }).catch(()=>{});
+  }
+}
+function downloadCSV(){
+  const rows=[
+    ["mode",MODE],
+    ["startedAt",state.startedAt],
+    ["finishedAt",new Date().toISOString()],
+    [],
+    ["mistakeType","count"],
+    ["xMeaningMistake",state.mistakes.xMeaningMistake],
+    ["targetQuantityMistake",state.mistakes.targetQuantityMistake],
+    ["operationMistake",state.mistakes.operationMistake],
+    ["expressionMistake",state.mistakes.expressionMistake],
+    ["subtractionOrderMistake",state.mistakes.subtractionOrderMistake],
+    ["unitMistake",state.mistakes.unitMistake],
+    [],
+    ["problem","input","correct","time"],
+    ...state.attempts.map(a=>[a.problem,a.input,a.correct,a.time])
+  ];
+  const csv=rows.map(r=>r.map(v=>{
+    const s=String(v??"").replace(/"/g,'""');
+    return `"${s}"`;
+  }).join(",")).join("\r\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`H_daikin_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function restart(){
+  state.index=0;
+  state.phaseIndex=0;
+  state.phases=[];
+  state.input="";
+  state.attempts=[];
+  state.mistakes={
+    xMeaningMistake:0,
+    targetQuantityMistake:0,
+    operationMistake:0,
+    expressionMistake:0,
+    subtractionOrderMistake:0,
+    unitMistake:0
+  };
+  state.problemMistakes=problems.map(()=>({
+    xMeaning:false,target:false,operation:false,expression:false,subtractionOrder:false,unit:false
+  }));
+  state.startedAt=new Date().toISOString();
+  finishCard.classList.add("hidden");
+  renderProblem();
+}
+$("startBtn").addEventListener("click",()=>{
+  state.startedAt=new Date().toISOString();
+  introCard.classList.add("hidden");
+  renderProblem();
+});
+nextBtn.addEventListener("click",nextPhase);
+$("restartBtn").addEventListener("click",restart);
+$("downloadBtn").addEventListener("click",downloadCSV);
+updateProgress();
+</script>
+</body>
+</html>
