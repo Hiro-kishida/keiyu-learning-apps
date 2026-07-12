@@ -1,4 +1,14 @@
 <!doctype html>
+<!--
+  app_H_daikin_moji_shiki.html
+  v1.1 2026-07-13
+  変更点：
+  ・数式判定を数学的等価判定に変更
+  ・正式表記と非正式表記を分けて判定
+  ・選択肢判定をインデックス方式に変更
+  ・AudioContextを使い回す方式に変更
+  ・ヒント、誤答記録、localStorage履歴を改善
+-->
 <html lang="ja">
 <head>
 <meta charset="utf-8">
@@ -203,10 +213,15 @@
     color:#334155;
   }
   .key.answer{
-    grid-column:span 2;
     background:var(--accent);
     border-color:var(--accent);
     color:#fff;
+  }
+  .key-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr 2fr;
+    gap:8px;
+    margin-top:8px;
   }
   .message{
     display:none;
@@ -226,6 +241,11 @@
     color:var(--bad);
     background:var(--bad-soft);
     border:1px solid #f2b8b5;
+  }
+  .message.warn{
+    color:var(--warn);
+    background:#fff7e6;
+    border:1px solid #efcf91;
   }
   .relation{
     display:grid;
@@ -330,7 +350,7 @@
   <section id="introCard" class="card intro">
     <p><strong>このアプリでは、x が何を表すかは問題文に書いてあります。</strong></p>
     <p>文章を読んで、代金・残金・おつりを文字式で表します。</p>
-    <p class="small">前半は選択問題で考え方を確認し、後半は文字式を自分で入力します。</p>
+    <p class="small">前半は選択問題で考え方を確認しながら文字式を作ります。<br>後半は、問題文を読んで文字式を自分で入力します。</p>
     <button id="startBtn" class="primary">はじめる</button>
   </section>
 
@@ -341,7 +361,7 @@
 
   <section id="workCard" class="card hidden">
     <div id="workArea"></div>
-    <div id="feedback" class="message"></div>
+    <div id="feedback" class="message" aria-live="polite"></div>
     <button id="nextBtn" class="primary hidden">次へ</button>
   </section>
 
@@ -364,6 +384,7 @@
 */
 const GAS_URL = "";
 const MODE = "H_DAIKIN";
+let audioCtx = null;
 
 const problems = [
   {
@@ -381,6 +402,7 @@ const problems = [
     completed:"みかん3個の代金は 3x 円です。",
     scaffold:"full",
     hints:{
+      xMeaning:"「x」の前後に書かれている数量と単位を確認しましょう。",
       expression:"x 円のみかんが3個分あります。",
       operation:"代金は「1個の値段×個数」で求めます。"
     }
@@ -400,6 +422,7 @@ const problems = [
     completed:"ノート5冊の代金は 5x 円です。",
     scaffold:"full",
     hints:{
+      xMeaning:"「x」の前後に書かれている数量と単位を確認しましょう。",
       expression:"x 円のノートが5冊分あります。",
       operation:"代金は「1冊の値段×冊数」で求めます。"
     }
@@ -419,6 +442,7 @@ const problems = [
     completed:"鉛筆4本の代金は 4x 円です。",
     scaffold:"full",
     hints:{
+      xMeaning:"「x」の前後に書かれている数量と単位を確認しましょう。",
       expression:"x 円の鉛筆が4本分あります。",
       operation:"代金は「1本の値段×本数」で求めます。"
     }
@@ -438,6 +462,7 @@ const problems = [
     completed:"消しゴム x 個の代金は 80x 円です。",
     scaffold:"full",
     hints:{
+      xMeaning:"x のすぐ後ろにある「個」に注目しましょう。この問題では、x は消しゴムの個数を表しています。",
       expression:"80円が x 個分あります。",
       operation:"x は個数を表しています。80円と x 個をかけます。"
     }
@@ -455,6 +480,7 @@ const problems = [
     completed:"ペン x 本の代金は 120x 円です。",
     scaffold:"partial",
     hints:{
+      xMeaning:"x のすぐ後ろにある「本」に注目しましょう。この問題では、x はペンの本数を表しています。",
       expression:"120円が x 本分あります。",
       operation:"1本の値段と本数をかけます。"
     }
@@ -497,6 +523,7 @@ const problems = [
     text:"x 円持っています。\n120円のジュースを買いました。\n残金を、文字式で表しなさい。",
     answer:"x-120",
     accepted:["x-120","x−120"],
+    reversedForms:["120-x"],
     unit:"円",
     unitChoices:["円","本","個","人"],
     completed:"残金は x－120 円です。",
@@ -509,6 +536,7 @@ const problems = [
     text:"1000円持っています。\nx 円の本を1冊買いました。\n残金を、文字式で表しなさい。",
     answer:"1000-x",
     accepted:["1000-x","1000−x"],
+    reversedForms:["x-1000"],
     unit:"円",
     unitChoices:["冊","円","個","本"],
     completed:"残金は 1000－x 円です。",
@@ -521,6 +549,7 @@ const problems = [
     text:"ノート1冊の値段を x 円とします。\nノートを3冊買い、1000円を出しました。\nおつりを、文字式で表しなさい。",
     answer:"1000-3x",
     accepted:["1000-3x","1000-(3x)","1000-3×x","1000-3*x","1000−3x"],
+    reversedForms:["3x-1000","x×3-1000","3×x-1000"],
     unit:"円",
     unitChoices:["円","冊","個","本"],
     completed:"おつりは 1000－3x 円です。",
@@ -542,6 +571,7 @@ const state = {
     targetQuantityMistake:0,
     operationMistake:0,
     expressionMistake:0,
+    notationMistake:0,
     subtractionOrderMistake:0,
     unitMistake:0
   },
@@ -550,6 +580,7 @@ const state = {
     target:false,
     operation:false,
     expression:false,
+    notation:false,
     subtractionOrder:false,
     unit:false
   })),
@@ -595,17 +626,18 @@ function showFeedback(type,html){
 function playCorrectSound(){
   try{
     const AudioCtx=window.AudioContext||window.webkitAudioContext;
-    const ctx=new AudioCtx();
-    const now=ctx.currentTime;
+    audioCtx=audioCtx||new AudioCtx();
+    if(audioCtx.state==="suspended") audioCtx.resume();
+    const now=audioCtx.currentTime;
     [523.25,659.25].forEach((freq,i)=>{
-      const osc=ctx.createOscillator();
-      const gain=ctx.createGain();
+      const osc=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
       osc.frequency.value=freq;
       osc.type="sine";
       gain.gain.setValueAtTime(0.0001,now+i*.1);
       gain.gain.exponentialRampToValueAtTime(.12,now+i*.1+.015);
       gain.gain.exponentialRampToValueAtTime(.0001,now+i*.1+.16);
-      osc.connect(gain).connect(ctx.destination);
+      osc.connect(gain).connect(audioCtx.destination);
       osc.start(now+i*.1);
       osc.stop(now+i*.1+.18);
     });
@@ -648,10 +680,10 @@ function renderChoices(prompt,choices,correct,kind){
   workArea.innerHTML=`
     <div class="prompt">${escapeHtml(prompt)}</div>
     <div class="choices two">
-      ${choices.map((c,i)=>`<button class="choice" data-choice="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("")}
+      ${choices.map((c,i)=>`<button class="choice" data-index="${i}">${escapeHtml(c)}</button>`).join("")}
     </div>`;
   workArea.querySelectorAll(".choice").forEach(btn=>{
-    btn.addEventListener("click",()=>checkChoice(btn,btn.dataset.choice,correct,kind));
+    btn.addEventListener("click",()=>checkChoice(btn,choices,correct,kind));
   });
 }
 function markMistake(kind){
@@ -669,9 +701,19 @@ function markMistake(kind){
     pm.unit=true; state.mistakes.unitMistake++;
   }
 }
-function checkChoice(btn,value,correct,kind){
+function checkChoice(btn,choices,correct,kind){
+  const index=Number(btn.dataset.index);
+  const value=choices[index];
   const all=[...workArea.querySelectorAll(".choice")];
-  if(value===correct){
+  const isCorrect=value===correct;
+  state.attempts.push({
+    problem:state.index+1,
+    phase:kind,
+    selected:value,
+    correct:isCorrect,
+    time:new Date().toISOString()
+  });
+  if(isCorrect){
     all.forEach(b=>b.disabled=true);
     btn.classList.add("correct");
     playCorrectSound();
@@ -684,7 +726,7 @@ function checkChoice(btn,value,correct,kind){
     btn.disabled=true;
     let msg="もう一度、問題文の数量を確認しましょう。";
     if(kind==="operation") msg=problems[state.index].hints.operation || msg;
-    if(kind==="xMeaning") msg="「x」のすぐ前に書かれている数量に注目しましょう。";
+    if(kind==="xMeaning") msg=problems[state.index].hints.xMeaning || "「x」のすぐ前に書かれている数量に注目しましょう。";
     if(kind==="target") msg="問題文の最後の「何を表しなさい」に注目しましょう。";
     if(kind==="unit") msg="作った式が何の数量を表しているか確認しましょう。";
     showFeedback("bad",escapeHtml(msg));
@@ -696,8 +738,8 @@ function renderExpression(p){
   let relation="";
   if(showRelation && p.operation){
     relation=`<div class="relation">
-      <span>${escapeHtml(p.operation.split(" × ")[0] || p.operation)}</span>
-      <span class="arrow">→</span>
+      <span>${escapeHtml(p.operation)}</span>
+      <span class="arrow">↓</span>
       <span>${escapeHtml(p.target || "求める数量")}</span>
     </div>`;
   }
@@ -706,8 +748,10 @@ function renderExpression(p){
     ${relation}
     <div id="formulaBox" class="formula-box empty">ここに式が入ります</div>
     <div class="keypad">
-      ${["1","2","3","4","5","6","7","8","9","0","x","+","−","×","÷","(",")"].map(k=>`<button class="key" data-key="${k}">${k}</button>`).join("")}
-      <button class="key function" data-key="back">⌫</button>
+      ${["1","2","3","4","5","6","7","8","9","0","x","＋","−","×","÷","(",")"].map(k=>`<button class="key" data-key="${k}">${k}</button>`).join("")}
+    </div>
+    <div class="key-actions">
+      <button class="key function" data-key="back" aria-label="1文字消す">⌫</button>
       <button class="key function" data-key="clear">クリア</button>
       <button class="key answer" data-key="check">答え合わせ</button>
     </div>`;
@@ -727,11 +771,13 @@ function renderInput(){
 }
 function handleKey(key,p){
   if(key==="back"){
+    resetFeedback();
     state.input=state.input.slice(0,-1);
     renderInput();
     return;
   }
   if(key==="clear"){
+    resetFeedback();
     state.input="";
     renderInput();
     return;
@@ -741,6 +787,7 @@ function handleKey(key,p){
     return;
   }
   if(state.input.length<24){
+    resetFeedback();
     state.input+=key;
     renderInput();
   }
@@ -748,49 +795,128 @@ function handleKey(key,p){
 function normalizeExpression(s){
   return String(s)
     .replace(/\s+/g,"")
-    .replace(/−/g,"-")
+    .replace(/[−－]/g,"-")
     .replace(/×/g,"*")
     .replace(/÷/g,"/")
     .replace(/＋/g,"+")
     .replace(/[（）]/g,m=>m==="（"?"(":")")
     .toLowerCase();
 }
-function isEquivalentSimple(user,accepted){
-  const u=normalizeExpression(user);
-  return accepted.some(a=>normalizeExpression(a)===u);
+function displayExpression(s){
+  return String(s).replace(/\+/g,"＋").replace(/-/g,"－").replace(/\*/g,"×").replace(/\//g,"÷");
+}
+function normalizeForEval(s){
+  let out=normalizeExpression(s);
+  if(!/^[0-9x+\-*/().]+$/.test(out)) return null;
+  out=out.replace(/(\d|\)|x)(?=(x|\())/g,"$1*");
+  out=out.replace(/(x|\))(?=\d)/g,"$1*");
+  return out;
+}
+function evaluateExpression(src,xValue){
+  const text=normalizeForEval(src);
+  if(!text) return NaN;
+  let i=0;
+  function peek(){return text[i]}
+  function eat(ch){if(text[i]===ch){i++;return true}return false}
+  function number(){
+    let start=i;
+    while(/[0-9.]/.test(peek())) i++;
+    const raw=text.slice(start,i);
+    if(!raw||raw.split(".").length>2) throw new Error("bad number");
+    return Number(raw);
+  }
+  function factor(){
+    if(eat("+")) return factor();
+    if(eat("-")) return -factor();
+    if(eat("(")){const value=expr();if(!eat(")")) throw new Error("paren");return value}
+    if(eat("x")) return xValue;
+    if(/[0-9.]/.test(peek())) return number();
+    throw new Error("factor");
+  }
+  function term(){
+    let value=factor();
+    while(true){
+      if(eat("*")) value*=factor();
+      else if(eat("/")) value/=factor();
+      else break;
+    }
+    return value;
+  }
+  function expr(){
+    let value=term();
+    while(true){
+      if(eat("+")) value+=term();
+      else if(eat("-")) value-=term();
+      else break;
+    }
+    return value;
+  }
+  const value=expr();
+  if(i!==text.length||!Number.isFinite(value)) throw new Error("invalid");
+  return value;
+}
+function areEquivalent(a,b){
+  try{
+    return [2,7,13,19].every(xValue=>Math.abs(evaluateExpression(a,xValue)-evaluateExpression(b,xValue))<1e-9);
+  }catch(e){
+    return false;
+  }
+}
+function isStandardNotation(input){
+  const raw=String(input).replace(/\s+/g,"");
+  const normalized=normalizeExpression(input);
+  if(/[×*÷/]/.test(raw)) return false;
+  if(/x\*?\d/.test(normalized)) return false;
+  if(normalized.split("+").filter(part=>part==="x").length>=2) return false;
+  if(/^x(?:\+x)+(?:\+\d+)?$/.test(normalized)) return false;
+  return true;
 }
 function looksLikeSubtractionOrderMistake(user,p){
   const u=normalizeExpression(user);
-  if(p.answer==="x-120") return u==="120-x";
-  if(p.answer==="1000-x") return u==="x-1000";
-  if(p.answer==="1000-3x") return ["3x-1000","3*x-1000","x*3-1000"].includes(u);
-  return false;
+  return (p.reversedForms||[]).some(form=>normalizeExpression(form)===u);
+}
+function classifyExpression(input,p){
+  if(looksLikeSubtractionOrderMistake(input,p)) return "subtraction_order";
+  if(!areEquivalent(input,p.answer)) return "wrong";
+  return isStandardNotation(input) ? "canonical" : "equivalent_nonstandard";
 }
 function checkExpression(p){
   if(!state.input){
     showFeedback("bad","式を入力してから、答え合わせを押しましょう。");
     return;
   }
+  const resultType=classifyExpression(state.input,p);
   state.attempts.push({
     problem:state.index+1,
+    phase:"expression",
     input:state.input,
-    correct:isEquivalentSimple(state.input,p.accepted),
+    resultType,
+    correctConcept:resultType==="canonical"||resultType==="equivalent_nonstandard",
+    canonical:resultType==="canonical",
+    correct:resultType==="canonical",
     time:new Date().toISOString()
   });
-  if(isEquivalentSimple(state.input,p.accepted)){
+  if(resultType==="canonical"){
     [...workArea.querySelectorAll("button")].forEach(b=>b.disabled=true);
     playCorrectSound();
-    showFeedback("ok",`正解です。<strong>${escapeHtml(p.answer)}</strong> と表せます。`);
+    showFeedback("ok",`正解です。<strong>${escapeHtml(displayExpression(p.answer))}</strong> と表せます。`);
     nextBtn.textContent="次へ";
     nextBtn.classList.remove("hidden");
+  }else if(resultType==="equivalent_nonstandard"){
+    const pm=state.problemMistakes[state.index];
+    if(!pm.notation){
+      pm.notation=true;
+      state.mistakes.notationMistake++;
+    }
+    showFeedback("warn",`考え方は合っています。<br><br>文字式では、<br>・かけ算の記号 × を省く<br>・数を文字の前に書く<br><br>というきまりがあります。<br><br>${escapeHtml(state.input)} は ${escapeHtml(displayExpression(p.answer))} と書き直しましょう。`);
   }else{
     const pm=state.problemMistakes[state.index];
-    if(looksLikeSubtractionOrderMistake(state.input,p)){
+    if(resultType==="subtraction_order"){
       if(!pm.subtractionOrder){
         pm.subtractionOrder=true;
         state.mistakes.subtractionOrderMistake++;
       }
-      showFeedback("bad","引く順序を確認しましょう。残金・おつりは「もとの金額－使った金額（代金）」です。");
+      showFeedback("bad","引く順序を確認しましょう。<br><br>残金・おつり<br>＝ もとの金額 － 使った金額");
     }else{
       if(!pm.expression){
         pm.expression=true;
@@ -804,7 +930,6 @@ function renderComplete(p){
   workArea.innerHTML=`
     <div class="completion">${escapeHtml(p.completed)}</div>
     <p class="hint-line" style="margin-top:12px">式と単位を一つのまとまりとして確認しましょう。</p>`;
-  playCorrectSound();
   nextBtn.textContent=state.index===problems.length-1 && !state.phases.includes("paper") ? "結果を見る" : "次へ";
   nextBtn.classList.remove("hidden");
 }
@@ -848,6 +973,7 @@ function finish(){
     targetQuantityMistake:"表す数量",
     operationMistake:"数量の関係",
     expressionMistake:"文字式",
+    notationMistake:"表記のきまり",
     subtractionOrderMistake:"引く順序",
     unitMistake:"単位"
   };
@@ -870,6 +996,11 @@ function buildRecord(){
 function saveRecord(){
   const record=buildRecord();
   try{
+    const history=JSON.parse(localStorage.getItem("H_DAIKIN_RESULTS")||"[]");
+    const nextHistory=Array.isArray(history)?history:[];
+    nextHistory.push(record);
+    while(nextHistory.length>20) nextHistory.shift();
+    localStorage.setItem("H_DAIKIN_RESULTS",JSON.stringify(nextHistory));
     localStorage.setItem("H_DAIKIN_LAST_RESULT",JSON.stringify(record));
   }catch(e){}
   if(GAS_URL){
@@ -892,11 +1023,12 @@ function downloadCSV(){
     ["targetQuantityMistake",state.mistakes.targetQuantityMistake],
     ["operationMistake",state.mistakes.operationMistake],
     ["expressionMistake",state.mistakes.expressionMistake],
+    ["notationMistake",state.mistakes.notationMistake],
     ["subtractionOrderMistake",state.mistakes.subtractionOrderMistake],
     ["unitMistake",state.mistakes.unitMistake],
     [],
-    ["problem","input","correct","time"],
-    ...state.attempts.map(a=>[a.problem,a.input,a.correct,a.time])
+    ["problem","phase","selectedOrInput","correct","resultType","correctConcept","canonical","time"],
+    ...state.attempts.map(a=>[a.problem,a.phase,a.selected??a.input,a.correct,a.resultType??"",a.correctConcept??"",a.canonical??"",a.time])
   ];
   const csv=rows.map(r=>r.map(v=>{
     const s=String(v??"").replace(/"/g,'""');
@@ -921,11 +1053,12 @@ function restart(){
     targetQuantityMistake:0,
     operationMistake:0,
     expressionMistake:0,
+    notationMistake:0,
     subtractionOrderMistake:0,
     unitMistake:0
   };
   state.problemMistakes=problems.map(()=>({
-    xMeaning:false,target:false,operation:false,expression:false,subtractionOrder:false,unit:false
+    xMeaning:false,target:false,operation:false,expression:false,notation:false,subtractionOrder:false,unit:false
   }));
   state.startedAt=new Date().toISOString();
   finishCard.classList.add("hidden");
