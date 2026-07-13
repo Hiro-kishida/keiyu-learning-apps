@@ -1,13 +1,14 @@
 <!doctype html>
 <!--
   app_H_daikin_moji_shiki.html
-  v1.1 2026-07-13
+  v1.2 2026-07-13
+
   変更点：
-  ・数式判定を数学的等価判定に変更
-  ・正式表記と非正式表記を分けて判定
-  ・選択肢判定をインデックス方式に変更
-  ・AudioContextを使い回す方式に変更
-  ・ヒント、誤答記録、localStorage履歴を改善
+  ・選択問題の判定を文字列比較からインデックス比較へ変更
+  ・問題6、問題7で全選択肢が不正解になる不具合を修正
+  ・全10問の選択問題データを正解インデックス方式へ統一
+  ・起動時の問題データ検証を追加
+  ・選択問題の試行履歴に選択インデックスを追加
 -->
 <html lang="ja">
 <head>
@@ -336,7 +337,7 @@
   <div class="topbar">
     <div class="title-row">
       <h1>文章から文字式へ｜代金編</h1>
-      <div class="chapter">第2章 文字式</div>
+      <div class="chapter">第2章 文字式｜v1.2</div>
     </div>
     <div class="progress-wrap">
       <div class="progress-label">
@@ -390,15 +391,19 @@ const problems = [
   {
     text:"みかん1個の値段を x 円とします。\nみかん3個の代金を、文字式で表しなさい。",
     xMeaning:"みかん1個の値段",
-    xChoices:["みかん1個の値段","みかんの個数","みかん3個の代金","持っているお金"],
+    xMeaningChoices:["みかん1個の値段","みかんの個数","みかん3個の代金","持っているお金"],
+    xMeaningCorrectIndex:0,
     target:"みかん3個の代金",
     targetChoices:["みかん1個の値段","みかん3個の代金","みかんの個数","おつり"],
+    targetCorrectIndex:1,
     operation:"1個の値段 × 個数",
     operationChoices:["1個の値段 ＋ 個数","1個の値段 × 個数","1個の値段 － 個数","1個の値段 ÷ 個数"],
+    operationCorrectIndex:1,
     answer:"3x",
     accepted:["3x","x×3","3×x","x*3","3*x","x+x+x"],
     unit:"円",
     unitChoices:["円","個","本","人"],
+    unitCorrectIndex:0,
     completed:"みかん3個の代金は 3x 円です。",
     scaffold:"full",
     hints:{
@@ -410,15 +415,19 @@ const problems = [
   {
     text:"ノート1冊の値段を x 円とします。\nノート5冊の代金を、文字式で表しなさい。",
     xMeaning:"ノート1冊の値段",
-    xChoices:["ノート5冊の代金","ノート1冊の値段","ノートの冊数","おつり"],
+    xMeaningChoices:["ノート5冊の代金","ノート1冊の値段","ノートの冊数","おつり"],
+    xMeaningCorrectIndex:1,
     target:"ノート5冊の代金",
     targetChoices:["ノートの冊数","ノート1冊の値段","ノート5冊の代金","持っているお金"],
+    targetCorrectIndex:2,
     operation:"1冊の値段 × 冊数",
     operationChoices:["1冊の値段 × 冊数","1冊の値段 ＋ 冊数","冊数 － 1冊の値段","1冊の値段 ÷ 冊数"],
+    operationCorrectIndex:0,
     answer:"5x",
     accepted:["5x","x×5","5×x","x*5","5*x","x+x+x+x+x"],
     unit:"円",
     unitChoices:["冊","円","個","m"],
+    unitCorrectIndex:1,
     completed:"ノート5冊の代金は 5x 円です。",
     scaffold:"full",
     hints:{
@@ -430,15 +439,19 @@ const problems = [
   {
     text:"鉛筆1本の値段を x 円とします。\n鉛筆4本の代金を、文字式で表しなさい。",
     xMeaning:"鉛筆1本の値段",
-    xChoices:["鉛筆4本の代金","鉛筆1本の値段","鉛筆の本数","残金"],
+    xMeaningChoices:["鉛筆4本の代金","鉛筆1本の値段","鉛筆の本数","残金"],
+    xMeaningCorrectIndex:1,
     target:"鉛筆4本の代金",
     targetChoices:["鉛筆1本の値段","鉛筆の本数","鉛筆4本の代金","残金"],
+    targetCorrectIndex:2,
     operation:"1本の値段 × 本数",
     operationChoices:["1本の値段 － 本数","1本の値段 × 本数","1本の値段 ＋ 本数","1本の値段 ÷ 本数"],
+    operationCorrectIndex:1,
     answer:"4x",
     accepted:["4x","x×4","4×x","x*4","4*x","x+x+x+x"],
     unit:"円",
     unitChoices:["本","個","円","冊"],
+    unitCorrectIndex:2,
     completed:"鉛筆4本の代金は 4x 円です。",
     scaffold:"full",
     hints:{
@@ -450,15 +463,19 @@ const problems = [
   {
     text:"消しゴム1個の値段は80円です。\n消しゴムを x 個買ったときの代金を、文字式で表しなさい。",
     xMeaning:"買う消しゴムの個数",
-    xChoices:["消しゴム1個の値段","買う消しゴムの個数","消しゴム全部の代金","残金"],
+    xMeaningChoices:["消しゴム1個の値段","買う消しゴムの個数","消しゴム全部の代金","残金"],
+    xMeaningCorrectIndex:1,
     target:"消しゴム x 個の代金",
     targetChoices:["消しゴム1個の値段","消しゴム x 個の代金","買う個数","おつり"],
+    targetCorrectIndex:1,
     operation:"1個の値段 × 個数",
     operationChoices:["1個の値段 × 個数","1個の値段 ＋ 個数","個数 － 1個の値段","1個の値段 ÷ 個数"],
+    operationCorrectIndex:0,
     answer:"80x",
     accepted:["80x","x×80","80×x","x*80","80*x"],
     unit:"円",
     unitChoices:["個","円","本","人"],
+    unitCorrectIndex:1,
     completed:"消しゴム x 個の代金は 80x 円です。",
     scaffold:"full",
     hints:{
@@ -471,12 +488,15 @@ const problems = [
     text:"ペン1本の値段は120円です。\nペンを x 本買ったときの代金を、文字式で表しなさい。",
     target:"ペン x 本の代金",
     targetChoices:["ペン1本の値段","ペン x 本の代金","ペンの本数","持っているお金"],
+    targetCorrectIndex:1,
     operation:"1本の値段 × 本数",
     operationChoices:["1本の値段 ＋ 本数","1本の値段 × 本数","1本の値段 － 本数","1本の値段 ÷ 本数"],
+    operationCorrectIndex:1,
     answer:"120x",
     accepted:["120x","x×120","120×x","x*120","120*x"],
     unit:"円",
     unitChoices:["本","個","円","冊"],
+    unitCorrectIndex:2,
     completed:"ペン x 本の代金は 120x 円です。",
     scaffold:"partial",
     hints:{
@@ -489,12 +509,15 @@ const problems = [
     text:"鉛筆1本の値段を x 円とします。\n鉛筆を3本と、80円の消しゴムを1個買いました。\n代金の合計を、文字式で表しなさい。",
     target:"鉛筆3本と消しゴム1個の代金の合計",
     targetChoices:["鉛筆1本の値段","鉛筆3本の代金","消しゴム1個の値段","鉛筆と消しゴムの代金の合計"],
+    targetCorrectIndex:3,
     operation:"鉛筆3本の代金 ＋ 消しゴムの代金",
     operationChoices:["鉛筆3本の代金 ＋ 消しゴムの代金","鉛筆1本の値段 ＋ 80","鉛筆3本の代金 － 80","80 － 鉛筆3本の代金"],
+    operationCorrectIndex:0,
     answer:"3x+80",
     accepted:["3x+80","80+3x","3×x+80","80+3×x","3*x+80","80+3*x"],
     unit:"円",
     unitChoices:["本","個","円","冊"],
+    unitCorrectIndex:2,
     completed:"代金の合計は 3x＋80 円です。",
     scaffold:"partial",
     hints:{
@@ -506,12 +529,15 @@ const problems = [
     text:"ノート1冊の値段を x 円とします。\nノートを2冊と、150円のファイルを1冊買いました。\n代金の合計を、文字式で表しなさい。",
     target:"ノート2冊とファイル1冊の代金の合計",
     targetChoices:["ノート1冊の値段","ノート2冊の代金","ファイルの値段","ノートとファイルの代金の合計"],
+    targetCorrectIndex:3,
     operation:"ノート2冊の代金 ＋ ファイルの代金",
     operationChoices:["ノート1冊の値段 ＋ 150","ノート2冊の代金 ＋ ファイルの代金","ノート2冊の代金 － 150","150 － ノート2冊の代金"],
+    operationCorrectIndex:1,
     answer:"2x+150",
     accepted:["2x+150","150+2x","2×x+150","150+2×x","2*x+150","150+2*x"],
     unit:"円",
     unitChoices:["円","冊","個","本"],
+    unitCorrectIndex:0,
     completed:"代金の合計は 2x＋150 円です。",
     scaffold:"partial",
     hints:{
@@ -526,6 +552,7 @@ const problems = [
     reversedForms:["120-x"],
     unit:"円",
     unitChoices:["円","本","個","人"],
+    unitCorrectIndex:0,
     completed:"残金は x－120 円です。",
     scaffold:"direct",
     hints:{
@@ -539,6 +566,7 @@ const problems = [
     reversedForms:["x-1000"],
     unit:"円",
     unitChoices:["冊","円","個","本"],
+    unitCorrectIndex:1,
     completed:"残金は 1000－x 円です。",
     scaffold:"direct",
     hints:{
@@ -552,6 +580,7 @@ const problems = [
     reversedForms:["3x-1000","x×3-1000","3×x-1000"],
     unit:"円",
     unitChoices:["円","冊","個","本"],
+    unitCorrectIndex:0,
     completed:"おつりは 1000－3x 円です。",
     scaffold:"direct-paper",
     hints:{
@@ -608,6 +637,40 @@ function buildPhases(p){
   if(p.scaffold==="direct-paper") return ["expression","unit","complete","paper"];
   return ["expression","unit","complete"];
 }
+function validateChoiceData(){
+  const configs=[
+    {choicesKey:"xMeaningChoices",correctIndexKey:"xMeaningCorrectIndex"},
+    {choicesKey:"targetChoices",correctIndexKey:"targetCorrectIndex"},
+    {choicesKey:"operationChoices",correctIndexKey:"operationCorrectIndex"},
+    {choicesKey:"unitChoices",correctIndexKey:"unitCorrectIndex"}
+  ];
+  const errors=[];
+  problems.forEach((problem,problemIndex)=>{
+    configs.forEach(config=>{
+      const choices=problem[config.choicesKey];
+      const correctIndex=problem[config.correctIndexKey];
+      if(!choices)return;
+      if(!Array.isArray(choices)){
+        errors.push(`問題${problemIndex+1}: ${config.choicesKey} が配列ではありません。`);
+        return;
+      }
+      if(!Number.isInteger(correctIndex)||correctIndex<0||correctIndex>=choices.length){
+        errors.push(`問題${problemIndex+1}: ${config.correctIndexKey} が不正です。`);
+      }
+    });
+  });
+  if(errors.length>0){
+    console.error("選択問題データにエラーがあります。",errors);
+    return false;
+  }
+  return true;
+}
+function showDataError(){
+  introCard.innerHTML=`
+    <p><strong>問題データの確認が必要です。</strong></p>
+    <p>先生に画面を見せてください。</p>
+    <p class="small">くわしい内容は開発者用コンソールに出ています。</p>`;
+}
 function updateProgress(){
   const done=state.index;
   $("progressText").textContent=done>=problems.length?"完了":`問題 ${state.index+1}`;
@@ -661,29 +724,29 @@ function renderPhase(){
   const p=problems[state.index];
   const phase=state.phases[state.phaseIndex];
   if(phase==="xMeaning"){
-    renderChoices("x が表しているものはどれですか。",p.xChoices,p.xMeaning,"xMeaning");
+    renderChoices("x が表しているものはどれですか。",p.xMeaningChoices,p.xMeaningCorrectIndex,"xMeaning");
   }else if(phase==="target"){
-    renderChoices("今回は、何を表す式を作りますか。",p.targetChoices,p.target,"target");
+    renderChoices("今回は、何を表す式を作りますか。",p.targetChoices,p.targetCorrectIndex,"target");
   }else if(phase==="operation"){
-    renderChoices("どの数量の関係を使いますか。",p.operationChoices,p.operation,"operation");
+    renderChoices("どの数量の関係を使いますか。",p.operationChoices,p.operationCorrectIndex,"operation");
   }else if(phase==="expression"){
     renderExpression(p);
   }else if(phase==="unit"){
-    renderChoices("作った文字式の単位はどれですか。",p.unitChoices,p.unit,"unit");
+    renderChoices("作った文字式の単位はどれですか。",p.unitChoices,p.unitCorrectIndex,"unit");
   }else if(phase==="complete"){
     renderComplete(p);
   }else if(phase==="paper"){
     renderPaper(p);
   }
 }
-function renderChoices(prompt,choices,correct,kind){
+function renderChoices(prompt,choices,correctIndex,kind){
   workArea.innerHTML=`
     <div class="prompt">${escapeHtml(prompt)}</div>
     <div class="choices two">
-      ${choices.map((c,i)=>`<button class="choice" data-index="${i}">${escapeHtml(c)}</button>`).join("")}
+      ${choices.map((c,i)=>`<button class="choice" type="button" data-index="${i}">${escapeHtml(c)}</button>`).join("")}
     </div>`;
   workArea.querySelectorAll(".choice").forEach(btn=>{
-    btn.addEventListener("click",()=>checkChoice(btn,choices,correct,kind));
+    btn.addEventListener("click",()=>checkChoice(btn,Number(btn.dataset.index),correctIndex,choices,kind));
   });
 }
 function markMistake(kind){
@@ -701,15 +764,16 @@ function markMistake(kind){
     pm.unit=true; state.mistakes.unitMistake++;
   }
 }
-function checkChoice(btn,choices,correct,kind){
-  const index=Number(btn.dataset.index);
-  const value=choices[index];
+function checkChoice(btn,selectedIndex,correctIndex,choices,kind){
+  const value=choices[selectedIndex];
   const all=[...workArea.querySelectorAll(".choice")];
-  const isCorrect=value===correct;
+  const isCorrect=selectedIndex===correctIndex;
   state.attempts.push({
     problem:state.index+1,
     phase:kind,
+    selectedIndex,
     selected:value,
+    correctIndex,
     correct:isCorrect,
     time:new Date().toISOString()
   });
@@ -1027,8 +1091,8 @@ function downloadCSV(){
     ["subtractionOrderMistake",state.mistakes.subtractionOrderMistake],
     ["unitMistake",state.mistakes.unitMistake],
     [],
-    ["problem","phase","selectedOrInput","correct","resultType","correctConcept","canonical","time"],
-    ...state.attempts.map(a=>[a.problem,a.phase,a.selected??a.input,a.correct,a.resultType??"",a.correctConcept??"",a.canonical??"",a.time])
+    ["problem","phase","selectedIndex","selected","correctIndex","correct","input","resultType","correctConcept","canonical","time"],
+    ...state.attempts.map(a=>[a.problem,a.phase,a.selectedIndex??"",a.selected??"",a.correctIndex??"",a.correct,a.input??"",a.resultType??"",a.correctConcept??"",a.canonical??"",a.time])
   ];
   const csv=rows.map(r=>r.map(v=>{
     const s=String(v??"").replace(/"/g,'""');
@@ -1064,11 +1128,16 @@ function restart(){
   finishCard.classList.add("hidden");
   renderProblem();
 }
-$("startBtn").addEventListener("click",()=>{
-  state.startedAt=new Date().toISOString();
-  introCard.classList.add("hidden");
-  renderProblem();
-});
+const choiceDataIsValid=validateChoiceData();
+if(choiceDataIsValid){
+  $("startBtn").addEventListener("click",()=>{
+    state.startedAt=new Date().toISOString();
+    introCard.classList.add("hidden");
+    renderProblem();
+  });
+}else{
+  showDataError();
+}
 nextBtn.addEventListener("click",nextPhase);
 $("restartBtn").addEventListener("click",restart);
 $("downloadBtn").addEventListener("click",downloadCSV);
