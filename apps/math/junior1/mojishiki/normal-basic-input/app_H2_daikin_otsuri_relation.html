@@ -1,0 +1,1271 @@
+<!doctype html>
+<!--
+  app_H2_daikin_otsuri_relation.html
+  v1.0 2026-07-14
+
+  第2章「文字式」
+  文章から式へ・代金おつり編
+
+  仕様:
+  ・12問固定
+  ・問題文から等式を直接入力
+  ・選択式ではない
+  ・方程式を解かない
+  ・標準形は「出した金額－買った物の代金＝おつり」
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>文章から式へ｜代金・おつり編</title>
+<style>
+:root{
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --ink:#1f2937;
+  --muted:#64748b;
+  --line:#dbe3ef;
+  --accent:#2563eb;
+  --accent-soft:#eaf2ff;
+  --ok:#15803d;
+  --ok-soft:#ecfdf3;
+  --warn:#8a5a00;
+  --warn-soft:#fff7e6;
+  --bad:#b42318;
+  --bad-soft:#fff1f0;
+  --shadow:0 8px 24px rgba(15,23,42,.08);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html{touch-action:manipulation}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+}
+button{font:inherit;letter-spacing:0;touch-action:manipulation}
+.app{
+  width:min(760px,100%);
+  min-height:100svh;
+  margin:0 auto;
+  padding:14px 14px 34px;
+}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:20;
+  padding:8px 0 12px;
+  background:linear-gradient(var(--bg) 82%,rgba(245,247,251,0));
+}
+.title-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+}
+h1{
+  margin:0;
+  font-size:clamp(20px,5.4vw,30px);
+  line-height:1.25;
+  font-weight:900;
+}
+.chapter{
+  flex:0 0 auto;
+  color:var(--accent);
+  background:var(--accent-soft);
+  border:1px solid #cfe0ff;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.progress-wrap{margin-top:10px}
+.progress-label{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  color:var(--muted);
+  font-size:13px;
+  font-weight:800;
+  margin-bottom:5px;
+}
+.progress{
+  height:10px;
+  background:#e4eaf3;
+  border-radius:999px;
+  overflow:hidden;
+}
+.progress>div{
+  height:100%;
+  width:0%;
+  background:var(--accent);
+  border-radius:inherit;
+  transition:width .25s ease;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:clamp(15px,4vw,24px);
+  margin-top:12px;
+}
+.intro{
+  background:linear-gradient(135deg,#fff,#f4f8ff);
+}
+.intro p{
+  margin:7px 0;
+  line-height:1.75;
+  font-weight:750;
+}
+.intro strong{color:var(--accent)}
+.problem-number{
+  color:var(--accent);
+  font-size:14px;
+  font-weight:900;
+  margin-bottom:7px;
+}
+.problem-text{
+  font-size:clamp(19px,5.2vw,27px);
+  line-height:1.75;
+  font-weight:800;
+  white-space:pre-line;
+}
+.prompt{
+  margin:0 0 10px;
+  color:var(--muted);
+  font-weight:800;
+  line-height:1.5;
+}
+.formula-box{
+  min-height:64px;
+  border:3px solid #bfd2f7;
+  background:#f8fbff;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 12px;
+  margin-bottom:10px;
+  font-size:clamp(30px,7vw,36px);
+  font-weight:950;
+  line-height:1.2;
+  overflow-wrap:anywhere;
+  text-align:center;
+}
+.formula-box.empty{
+  color:#94a3b8;
+  font-size:17px;
+  font-weight:850;
+  letter-spacing:0;
+}
+.keypad{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+  grid-auto-flow:row;
+}
+.key{
+  min-height:52px;
+  border:1px solid #cdd8e8;
+  border-radius:13px;
+  background:#fff;
+  color:var(--ink);
+  font-size:22px;
+  font-weight:950;
+  cursor:pointer;
+}
+.key:active{transform:translateY(1px)}
+.key:disabled{
+  cursor:default;
+  opacity:.55;
+}
+.key:disabled:active{transform:none}
+.key.number{
+  background:#fff;
+  border-color:#cdd8e8;
+}
+.key.variable{
+  background:#eef8f6;
+  border-color:#a9d9d1;
+  color:#11645b;
+}
+.key.operator{
+  background:#fff7e6;
+  border-color:#efcf91;
+  color:#7a4d00;
+}
+.key.symbol{
+  background:#f8fafc;
+  color:#334155;
+}
+.key.function{
+  background:#edf3fb;
+  color:#334155;
+  font-size:16px;
+}
+.key.answer{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+  font-size:18px;
+}
+.key.wide-clear{
+  grid-column:span 2;
+}
+.key.full-answer{
+  grid-column:1 / -1;
+  min-height:56px;
+}
+.message{
+  display:none;
+  margin-top:13px;
+  border-radius:14px;
+  padding:13px 15px;
+  line-height:1.65;
+  font-weight:850;
+  white-space:pre-line;
+}
+.message.show{display:block}
+.message.ok{
+  color:var(--ok);
+  background:var(--ok-soft);
+  border:1px solid #b7e4c4;
+}
+.message.warn{
+  color:var(--warn);
+  background:var(--warn-soft);
+  border:1px solid #efcf91;
+}
+.message.bad{
+  color:var(--bad);
+  background:var(--bad-soft);
+  border:1px solid #f2b8b5;
+}
+.primary,.secondary{
+  width:100%;
+  min-height:54px;
+  margin-top:14px;
+  border-radius:14px;
+  font-weight:900;
+  cursor:pointer;
+}
+.primary{
+  border:0;
+  background:var(--accent);
+  color:#fff;
+}
+.secondary{
+  border:2px solid #b8c6d9;
+  background:#fff;
+  color:#334155;
+}
+.completion{
+  font-size:clamp(21px,5.6vw,31px);
+  font-weight:950;
+  line-height:1.65;
+  text-align:center;
+  padding:14px;
+  border-radius:16px;
+  background:var(--ok-soft);
+  border:2px solid #9fd7ae;
+  color:#14532d;
+}
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-top:14px;
+}
+.summary-item{
+  background:#f8fafc;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  min-height:78px;
+  font-size:13px;
+  color:var(--muted);
+  font-weight:800;
+}
+.summary-item b{
+  display:block;
+  margin-top:4px;
+  color:var(--ink);
+  font-size:24px;
+}
+.answer-list{
+  margin:14px 0 0;
+  padding:0;
+  list-style:none;
+  display:grid;
+  gap:8px;
+}
+.answer-list li{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 12px;
+  background:#fbfdff;
+  font-weight:850;
+  overflow-wrap:anywhere;
+}
+.small{font-size:13px;color:var(--muted);line-height:1.65;font-weight:750}
+.hidden{display:none!important}
+@media(max-width:380px){
+  .app{padding-left:10px;padding-right:10px}
+  .keypad{gap:6px}
+  .key{min-height:50px;font-size:20px}
+  .key.function{font-size:14px}
+  .summary-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="topbar">
+    <div class="title-row">
+      <h1>文章から式へ｜代金・おつり編</h1>
+      <div class="chapter">第2章 文字式｜v1.0</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progressText">準備</span>
+        <span id="countText">0 / 12</span>
+      </div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+  </div>
+
+  <section id="introCard" class="card intro">
+    <p><strong>x と y の意味は、問題文に書いてあります。</strong></p>
+    <p>文章を読んで、数量の関係を1本の等式にします。</p>
+    <p class="small">標準形は「出した金額－買った物の代金＝おつり」です。式はテンキーで入力します。</p>
+    <button id="startBtn" class="primary" type="button">はじめる</button>
+  </section>
+
+  <section id="problemCard" class="card hidden">
+    <div id="problemNumber" class="problem-number"></div>
+    <div id="problemText" class="problem-text"></div>
+  </section>
+
+  <section id="workCard" class="card hidden">
+    <p class="prompt">数量の関係を式に表しなさい。</p>
+    <div id="formulaBox" class="formula-box empty" aria-live="polite">ここに式を入力</div>
+    <div id="keypad" class="keypad" aria-label="式入力キーパッド"></div>
+    <div id="feedback" class="message" aria-live="polite"></div>
+    <button id="nextBtn" class="primary hidden" type="button">次へ</button>
+  </section>
+
+  <section id="finishCard" class="card hidden">
+    <h2>12問終了！</h2>
+    <div class="completion">標準形で最後まで書けました。</div>
+    <div id="summaryGrid" class="summary-grid"></div>
+    <p class="small">黄色や赤の判定も、1問につき同じ種類は1回だけ集計しています。入力履歴は端末内に保存されます。</p>
+    <button id="downloadBtn" class="secondary" type="button">今回の記録をCSVで保存</button>
+    <button id="restartBtn" class="primary" type="button">もう一度</button>
+    <ul id="answerList" class="answer-list"></ul>
+  </section>
+</main>
+
+<script>
+"use strict";
+
+const GAS_URL = "";
+const MODE = "H2_DAIKIN_OTSURI_RELATION";
+const NOTE = "第2章文字式：文章から等式へ・代金おつり編";
+const RESULT_HISTORY_KEY = "H2_DAIKIN_OTSURI_RESULTS";
+const LAST_RESULT_KEY = "H2_DAIKIN_OTSURI_LAST_RESULT";
+
+const PROBLEMS = [
+  {
+    id:1,
+    text:"1000円を出して、1本 x 円のジュースを3本買うと、おつりは y 円でした。",
+    canonical:"1000-3x=y",
+    paidAmount:1000,
+    unitPriceVariable:"x",
+    quantity:3,
+    fixedAdditionalCost:0,
+    changeVariable:"y",
+    itemName:"ジュース",
+    fixedItemName:"",
+    hints:{
+      quantityMultiplierMistake:"ジュースは3本です。3本分の代金は 3x 円です。",
+      subtractionOrderMistake:"おつりは、出した金額－買った物の代金で表します。",
+      variableSwapMistake:"1本の値段は x 円です。おつりは y 円です。",
+      equalityMistake:"おつりが y 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:2,
+    text:"1500円を出して、1個 x 円のパンを4個買うと、おつりは y 円でした。",
+    canonical:"1500-4x=y",
+    paidAmount:1500,
+    unitPriceVariable:"x",
+    quantity:4,
+    fixedAdditionalCost:0,
+    changeVariable:"y",
+    itemName:"パン",
+    fixedItemName:"",
+    hints:{
+      quantityMultiplierMistake:"パンは4個です。4個分の代金は 4x 円です。",
+      subtractionOrderMistake:"おつりは、1500円から買った物の代金を引きます。",
+      variableSwapMistake:"1個の値段は x 円です。おつりは y 円です。",
+      equalityMistake:"おつりが y 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:3,
+    text:"2000円を出して、1個 x 円のケーキを4個と、150円のジュースを1本買うと、おつりは y 円でした。",
+    canonical:"2000-(4x+150)=y",
+    paidAmount:2000,
+    unitPriceVariable:"x",
+    quantity:4,
+    fixedAdditionalCost:150,
+    changeVariable:"y",
+    itemName:"ケーキ",
+    fixedItemName:"ジュース",
+    hints:{
+      quantityMultiplierMistake:"ケーキは4個です。ケーキ代は 4x 円です。",
+      subtractionOrderMistake:"おつりは、2000円から買った物の代金を引きます。",
+      parenthesesMistake:"ケーキ代とジュース代の両方を、2000円から引きます。4x+150 を（　）でまとめましょう。",
+      variableSwapMistake:"ケーキ1個の値段は x 円です。おつりは y 円です。",
+      equalityMistake:"おつりが y 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:4,
+    text:"1500円を出して、1本 x 円の鉛筆を3本と、80円の消しゴムを1個買うと、おつりは y 円でした。",
+    canonical:"1500-(3x+80)=y",
+    paidAmount:1500,
+    unitPriceVariable:"x",
+    quantity:3,
+    fixedAdditionalCost:80,
+    changeVariable:"y",
+    itemName:"鉛筆",
+    fixedItemName:"消しゴム",
+    hints:{
+      quantityMultiplierMistake:"鉛筆は3本です。鉛筆代は 3x 円です。",
+      subtractionOrderMistake:"おつりは、1500円から買った物の代金を引きます。",
+      parenthesesMistake:"鉛筆代と消しゴム代の両方を、1500円から引きます。3x+80 を（　）でまとめましょう。",
+      variableSwapMistake:"鉛筆1本の値段は x 円です。おつりは y 円です。",
+      equalityMistake:"おつりが y 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:5,
+    text:"1冊 y 円のノートを3冊買うために400円を出すと、おつりは x 円でした。",
+    canonical:"400-3y=x",
+    paidAmount:400,
+    unitPriceVariable:"y",
+    quantity:3,
+    fixedAdditionalCost:0,
+    changeVariable:"x",
+    itemName:"ノート",
+    fixedItemName:"",
+    hints:{
+      quantityMultiplierMistake:"ノートは3冊です。3冊分の代金は 3y 円です。",
+      subtractionOrderMistake:"おつりは、400円からノート代を引きます。",
+      variableSwapMistake:"1冊の値段は y 円です。おつりは x 円です。",
+      equalityMistake:"おつりが x 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:6,
+    text:"1本 y 円のペンを4本買うために1000円を出すと、おつりは x 円でした。",
+    canonical:"1000-4y=x",
+    paidAmount:1000,
+    unitPriceVariable:"y",
+    quantity:4,
+    fixedAdditionalCost:0,
+    changeVariable:"x",
+    itemName:"ペン",
+    fixedItemName:"",
+    hints:{
+      quantityMultiplierMistake:"ペンは4本です。4本分の代金は 4y 円です。",
+      subtractionOrderMistake:"おつりは、1000円からペン代を引きます。",
+      variableSwapMistake:"1本の値段は y 円です。おつりは x 円です。",
+      equalityMistake:"おつりが x 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:7,
+    text:"2000円を出して、1冊 x 円の本を2冊買うと、おつりは y 円でした。",
+    canonical:"2000-2x=y",
+    paidAmount:2000,
+    unitPriceVariable:"x",
+    quantity:2,
+    fixedAdditionalCost:0,
+    changeVariable:"y",
+    itemName:"本",
+    fixedItemName:"",
+    hints:{
+      quantityMultiplierMistake:"本は2冊です。2冊分の代金は 2x 円です。",
+      subtractionOrderMistake:"おつりは、2000円から本代を引きます。",
+      variableSwapMistake:"1冊の値段は x 円です。おつりは y 円です。",
+      equalityMistake:"おつりが y 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:8,
+    text:"3000円を出して、1冊 x 円のノートを5冊と、200円のファイルを1冊買うと、おつりは y 円でした。",
+    canonical:"3000-(5x+200)=y",
+    paidAmount:3000,
+    unitPriceVariable:"x",
+    quantity:5,
+    fixedAdditionalCost:200,
+    changeVariable:"y",
+    itemName:"ノート",
+    fixedItemName:"ファイル",
+    hints:{
+      quantityMultiplierMistake:"ノートは5冊です。ノート代は 5x 円です。",
+      subtractionOrderMistake:"おつりは、3000円から買った物の代金を引きます。",
+      parenthesesMistake:"ノート代とファイル代の両方を、3000円から引きます。5x+200 を（　）でまとめましょう。",
+      variableSwapMistake:"ノート1冊の値段は x 円です。おつりは y 円です。",
+      equalityMistake:"おつりが y 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:9,
+    text:"1個 y 円のみかんを5個買うために800円を出すと、おつりは x 円でした。",
+    canonical:"800-5y=x",
+    paidAmount:800,
+    unitPriceVariable:"y",
+    quantity:5,
+    fixedAdditionalCost:0,
+    changeVariable:"x",
+    itemName:"みかん",
+    fixedItemName:"",
+    hints:{
+      quantityMultiplierMistake:"みかんは5個です。5個分の代金は 5y 円です。",
+      subtractionOrderMistake:"おつりは、800円からみかん代を引きます。",
+      variableSwapMistake:"1個の値段は y 円です。おつりは x 円です。",
+      equalityMistake:"おつりが x 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:10,
+    text:"1000円を出して、1個 x 円のりんごを5個買うと、おつりは y 円でした。",
+    canonical:"1000-5x=y",
+    paidAmount:1000,
+    unitPriceVariable:"x",
+    quantity:5,
+    fixedAdditionalCost:0,
+    changeVariable:"y",
+    itemName:"りんご",
+    fixedItemName:"",
+    hints:{
+      quantityMultiplierMistake:"りんごは5個です。5個分の代金は 5x 円です。",
+      subtractionOrderMistake:"おつりは、1000円からりんご代を引きます。",
+      variableSwapMistake:"1個の値段は x 円です。おつりは y 円です。",
+      equalityMistake:"おつりが y 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:11,
+    text:"2000円を出して、1個 x 円のパンを2個と、120円の牛乳を1本買うと、おつりは y 円でした。",
+    canonical:"2000-(2x+120)=y",
+    paidAmount:2000,
+    unitPriceVariable:"x",
+    quantity:2,
+    fixedAdditionalCost:120,
+    changeVariable:"y",
+    itemName:"パン",
+    fixedItemName:"牛乳",
+    hints:{
+      quantityMultiplierMistake:"パンは2個です。パン代は 2x 円です。",
+      subtractionOrderMistake:"おつりは、2000円から買った物の代金を引きます。",
+      parenthesesMistake:"パン代と牛乳代の両方を、2000円から引きます。2x+120 を（　）でまとめましょう。",
+      variableSwapMistake:"パン1個の値段は x 円です。おつりは y 円です。",
+      equalityMistake:"おつりが y 円であることを、＝を使って表しましょう。"
+    }
+  },
+  {
+    id:12,
+    text:"1個 y 円の商品を2個買うために2000円を出すと、おつりは x 円でした。",
+    canonical:"2000-2y=x",
+    paidAmount:2000,
+    unitPriceVariable:"y",
+    quantity:2,
+    fixedAdditionalCost:0,
+    changeVariable:"x",
+    itemName:"商品",
+    fixedItemName:"",
+    hints:{
+      quantityMultiplierMistake:"商品は2個です。2個分の代金は 2y 円です。",
+      subtractionOrderMistake:"おつりは、2000円から商品の代金を引きます。",
+      variableSwapMistake:"1個の値段は y 円です。おつりは x 円です。",
+      equalityMistake:"おつりが x 円であることを、＝を使って表しましょう。"
+    }
+  }
+];
+
+const MISTAKE_KEYS = [
+  "expressionMistake",
+  "notationMistake",
+  "equivalentFormMistake",
+  "quantityMultiplierMistake",
+  "subtractionOrderMistake",
+  "parenthesesMistake",
+  "variableSwapMistake",
+  "equalityMistake"
+];
+
+const MISTAKE_LABELS = {
+  expressionMistake:"式の形のミス",
+  notationMistake:"文字式の書き方の直し",
+  equivalentFormMistake:"同じ値だが別の形",
+  quantityMultiplierMistake:"数量関係の誤り",
+  subtractionOrderMistake:"引き算の順序ミス",
+  parenthesesMistake:"かっこのミス",
+  variableSwapMistake:"文字の取り違え",
+  equalityMistake:"等号のミス"
+};
+
+const state = {
+  currentIndex:0,
+  input:"",
+  startedAt:"",
+  finishedAt:"",
+  attempts:[],
+  standardCorrectCount:0,
+  awaitingNext:false,
+  mistakes:Object.fromEntries(MISTAKE_KEYS.map(key=>[key,0])),
+  problemMistakes:PROBLEMS.map(()=>Object.fromEntries(MISTAKE_KEYS.map(key=>[key,false]))),
+  latestResult:null
+};
+
+let audioCtx = null;
+let resultSent = false;
+
+const els = {
+  introCard:document.getElementById("introCard"),
+  problemCard:document.getElementById("problemCard"),
+  workCard:document.getElementById("workCard"),
+  finishCard:document.getElementById("finishCard"),
+  startBtn:document.getElementById("startBtn"),
+  progressText:document.getElementById("progressText"),
+  countText:document.getElementById("countText"),
+  progressBar:document.getElementById("progressBar"),
+  problemNumber:document.getElementById("problemNumber"),
+  problemText:document.getElementById("problemText"),
+  formulaBox:document.getElementById("formulaBox"),
+  keypad:document.getElementById("keypad"),
+  feedback:document.getElementById("feedback"),
+  nextBtn:document.getElementById("nextBtn"),
+  backspaceBtn:document.getElementById("backspaceBtn"),
+  clearBtn:document.getElementById("clearBtn"),
+  checkBtn:document.getElementById("checkBtn"),
+  summaryGrid:document.getElementById("summaryGrid"),
+  downloadBtn:document.getElementById("downloadBtn"),
+  restartBtn:document.getElementById("restartBtn"),
+  answerList:document.getElementById("answerList")
+};
+
+function makeVec(constant=0,x=0,y=0){return {constant,x,y};}
+function addVec(a,b){return makeVec(a.constant+b.constant,a.x+b.x,a.y+b.y);}
+function subVec(a,b){return makeVec(a.constant-b.constant,a.x-b.x,a.y-b.y);}
+function scaleVec(a,k){return makeVec(a.constant*k,a.x*k,a.y*k);}
+function isConstantVec(v){return almostZero(v.x)&&almostZero(v.y);}
+function almostZero(n){return Math.abs(n)<1e-9;}
+function equalVec(a,b){
+  return almostZero(a.constant-b.constant)&&almostZero(a.x-b.x)&&almostZero(a.y-b.y);
+}
+function proportionalVec(a,b){
+  const pairs = [[a.constant,b.constant],[a.x,b.x],[a.y,b.y]];
+  let ratio = null;
+  for(const [av,bv] of pairs){
+    if(almostZero(bv)){
+      if(!almostZero(av))return false;
+    }else if(ratio===null){
+      ratio = av / bv;
+    }else if(!almostZero(av - ratio * bv)){
+      return false;
+    }
+  }
+  return ratio!==null && !almostZero(ratio);
+}
+
+function normalizeSymbols(raw){
+  return String(raw)
+    .trim()
+    .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
+    .replace(/[ｘＸX]/g,"x")
+    .replace(/[ｙＹY]/g,"y")
+    .replace(/[＋]/g,"+")
+    .replace(/[－−‐‑‒–—ーｰ]/g,"-")
+    .replace(/[＝]/g,"=")
+    .replace(/[（]/g,"(")
+    .replace(/[）]/g,")")
+    .replace(/[×✕✖＊]/g,"*")
+    .replace(/\s+/g,"")
+    .toLowerCase();
+}
+
+function parserText(raw){
+  let s = normalizeSymbols(raw);
+  if(!/^[0-9xy+\-*=().]*$/.test(s)){
+    throw new Error("invalid-character");
+  }
+  s = s
+    .replace(/(\d)([xy(])/g,"$1*$2")
+    .replace(/([xy)])(\d)/g,"$1*$2")
+    .replace(/([xy)])([xy(])/g,"$1*$2");
+  return s;
+}
+
+function stripOuterParens(text){
+  let s = text;
+  let changed = true;
+  while(changed && s.startsWith("(") && s.endsWith(")")){
+    changed = false;
+    let depth = 0;
+    let wraps = true;
+    for(let i=0;i<s.length;i++){
+      if(s[i]==="(")depth++;
+      if(s[i]===")")depth--;
+      if(depth===0 && i<s.length-1){wraps=false;break;}
+      if(depth<0){wraps=false;break;}
+    }
+    if(wraps){
+      s = s.slice(1,-1);
+      changed = true;
+    }
+  }
+  return s;
+}
+
+function parseExpressionText(raw){
+  const text = parserText(raw);
+  let i = 0;
+
+  function peek(){return text[i] || "";}
+  function consume(ch){if(peek()===ch){i++;return true;}return false;}
+  function parseExpression(){
+    let value = parseTerm();
+    while(true){
+      if(consume("+"))value = addVec(value,parseTerm());
+      else if(consume("-"))value = subVec(value,parseTerm());
+      else break;
+    }
+    return value;
+  }
+  function parseTerm(){
+    let value = parseFactor();
+    while(consume("*")){
+      const right = parseFactor();
+      if(isConstantVec(value)){
+        value = scaleVec(right,value.constant);
+      }else if(isConstantVec(right)){
+        value = scaleVec(value,right.constant);
+      }else{
+        throw new Error("nonlinear");
+      }
+    }
+    return value;
+  }
+  function parseFactor(){
+    if(consume("+"))return parseFactor();
+    if(consume("-"))return scaleVec(parseFactor(),-1);
+    if(consume("(")){
+      const value = parseExpression();
+      if(!consume(")"))throw new Error("paren");
+      return value;
+    }
+    const ch = peek();
+    if(ch==="x"){i++;return makeVec(0,1,0);}
+    if(ch==="y"){i++;return makeVec(0,0,1);}
+    if(/[0-9.]/.test(ch)){
+      const start = i;
+      while(/[0-9.]/.test(peek()))i++;
+      const num = Number(text.slice(start,i));
+      if(!Number.isFinite(num))throw new Error("number");
+      return makeVec(num,0,0);
+    }
+    throw new Error("factor");
+  }
+
+  const parsed = parseExpression();
+  if(i !== text.length)throw new Error("trailing");
+  return parsed;
+}
+
+function parseEquation(raw){
+  const normalized = normalizeSymbols(raw);
+  const parts = normalized.split("=");
+  if(parts.length !== 2 || !parts[0] || !parts[1]){
+    return {ok:false,error:"equality"};
+  }
+  try{
+    const left = parseExpressionText(parts[0]);
+    const right = parseExpressionText(parts[1]);
+    return {
+      ok:true,
+      normalized,
+      leftText:parts[0],
+      rightText:parts[1],
+      residual:subVec(left,right),
+      left,
+      right
+    };
+  }catch(error){
+    return {ok:false,error:error.message || "parse"};
+  }
+}
+
+function correctResidual(problem){
+  const v = makeVec(problem.paidAmount - problem.fixedAdditionalCost,0,0);
+  v[problem.unitPriceVariable] -= problem.quantity;
+  v[problem.changeVariable] -= 1;
+  return v;
+}
+
+function standardLeftVector(problem){
+  const v = makeVec(problem.paidAmount - problem.fixedAdditionalCost,0,0);
+  v[problem.unitPriceVariable] -= problem.quantity;
+  return v;
+}
+
+function variableOnlyText(text, variable){
+  return stripOuterParens(text) === variable;
+}
+
+function termText(problem){
+  return `${problem.quantity}${problem.unitPriceVariable}`;
+}
+
+function canonicalLeftForms(problem){
+  const paid = String(problem.paidAmount);
+  const term = termText(problem);
+  if(problem.fixedAdditionalCost){
+    const fixed = String(problem.fixedAdditionalCost);
+    return [
+      `${paid}-(${term}+${fixed})`,
+      `${paid}-${term}-${fixed}`
+    ];
+  }
+  return [
+    `${paid}-${term}`,
+    `${paid}-(${term})`
+  ];
+}
+
+function isCanonicalText(problem, equation){
+  const left = stripOuterParens(equation.leftText);
+  const right = stripOuterParens(equation.rightText);
+  return right === problem.changeVariable && canonicalLeftForms(problem).includes(left);
+}
+
+function isStandardRelationOrder(problem, equation){
+  return variableOnlyText(equation.rightText,problem.changeVariable) &&
+    equalVec(equation.left,standardLeftVector(problem)) &&
+    equalVec(equation.residual,correctResidual(problem));
+}
+
+function mistakeVector(problem,type){
+  const v = makeVec(0,0,0);
+  if(type==="variableSwapMistake"){
+    v.constant = problem.paidAmount - problem.fixedAdditionalCost;
+    v[problem.changeVariable] -= problem.quantity;
+    v[problem.unitPriceVariable] -= 1;
+    return v;
+  }
+  if(type==="subtractionOrderMistake"){
+    v.constant = problem.fixedAdditionalCost - problem.paidAmount;
+    v[problem.unitPriceVariable] += problem.quantity;
+    v[problem.changeVariable] -= 1;
+    return v;
+  }
+  if(type==="quantityMultiplierMistake"){
+    v.constant = problem.paidAmount - problem.fixedAdditionalCost;
+    v[problem.unitPriceVariable] -= 1;
+    v[problem.changeVariable] -= 1;
+    return v;
+  }
+  if(type==="parenthesesMistake"){
+    v.constant = problem.paidAmount + problem.fixedAdditionalCost;
+    v[problem.unitPriceVariable] -= problem.quantity;
+    v[problem.changeVariable] -= 1;
+    return v;
+  }
+  return v;
+}
+
+function classifyWrong(problem,equation){
+  for(const type of ["variableSwapMistake","subtractionOrderMistake","quantityMultiplierMistake"]){
+    if(proportionalVec(equation.residual,mistakeVector(problem,type)))return type;
+  }
+  if(problem.fixedAdditionalCost && proportionalVec(equation.residual,mistakeVector(problem,"parenthesesMistake"))){
+    return "parenthesesMistake";
+  }
+  return "expressionMistake";
+}
+
+function classifyInput(problem,input){
+  const equation = parseEquation(input);
+  if(!equation.ok){
+    const type = equation.error === "equality" ? "equalityMistake" : "expressionMistake";
+    return {resultType:"wrong",mistakeType:type,message:hintFor(problem,type),normalized:normalizeSymbols(input)};
+  }
+
+  const correct = correctResidual(problem);
+  if(proportionalVec(equation.residual,correct)){
+    if(isCanonicalText(problem,equation)){
+      return {resultType:"canonical",mistakeType:null,message:`正解！ ${displayEquation(problem.canonical)}`,normalized:equation.normalized};
+    }
+    if(isStandardRelationOrder(problem,equation)){
+      return {
+        resultType:"equivalent_nonstandard",
+        mistakeType:"notationMistake",
+        message:`考え方は合っています。\nこのアプリでは、${problem.canonical} の形に書き直しましょう。`,
+        normalized:equation.normalized
+      };
+    }
+    return {
+      resultType:"equivalent_other_form",
+      mistakeType:"equivalentFormMistake",
+      message:"数量の関係は合っています。\n「出した金額－買った物の代金＝おつり」の順に書き直しましょう。",
+      normalized:equation.normalized
+    };
+  }
+
+  const mistakeType = classifyWrong(problem,equation);
+  return {
+    resultType:"wrong",
+    mistakeType,
+    message:hintFor(problem,mistakeType),
+    normalized:equation.normalized
+  };
+}
+
+function displayEquation(text){
+  return String(text)
+    .replace(/\+/g,"＋")
+    .replace(/-/g,"－")
+    .replace(/=/g,"＝")
+    .replace(/\(/g,"（")
+    .replace(/\)/g,"）");
+}
+
+function hintFor(problem,type){
+  if(type==="notationMistake"){
+    return "考え方は合っています。文字式では x×3 は 3x と書きます。標準の書き方に直しましょう。";
+  }
+  if(type==="equivalentFormMistake"){
+    return "数量の関係は合っています。「出した金額－買った物の代金＝おつり」の順に書きましょう。";
+  }
+  if(problem.hints[type])return problem.hints[type];
+  if(type==="parenthesesMistake"){
+    return "買った物の代金をまとめて、出した金額から引きます。";
+  }
+  if(type==="equalityMistake"){
+    return `おつりが ${problem.changeVariable} 円であることを、＝を使って表しましょう。`;
+  }
+  return "問題文をもう一度読み、出した金額・買った物の代金・おつりの順に見直しましょう。";
+}
+
+function playCorrectSound(){
+  try{
+    const Audio = window.AudioContext || window.webkitAudioContext;
+    audioCtx = audioCtx || new Audio();
+    const notes = [659,880];
+    notes.forEach((freq,index)=>{
+      const start = audioCtx.currentTime + index * 0.13;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq,start);
+      gain.gain.setValueAtTime(0.0001,start);
+      gain.gain.exponentialRampToValueAtTime(0.15,start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001,start + 0.16);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(start);
+      osc.stop(start + 0.18);
+    });
+  }catch(error){}
+}
+
+function showOnly(section){
+  [els.introCard,els.problemCard,els.workCard,els.finishCard].forEach(el=>el.classList.add("hidden"));
+  section.forEach(el=>el.classList.remove("hidden"));
+}
+
+function renderKeypad(){
+  const keys = [
+    {label:"7",value:"7",className:"number"},
+    {label:"8",value:"8",className:"number"},
+    {label:"9",value:"9",className:"number"},
+    {label:"x",value:"x",className:"variable"},
+    {label:"y",value:"y",className:"variable"},
+    {label:"4",value:"4",className:"number"},
+    {label:"5",value:"5",className:"number"},
+    {label:"6",value:"6",className:"number"},
+    {label:"＋",value:"＋",className:"operator"},
+    {label:"－",value:"－",className:"operator"},
+    {label:"1",value:"1",className:"number"},
+    {label:"2",value:"2",className:"number"},
+    {label:"3",value:"3",className:"number"},
+    {label:"（",value:"（",className:"operator"},
+    {label:"）",value:"）",className:"operator"},
+    {label:"0",value:"0",className:"number"},
+    {label:"＝",value:"＝",className:"operator"},
+    {label:"⌫ 1字消す",className:"function",id:"backspaceBtn",action:backspace,ariaLabel:"1文字消す"},
+    {label:"クリア",className:"function wide-clear",id:"clearBtn",action:clearInput},
+    {label:"答え合わせ",className:"answer full-answer",id:"checkBtn",action:checkAnswer}
+  ];
+  els.keypad.replaceChildren();
+  keys.forEach(key=>{
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `key ${key.className}`;
+    button.textContent = key.label;
+    if(key.id){
+      button.id = key.id;
+      els[key.id] = button;
+    }
+    if(key.ariaLabel)button.setAttribute("aria-label",key.ariaLabel);
+    button.addEventListener("click",key.action || (()=>appendInput(key.value)));
+    els.keypad.appendChild(button);
+  });
+}
+
+function setKeypadLocked(locked){
+  els.keypad.querySelectorAll("button").forEach(button=>{
+    button.disabled = locked;
+  });
+  const checkButton = document.getElementById("checkBtn");
+  if(checkButton){
+    checkButton.classList.toggle("hidden",locked);
+  }
+}
+
+function start(){
+  state.startedAt = new Date().toISOString();
+  state.currentIndex = 0;
+  state.input = "";
+  state.attempts = [];
+  state.standardCorrectCount = 0;
+  state.awaitingNext = false;
+  MISTAKE_KEYS.forEach(key=>state.mistakes[key]=0);
+  state.problemMistakes = PROBLEMS.map(()=>Object.fromEntries(MISTAKE_KEYS.map(key=>[key,false])));
+  resultSent = false;
+  renderProblem();
+}
+
+function renderProblem(){
+  const problem = PROBLEMS[state.currentIndex];
+  showOnly([els.problemCard,els.workCard]);
+  els.progressText.textContent = `問題 ${state.currentIndex + 1}`;
+  els.countText.textContent = `${state.currentIndex + 1} / ${PROBLEMS.length}`;
+  els.progressBar.style.width = `${(state.currentIndex / PROBLEMS.length) * 100}%`;
+  els.problemNumber.textContent = `問題 ${problem.id}`;
+  els.problemText.textContent = `${problem.text}\n数量の関係を式に表しなさい。`;
+  state.input = "";
+  state.awaitingNext = false;
+  setFeedback("",null);
+  renderFormula();
+  els.nextBtn.classList.add("hidden");
+  setKeypadLocked(false);
+}
+
+function renderFormula(){
+  els.formulaBox.textContent = state.input || "ここに式を入力";
+  els.formulaBox.classList.toggle("empty",!state.input);
+}
+
+function clearNonOkFeedback(){
+  if(els.feedback.classList.contains("warn") || els.feedback.classList.contains("bad")){
+    setFeedback("",null);
+  }
+}
+
+function appendInput(key){
+  if(state.awaitingNext)return;
+  clearNonOkFeedback();
+  els.nextBtn.classList.add("hidden");
+  state.input += key;
+  renderFormula();
+}
+
+function backspace(){
+  if(state.awaitingNext)return;
+  clearNonOkFeedback();
+  els.nextBtn.classList.add("hidden");
+  state.input = state.input.slice(0,-1);
+  renderFormula();
+}
+
+function clearInput(){
+  if(state.awaitingNext)return;
+  clearNonOkFeedback();
+  els.nextBtn.classList.add("hidden");
+  state.input = "";
+  renderFormula();
+}
+
+function setFeedback(message,type){
+  els.feedback.textContent = message || "";
+  els.feedback.className = `message${message ? " show" : ""}${type ? ` ${type}` : ""}`;
+}
+
+function recordAttempt(problem,result){
+  const attempt = {
+    problem:problem.id,
+    input:state.input,
+    resultType:result.resultType,
+    mistakeType:result.mistakeType || "",
+    time:new Date().toISOString()
+  };
+  state.attempts.push(attempt);
+  if(result.mistakeType && !state.problemMistakes[state.currentIndex][result.mistakeType]){
+    state.problemMistakes[state.currentIndex][result.mistakeType] = true;
+    state.mistakes[result.mistakeType] += 1;
+  }
+}
+
+function checkAnswer(){
+  if(state.awaitingNext)return;
+  if(!state.input.trim()){
+    setFeedback("式を入力してから、答え合わせをしましょう。","bad");
+    return;
+  }
+  const problem = PROBLEMS[state.currentIndex];
+  const result = classifyInput(problem,state.input);
+  state.latestResult = result;
+  recordAttempt(problem,result);
+
+  if(result.resultType === "canonical"){
+    state.standardCorrectCount += 1;
+    state.awaitingNext = true;
+    playCorrectSound();
+    setFeedback(result.message,"ok");
+    setKeypadLocked(true);
+    els.nextBtn.classList.remove("hidden");
+    return;
+  }
+
+  if(result.resultType === "equivalent_nonstandard" || result.resultType === "equivalent_other_form"){
+    setFeedback(result.message,"warn");
+    return;
+  }
+
+  setFeedback(result.message,"bad");
+}
+
+function nextProblem(){
+  if(state.currentIndex + 1 >= PROBLEMS.length){
+    finish();
+    return;
+  }
+  state.currentIndex += 1;
+  renderProblem();
+}
+
+function finish(){
+  state.finishedAt = new Date().toISOString();
+  els.progressText.textContent = "終了";
+  els.countText.textContent = `${PROBLEMS.length} / ${PROBLEMS.length}`;
+  els.progressBar.style.width = "100%";
+  showOnly([els.finishCard]);
+  renderSummary();
+  saveResult();
+  sendResult();
+}
+
+function renderSummary(){
+  const items = [
+    ["標準形での正解数",state.standardCorrectCount],
+    ["書き方の直し",state.mistakes.notationMistake],
+    ["同じ値だが別の形",state.mistakes.equivalentFormMistake],
+    ["数量関係の誤り",state.mistakes.quantityMultiplierMistake + state.mistakes.expressionMistake],
+    ["引き算の順序",state.mistakes.subtractionOrderMistake],
+    ["かっこ",state.mistakes.parenthesesMistake],
+    ["文字の取り違え",state.mistakes.variableSwapMistake],
+    ["等号",state.mistakes.equalityMistake]
+  ];
+  els.summaryGrid.innerHTML = items.map(([label,value])=>`<div class="summary-item">${label}<b>${value}</b></div>`).join("");
+  els.answerList.innerHTML = PROBLEMS.map(p=>`<li>問題${p.id}：${p.canonical}</li>`).join("");
+}
+
+function resultPayload(){
+  return {
+    mode:MODE,
+    note:NOTE,
+    startedAt:state.startedAt,
+    finishedAt:state.finishedAt,
+    totalQuestions:PROBLEMS.length,
+    correctCount:state.standardCorrectCount,
+    allCorrect:state.standardCorrectCount === PROBLEMS.length && MISTAKE_KEYS.every(key=>state.mistakes[key]===0),
+    mistakes:{...state.mistakes},
+    attempts:state.attempts,
+    device:navigator.userAgent
+  };
+}
+
+function saveResult(){
+  const payload = resultPayload();
+  localStorage.setItem(LAST_RESULT_KEY,JSON.stringify(payload));
+  const history = JSON.parse(localStorage.getItem(RESULT_HISTORY_KEY) || "[]");
+  history.push(payload);
+  localStorage.setItem(RESULT_HISTORY_KEY,JSON.stringify(history.slice(-20)));
+}
+
+function sendResult(){
+  if(resultSent)return;
+  resultSent = true;
+  if(!GAS_URL)return;
+  fetch(GAS_URL,{
+    method:"POST",
+    mode:"no-cors",
+    body:JSON.stringify(resultPayload())
+  }).catch(error=>console.warn("結果を送信できませんでした。",error));
+}
+
+function csvEscape(value){
+  const text = String(value ?? "");
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g,'""')}"` : text;
+}
+
+function downloadCsv(){
+  const header = ["mode","startedAt","finishedAt","problem","input","resultType","time","mistakeType"];
+  const rows = state.attempts.map(a=>[
+    MODE,
+    state.startedAt,
+    state.finishedAt,
+    a.problem,
+    a.input,
+    a.resultType,
+    a.time,
+    a.mistakeType
+  ]);
+  const csv = "\uFEFF" + [header,...rows].map(row=>row.map(csvEscape).join(",")).join("\r\n");
+  const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `h2_daikin_otsuri_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+els.startBtn.addEventListener("click",start);
+els.nextBtn.addEventListener("click",nextProblem);
+els.downloadBtn.addEventListener("click",downloadCsv);
+els.restartBtn.addEventListener("click",()=>location.reload());
+
+renderKeypad();
+
+window.__H2_TEST__ = {
+  PROBLEMS,
+  classifyInput,
+  parseEquation,
+  normalizeSymbols,
+  resultPayload,
+  csvEscape
+};
+</script>
+</body>
+</html>
