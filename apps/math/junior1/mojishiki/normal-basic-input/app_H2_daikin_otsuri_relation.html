@@ -371,7 +371,7 @@ h1{
 <script>
 "use strict";
 
-const GAS_URL = "";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyB1kGi_sCQ5trrAA_o1c-6tn87LY0di6rqIkssJ6vIacZ2IN4Y65jj9vCWoIwaH9aV/exec";
 const MODE = "H2_DAIKIN_OTSURI_RELATION";
 const NOTE = "第2章文字式：文章から等式へ・代金おつり編";
 const RESULT_HISTORY_KEY = "H2_DAIKIN_OTSURI_RESULTS";
@@ -1111,8 +1111,11 @@ function setFeedback(message,type){
 
 function recordAttempt(problem,result){
   const attempt = {
+    problemId:problem.id,
+    displayOrder:state.currentIndex + 1,
     problem:problem.id,
-    input:state.input,
+    input:normalizeSymbols(state.input),
+    displayInput:state.input,
     resultType:result.resultType,
     mistakeType:result.mistakeType || "",
     time:new Date().toISOString()
@@ -1189,7 +1192,12 @@ function renderSummary(){
 }
 
 function resultPayload(){
+  const wrongProblems = state.attempts
+    .filter(attempt=>attempt.resultType !== "canonical")
+    .map(attempt=>`[${attempt.resultType}] 問題${attempt.problemId} ${attempt.input}`);
   return {
+    studentId:"takumi",
+    appId:"mojishiki-normal-basic-input",
     mode:MODE,
     note:NOTE,
     startedAt:state.startedAt,
@@ -1197,6 +1205,7 @@ function resultPayload(){
     totalQuestions:PROBLEMS.length,
     correctCount:state.standardCorrectCount,
     allCorrect:state.standardCorrectCount === PROBLEMS.length && MISTAKE_KEYS.every(key=>state.mistakes[key]===0),
+    wrongProblems,
     mistakes:{...state.mistakes},
     attempts:state.attempts,
     device:navigator.userAgent
