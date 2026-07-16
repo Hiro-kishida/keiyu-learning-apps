@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>計算20｜はやおし計算ゲーム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#dcd6c4;
+  --console:#f6f3ea;
+  --bezel:#3a352c;
+  --screen:#fdfbf1;
+  --ink:#33302a;
+  --sub:#948b76;
+  --line:#e6dfca;
+  --red:#e0533f;
+  --red-dk:#b73f2e;
+  --blue:#4a6fdd;
+  --btn:#fffef8;
+  --btn-edge:#d9d2bc;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  min-height:100vh;min-height:100dvh;
+  background:var(--bg);
+  background-image:radial-gradient(rgba(255,255,255,.4) 1px, transparent 1px);
+  background-size:22px 22px;
+  color:var(--ink);
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","BIZ UDPGothic",sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
+  user-select:none;-webkit-user-select:none;
+  overflow:hidden;overscroll-behavior:none;
+  padding:10px;
+}
+.dot{font-family:"DotGothic16","Zen Maru Gothic",monospace}
+
+/* ===== DS本体フレーム ===== */
+.console{
+  width:min(420px,100%);
+  max-height:100dvh;
+  background:var(--console);
+  border-radius:26px;
+  box-shadow:0 12px 30px rgba(60,50,30,.28), inset 0 1px 0 rgba(255,255,255,.85);
+  padding:14px 14px 8px;
+  display:flex;flex-direction:column;
+}
+.frame{background:var(--bezel);border-radius:16px;padding:9px}
+.screen{background:var(--screen);border-radius:8px;position:relative;overflow:hidden}
+.frame.top .screen{height:clamp(238px,34dvh,310px)}
+.tview{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px;text-align:center;
+}
+.bview{padding:14px 12px 12px}
+.hidden{display:none!important}
+
+/* ===== 上画面：タイトル ===== */
+#top-title .brain{font-size:52px;line-height:1}
+#top-title h1{font-size:46px;letter-spacing:3px;margin-top:6px;font-weight:400}
+.tagline{font-size:13px;color:var(--sub);margin-top:8px;font-weight:700}
+.title-best{font-size:13px;color:var(--red);font-weight:900;margin-top:10px;min-height:1.2em}
+
+/* ===== 上画面：カウントダウン ===== */
+#countNum{font-size:88px;color:var(--red);line-height:1}
+.pop{animation:pop .45s ease-out}
+@keyframes pop{0%{transform:scale(1.7);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* ===== 上画面：プレイ ===== */
+#top-play{justify-content:flex-start}
+.hud{width:100%;display:flex;justify-content:space-between;align-items:baseline}
+.q-label{font-size:13px;font-weight:700;color:var(--sub)}
+#timer{font-size:22px;color:var(--red);letter-spacing:1px}
+.bar{width:100%;height:6px;background:var(--line);border-radius:3px;margin-top:6px;overflow:hidden}
+#barFill{height:100%;width:0;background:var(--red);border-radius:3px;transition:width .15s ease}
+#top-play{--rowh:58px}
+.q-viewport{
+  position:relative;width:100%;
+  height:calc(var(--rowh)*3);
+  overflow:hidden;
+  margin:auto 0;
+}
+.q-list{
+  position:absolute;left:0;right:0;top:0;
+  transition:transform .16s ease-out;
+  will-change:transform;
+}
+.q-frame{
+  position:absolute;left:4px;right:4px;top:var(--rowh);height:var(--rowh);
+  border:3px solid var(--ink);border-radius:4px;
+  pointer-events:none;
+}
+.q-row{
+  height:var(--rowh);
+  display:flex;align-items:center;
+  padding-left:22px;
+  font-size:calc(var(--rowh)*.60);
+  font-weight:900;letter-spacing:1px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.q-eq{margin-right:5px}
+.q-ans{position:relative;display:inline-flex;align-items:center;min-width:1.1em}
+.q-digits{font-family:"DotGothic16","Zen Maru Gothic",monospace;font-size:1.02em}
+.q-maru,.q-batu{
+  position:absolute;left:50%;top:50%;
+  font-weight:500;line-height:1;
+  opacity:0;pointer-events:none;
+}
+.q-maru{color:var(--red);font-size:1.55em;transform:translate(-50%,-55%) rotate(6deg)}
+.q-batu{color:var(--blue);font-size:1.25em;transform:translate(-50%,-52%)}
+.q-row.ok .q-maru{opacity:.9;animation:markpop .18s ease-out}
+.q-row.ng .q-batu{opacity:.9;animation:markpop .18s ease-out}
+.q-row.ng .q-digits{color:var(--blue)}
+.q-row.ng{animation:shake .3s}
+.q-caret{
+  display:none;width:3px;height:calc(var(--rowh)*.55);
+  background:var(--red);margin-left:7px;border-radius:2px;
+  animation:blink 1s steps(1) infinite;
+}
+.q-row.current .q-caret{display:inline-block}
+@keyframes blink{50%{opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes markpop{0%{transform:translate(-50%,-55%) scale(1.6)}}
+
+/* ===== 上画面：リザルト ===== */
+.r-label{font-size:13px;color:var(--sub);font-weight:700}
+#rTime{font-size:54px;letter-spacing:1px;line-height:1.1}
+#rTime span{font-size:20px;margin-left:2px}
+.r-rank{display:flex;align-items:center;gap:10px;margin-top:8px}
+#rEmoji{font-size:38px;line-height:1}
+#rName{font-size:22px;font-weight:900}
+#rNew{margin-top:9px;color:var(--red);font-weight:900;font-size:15px;animation:blink2 .9s infinite}
+@keyframes blink2{50%{opacity:.25}}
+
+/* ===== ヒンジ ===== */
+.hinge{height:30px;display:flex;align-items:center;justify-content:center;position:relative}
+.hinge .dots{display:flex;gap:9px}
+.hinge .dots span{width:7px;height:7px;border-radius:50%;background:#d3ccb8}
+#soundBtn{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  background:none;border:none;font-size:20px;padding:2px 6px;cursor:pointer;
+}
+
+/* ===== 下画面：タイトル ===== */
+.howto{font-size:13.5px;line-height:2;font-weight:700;color:#5c5545;margin-bottom:14px;text-align:center}
+.big-btn{
+  display:block;width:100%;
+  background:var(--red);color:#fff;
+  font-family:inherit;font-size:22px;font-weight:900;letter-spacing:5px;
+  padding:15px;border:none;border-bottom:5px solid var(--red-dk);border-radius:16px;cursor:pointer;
+}
+.big-btn:active{transform:translateY(3px);border-bottom-width:2px}
+.sub-btn{
+  display:block;margin:10px auto 0;
+  background:none;border:none;color:var(--sub);
+  font-family:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;text-decoration:underline;padding:4px 10px;
+}
+
+/* ===== 下画面：テンキー ===== */
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.pad button{
+  font-family:inherit;font-size:28px;font-weight:900;color:var(--ink);
+  height:clamp(52px,8.2dvh,70px);
+  background:var(--btn);
+  border:1px solid var(--btn-edge);border-bottom:4px solid var(--btn-edge);
+  border-radius:14px;cursor:pointer;
+}
+.pad button:active,.pad button.pressed{transform:translateY(2px);border-bottom-width:2px;background:#f4f0e1}
+.pad .zero{grid-column:span 2}
+.pad .del{font-size:24px;color:var(--sub)}
+
+/* ===== 下画面：リザルト ===== */
+.stat{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:7px 4px;border-bottom:1px dashed var(--line);
+  font-size:14.5px;font-weight:700;color:#5c5545;
+}
+.stat b{font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
+.comment{display:flex;align-items:center;gap:9px;margin:12px 0 14px}
+.c-brain{font-size:32px;line-height:1}
+.comment p{
+  flex:1;font-size:13.5px;font-weight:700;line-height:1.6;
+  background:#f3eedd;border-radius:12px;padding:9px 12px;text-align:left;
+}
+
+.credit{text-align:center;font-size:10.5px;color:#b6ad95;margin-top:8px;letter-spacing:2px}
+
+@media (max-height:620px){
+  .frame.top .screen{height:200px}
+  #top-play{--rowh:46px}
+  .pad button{height:46px;font-size:24px}
+  .big-btn{padding:11px;font-size:19px}
+  .hinge{height:22px}
+}
+</style>
+</head>
+<body>
+
+<div class="console">
+
+  <!-- ===== 上画面 ===== -->
+  <div class="frame top">
+    <div class="screen">
+
+      <div class="tview" id="top-title">
+        <div class="brain">🧠</div>
+        <h1 class="dot">計算20</h1>
+        <p class="tagline">20問を できるだけ はやく とこう！</p>
+        <p class="title-best" id="titleBest"></p>
+      </div>
+
+      <div class="tview hidden" id="top-count">
+        <div id="countNum" class="dot">3</div>
+      </div>
+
+      <div class="tview hidden" id="top-play">
+        <div class="hud">
+          <span class="q-label" id="qLabel">だい1もん</span>
+          <span id="timer" class="dot">0.00</span>
+        </div>
+        <div class="bar"><div id="barFill"></div></div>
+        <div class="q-viewport">
+          <div class="q-list" id="qList"></div>
+          <div class="q-frame"></div>
+        </div>
+      </div>
+
+      <div class="tview hidden" id="top-result">
+        <p class="r-label">タイム</p>
+        <div id="rTime" class="dot">0.00<span>秒</span></div>
+        <div class="r-rank"><span id="rEmoji">🚄</span><span id="rName"></span></div>
+        <p id="rNew" class="hidden">✨ しんきろく！ ✨</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== ヒンジ ===== -->
+  <div class="hinge">
+    <div class="dots"><span></span><span></span></div>
+    <button id="soundBtn" aria-label="おと ON/OFF">🔊</button>
+  </div>
+
+  <!-- ===== 下画面 ===== -->
+  <div class="frame bottom">
+    <div class="screen">
+
+      <div class="bview" id="bot-title">
+        <div class="howto">
+          たし算・ひき算・かけ算が ぜんぶで20問。<br>
+          答えの数字を おすだけで、じどうで つぎへ！
+        </div>
+        <button class="big-btn" id="startBtn">スタート！</button>
+      </div>
+
+      <div class="bview hidden" id="bot-pad">
+        <div class="pad" id="pad">
+          <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+          <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+          <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+          <button data-k="0" class="zero">0</button><button data-k="del" class="del">⌫</button>
+        </div>
+      </div>
+
+      <div class="bview hidden" id="bot-result">
+        <div class="stats">
+          <div class="stat"><span>ミス</span><b id="rMiss">0回</b></div>
+          <div class="stat"><span>1問あたり</span><b id="rAvg">0.00秒</b></div>
+          <div class="stat"><span>きょうのベスト</span><b id="rBest">0.00秒</b></div>
+        </div>
+        <div class="comment"><span class="c-brain">🧠</span><p id="rComment"></p></div>
+        <button class="big-btn" id="retryBtn">もういちど</button>
+        <button class="sub-btn" id="homeBtn">タイトルへ もどる</button>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="credit">KEISAN 20 ─ 慶友塾</p>
+</div>
+
+<script>
+'use strict';
+
+/* ========== 状態 ========== */
+const TOTAL = 20;
+const P = {TITLE:'title', COUNT:'count', PLAY:'play', RESULT:'result'};
+let phase = P.TITLE;
+let problems = [], idx = 0, input = '', locked = false;
+let startT = 0, finalT = 0, rafId = null, countIv = null;
+let mistakes = 0, best = null, soundOn = true;
+
+const $ = id => document.getElementById(id);
+const topViews = {title:$('top-title'), count:$('top-count'), play:$('top-play'), result:$('top-result')};
+const botViews = {title:$('bot-title'), pad:$('bot-pad'), result:$('bot-result')};
+
+function show(map, key){
+  for(const k in map) map[k].classList.toggle('hidden', k !== key);
+}
+function setPhase(p){
+  phase = p;
+  if(p === P.TITLE){ show(topViews,'title'); show(botViews,'title'); renderTitleBest(); }
+  if(p === P.COUNT){ show(topViews,'count'); show(botViews,'pad'); }
+  if(p === P.PLAY){ show(topViews,'play'); show(botViews,'pad'); }
+  if(p === P.RESULT){ show(topViews,'result'); show(botViews,'result'); }
+}
+function renderTitleBest(){
+  $('titleBest').textContent = best !== null ? 'きょうのベスト：' + best.toFixed(2) + '秒' : '';
+}
+
+/* ========== 問題生成 ========== */
+const r = (a,b) => a + Math.floor(Math.random() * (b - a + 1));
+function shuffle(arr){
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function genProblems(){
+  const types = [];
+  for(let i = 0; i < 7; i++) types.push('add');
+  for(let i = 0; i < 7; i++) types.push('sub');
+  for(let i = 0; i < 6; i++) types.push('mul');
+  shuffle(types);
+
+  const arr = [];
+  let prev = '';
+  for(const t of types){
+    let a, b, ans, text;
+    do{
+      if(t === 'add'){ a = r(1,9); b = r(1,9); ans = a + b; text = a + '+' + b; }
+      else if(t === 'sub'){ ans = r(0,9); b = r(1,9); a = ans + b; text = a + '−' + b; }
+      else{ a = r(2,9); b = r(2,9); ans = a * b; text = a + '×' + b; }
+    } while(text === prev);
+    prev = text;
+    arr.push({text: text, ans: String(ans)});
+  }
+  return arr;
+}
+
+/* ========== ゲーム進行 ========== */
+function startGame(){
+  initAudio();
+  if(rafId) cancelAnimationFrame(rafId);
+  if(countIv) clearInterval(countIv);
+
+  problems = genProblems();
+  idx = 0; input = ''; mistakes = 0; locked = false;
+  setPhase(P.COUNT);
+
+  let n = 3;
+  setCount(n); sTick();
+  countIv = setInterval(() => {
+    n--;
+    if(n >= 1){ setCount(n); sTick(); }
+    else{
+      clearInterval(countIv); countIv = null;
+      setCount('スタート!'); sGo();
+      setTimeout(beginPlay, 600);
+    }
+  }, 800);
+}
+function setCount(txt){
+  const el = $('countNum');
+  el.textContent = txt;
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+}
+function beginPlay(){
+  setPhase(P.PLAY);
+  buildList();
+  renderProblem();
+  renderInput();
+  startT = performance.now();
+  tickTimer();
+}
+let rows = [];
+function buildList(){
+  const list = $('qList');
+  list.innerHTML = '';
+  rows = [];
+  problems.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'q-row';
+    const eq = document.createElement('span');
+    eq.className = 'q-eq';
+    eq.textContent = p.text + '=';
+    const ansWrap = document.createElement('span');
+    ansWrap.className = 'q-ans';
+    const digits = document.createElement('span');
+    digits.className = 'q-digits';
+    const maru = document.createElement('span');
+    maru.className = 'q-maru';
+    maru.textContent = '○';
+    const batu = document.createElement('span');
+    batu.className = 'q-batu';
+    batu.textContent = '✕';
+    ansWrap.append(digits, maru, batu);
+    const caret = document.createElement('span');
+    caret.className = 'q-caret';
+    row.append(eq, ansWrap, caret);
+    row._digits = digits;
+    list.appendChild(row);
+    rows.push(row);
+  });
+  /* 初期位置はアニメなしでセット */
+  list.style.transition = 'none';
+  positionList();
+  void list.offsetWidth;
+  list.style.transition = '';
+}
+function rowH(){
+  return rows[0] ? rows[0].offsetHeight : 58;
+}
+function positionList(){
+  $('qList').style.transform = 'translateY(' + ((1 - idx) * rowH()) + 'px)';
+  rows.forEach((r, i) => r.classList.toggle('current', i === idx));
+}
+function tickTimer(){
+  const t = (performance.now() - startT) / 1000;
+  $('timer').textContent = t.toFixed(2);
+  rafId = requestAnimationFrame(tickTimer);
+}
+function renderProblem(){
+  $('qLabel').textContent = 'だい' + (idx + 1) + 'もん';
+  $('barFill').style.width = (idx / TOTAL * 100) + '%';
+  positionList();
+}
+function renderInput(){
+  if(rows[idx]) rows[idx]._digits.textContent = input;
+}
+
+/* ========== 入力・判定 ========== */
+function pressKey(k){
+  if(phase !== P.PLAY || locked) return;
+  if(k === 'del'){
+    if(input){ input = input.slice(0, -1); renderInput(); }
+    return;
+  }
+  if(input.length >= 2) return;
+  input += k;
+  renderInput();
+  const ans = problems[idx].ans;
+  if(input === ans) onCorrect();
+  else if(input.length >= ans.length) onWrong();
+}
+function onCorrect(){
+  locked = true;
+  rows[idx].classList.add('ok');   /* 答えた問題に赤○が残る */
+  const last = (idx === TOTAL - 1);
+  if(last){
+    finalT = (performance.now() - startT) / 1000;
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    $('timer').textContent = finalT.toFixed(2);
+  }
+  sCorrect();
+  $('barFill').style.width = ((idx + 1) / TOTAL * 100) + '%';
+  setTimeout(() => {
+    if(last){ showResult(); }
+    else{
+      idx++; input = ''; locked = false;
+      renderProblem(); renderInput();   /* リストが1行ぶん上へ流れる */
+    }
+  }, 150);
+}
+function onWrong(){
+  locked = true;
+  mistakes++;
+  const row = rows[idx];
+  row.classList.add('ng');
+  sWrong();
+  setTimeout(() => {
+    row.classList.remove('ng');
+    input = ''; renderInput(); locked = false;
+  }, 340);
+}
+
+/* ========== リザルト ========== */
+function rankOf(t){
+  if(t <= 15) return {e:'🚀', n:'ロケット速度', c:'ロケットなみの はやさ！ 計算マスターだ！！'};
+  if(t <= 25) return {e:'🚄', n:'新幹線速度', c:'新幹線なみ！ ものすごく はやい！'};
+  if(t <= 35) return {e:'🚗', n:'自動車速度', c:'自動車なみの スピード！ いいちょうし！'};
+  if(t <= 50) return {e:'🚲', n:'自転車速度', c:'自転車なみ！ まいにち つづければ もっと はやくなるよ！'};
+  return {e:'🚶', n:'徒歩速度', c:'あせらず まいにち つづけよう。かならず はやくなるよ！'};
+}
+function showResult(){
+  const t = finalT;
+  const rk = rankOf(t);
+  $('rTime').innerHTML = t.toFixed(2) + '<span>秒</span>';
+  $('rEmoji').textContent = rk.e;
+  $('rName').textContent = rk.n;
+  $('rComment').textContent = rk.c;
+  $('rMiss').textContent = mistakes + '回';
+  $('rAvg').textContent = (t / TOTAL).toFixed(2) + '秒';
+
+  const isNew = (best === null || t < best);
+  if(isNew) best = t;
+  $('rNew').classList.toggle('hidden', !isNew);
+  $('rBest').textContent = best.toFixed(2) + '秒';
+
+  setPhase(P.RESULT);
+  sFanfare();
+}
+
+/* ========== サウンド（Web Audio） ========== */
+let ac = null;
+function initAudio(){
+  try{
+    if(!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if(ac.state === 'suspended') ac.resume();
+  }catch(e){ ac = null; }
+}
+function tone(f, dur, type, vol, delay){
+  if(!ac || !soundOn) return;
+  try{
+    const t0 = ac.currentTime + (delay || 0);
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.type = type || 'square';
+    o.frequency.value = f;
+    g.gain.setValueAtTime(vol || 0.1, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }catch(e){}
+}
+const sTick    = () => tone(700, 0.09, 'sine', 0.15);
+const sGo      = () => { tone(880, 0.12, 'sine', 0.15); tone(1175, 0.2, 'sine', 0.15, 0.1); };
+const sCorrect = () => { tone(1047, 0.07, 'square', 0.07); tone(1568, 0.1, 'square', 0.07, 0.07); };
+const sWrong   = () => tone(150, 0.18, 'sawtooth', 0.12);
+const sFanfare = () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.16, 'square', 0.08, i * 0.11));
+
+/* ========== イベント ========== */
+$('pad').addEventListener('pointerdown', e => {
+  const b = e.target.closest('button');
+  if(!b) return;
+  e.preventDefault();
+  b.classList.add('pressed');
+  setTimeout(() => b.classList.remove('pressed'), 120);
+  pressKey(b.dataset.k);
+});
+$('pad').addEventListener('contextmenu', e => e.preventDefault());
+
+$('startBtn').addEventListener('click', startGame);
+$('retryBtn').addEventListener('click', startGame);
+$('homeBtn').addEventListener('click', () => setPhase(P.TITLE));
+$('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  $('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+  if(soundOn){ initAudio(); sTick(); }
+});
+
+document.addEventListener('keydown', e => {
+  if(phase === P.PLAY){
+    if(e.key >= '0' && e.key <= '9') pressKey(e.key);
+    else if(e.key === 'Backspace'){ e.preventDefault(); pressKey('del'); }
+  }else if(phase === P.TITLE && (e.key === 'Enter' || e.key === ' ')){
+    e.preventDefault(); startGame();
+  }else if(phase === P.RESULT && e.key === 'Enter'){
+    startGame();
+  }
+});
+
+/* ========== 初期化 ========== */
+setPhase(P.TITLE);
+</script>
+</body>
+</html>
