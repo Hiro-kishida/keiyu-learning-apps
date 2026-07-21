@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>計算20｜固定問題・学習記録版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#dcd6c4;
+  --console:#f6f3ea;
+  --bezel:#3a352c;
+  --screen:#fdfbf1;
+  --ink:#33302a;
+  --sub:#948b76;
+  --line:#e6dfca;
+  --red:#e0533f;
+  --red-dk:#b73f2e;
+  --blue:#4a6fdd;
+  --green:#3f8f65;
+  --amber:#b97818;
+  --btn:#fffef8;
+  --btn-edge:#d9d2bc;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  min-height:100vh;min-height:100dvh;
+  background:var(--bg);
+  background-image:radial-gradient(rgba(255,255,255,.4) 1px, transparent 1px);
+  background-size:22px 22px;
+  color:var(--ink);
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","BIZ UDPGothic",sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
+  user-select:none;-webkit-user-select:none;
+  overflow:hidden;overscroll-behavior:none;
+  padding:10px;
+}
+
+.dot{font-family:"DotGothic16","Zen Maru Gothic",monospace}
+
+/* ===== DS本体フレーム ===== */
+.console{
+  width:min(420px,100%);
+  max-height:100dvh;
+  background:var(--console);
+  border-radius:26px;
+  box-shadow:0 12px 30px rgba(60,50,30,.28), inset 0 1px 0 rgba(255,255,255,.85);
+  padding:14px 14px 8px;
+  display:flex;flex-direction:column;
+}
+
+.frame{background:var(--bezel);border-radius:16px;padding:9px}
+.screen{background:var(--screen);border-radius:8px;position:relative;overflow:hidden}
+.frame.top .screen{height:clamp(238px,34dvh,310px)}
+.tview{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px;text-align:center;
+}
+
+.bview{padding:14px 12px 12px}
+.hidden{display:none!important}
+
+/* ===== 上画面：タイトル ===== */
+#top-title .brain{font-size:52px;line-height:1}
+#top-title h1{font-size:46px;letter-spacing:3px;margin-top:6px;font-weight:400}
+.tagline{font-size:13px;color:var(--sub);margin-top:8px;font-weight:700}
+.title-best{font-size:13px;color:var(--red);font-weight:900;margin-top:10px;min-height:1.2em}
+
+/* ===== 上画面：カウントダウン ===== */
+#countNum{font-size:76px;color:var(--red);line-height:1;white-space:nowrap}
+.pop{animation:pop .45s ease-out}
+@keyframes pop{0%{transform:scale(1.7);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* ===== 上画面：プレイ ===== */
+#top-play{justify-content:flex-start}
+.hud{width:100%;display:flex;justify-content:space-between;align-items:baseline}
+.q-label{font-size:13px;font-weight:700;color:var(--sub)}
+#timer{font-size:22px;color:var(--red);letter-spacing:1px}
+.bar{width:100%;height:6px;background:var(--line);border-radius:3px;margin-top:6px;overflow:hidden}
+#barFill{height:100%;width:0;background:var(--red);border-radius:3px;transition:width .15s ease}
+#top-play{--rowh:58px}
+.q-viewport{
+  position:relative;width:100%;
+  height:calc(var(--rowh)*3);
+  overflow:hidden;
+  margin:auto 0;
+}
+
+.q-list{
+  position:absolute;left:0;right:0;top:0;
+  transition:transform .16s ease-out;
+  will-change:transform;
+}
+
+.q-frame{
+  position:absolute;left:4px;right:4px;top:var(--rowh);height:var(--rowh);
+  border:3px solid var(--ink);border-radius:4px;
+  pointer-events:none;
+}
+
+.q-row{
+  height:var(--rowh);
+  display:flex;align-items:center;
+  padding-left:15px;
+  font-size:calc(var(--rowh)*.53);
+  font-weight:900;letter-spacing:.5px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+
+.q-eq{margin-right:5px}
+.q-ans{position:relative;display:inline-flex;align-items:center;min-width:1.3em}
+.q-digits{font-family:"DotGothic16","Zen Maru Gothic",monospace;font-size:1.02em}
+.q-maru,.q-batu{
+  position:absolute;left:50%;top:50%;
+  font-weight:500;line-height:1;
+  opacity:0;pointer-events:none;
+}
+
+.q-maru{color:var(--red);font-size:1.55em;transform:translate(-50%,-55%) rotate(6deg)}
+.q-batu{color:var(--blue);font-size:1.25em;transform:translate(-50%,-52%)}
+.q-row.ok .q-maru{opacity:.9;animation:markpop .18s ease-out}
+.q-row.ng .q-batu{opacity:.9;animation:markpop .18s ease-out}
+.q-row.ng .q-digits{color:var(--blue)}
+.q-row.ng{animation:shake .3s}
+.q-caret{
+  display:none;width:3px;height:calc(var(--rowh)*.55);
+  background:var(--red);margin-left:7px;border-radius:2px;
+  animation:blink 1s steps(1) infinite;
+}
+
+.q-row.current .q-caret{display:inline-block}
+@keyframes blink{50%{opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes markpop{0%{transform:translate(-50%,-55%) scale(1.6)}}
+
+/* ===== 上画面：リザルト ===== */
+.r-label{font-size:13px;color:var(--sub);font-weight:700}
+#rTime{font-size:54px;letter-spacing:1px;line-height:1.1}
+#rTime span{font-size:20px;margin-left:2px}
+.r-rank{display:flex;align-items:center;gap:10px;margin-top:8px}
+#rEmoji{font-size:38px;line-height:1}
+#rName{font-size:22px;font-weight:900}
+#rNew{margin-top:9px;color:var(--red);font-weight:900;font-size:15px;animation:blink2 .9s infinite}
+@keyframes blink2{50%{opacity:.25}}
+
+/* ===== ヒンジ ===== */
+.hinge{height:30px;display:flex;align-items:center;justify-content:center;position:relative}
+.hinge .dots{display:flex;gap:9px}
+.hinge .dots span{width:7px;height:7px;border-radius:50%;background:#d3ccb8}
+#soundBtn{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  background:none;border:none;font-size:20px;padding:2px 6px;cursor:pointer;
+}
+
+/* ===== 下画面：タイトル ===== */
+.howto{font-size:13.5px;line-height:2;font-weight:700;color:#5c5545;margin-bottom:14px;text-align:center}
+.big-btn{
+  display:block;width:100%;
+  background:var(--red);color:#fff;
+  font-family:inherit;font-size:22px;font-weight:900;letter-spacing:5px;
+  padding:15px;border:none;border-bottom:5px solid var(--red-dk);border-radius:16px;cursor:pointer;
+}
+
+.big-btn:active{transform:translateY(3px);border-bottom-width:2px}
+.sub-btn{
+  display:block;margin:8px auto 0;
+  background:none;border:none;color:var(--sub);
+  font-family:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;text-decoration:underline;padding:4px 10px;
+}
+
+/* ===== 下画面：テンキー ===== */
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.pad button{
+  font-family:inherit;font-size:28px;font-weight:900;color:var(--ink);
+  height:clamp(52px,8.2dvh,70px);
+  background:var(--btn);
+  border:1px solid var(--btn-edge);border-bottom:4px solid var(--btn-edge);
+  border-radius:14px;cursor:pointer;
+}
+
+.pad button:active,.pad button.pressed{transform:translateY(2px);border-bottom-width:2px;background:#f4f0e1}
+.pad .sign{font-size:24px;color:var(--red)}
+.pad .del{font-size:24px;color:var(--sub)}
+
+/* ===== 下画面：リザルト ===== */
+.stat{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:6px 4px;border-bottom:1px dashed var(--line);
+  font-size:14px;font-weight:700;color:#5c5545;
+}
+
+.stat b{font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
+.comment{display:flex;align-items:center;gap:9px;margin:9px 0 10px}
+.c-brain{font-size:30px;line-height:1}
+.comment p{
+  flex:1;font-size:13px;font-weight:700;line-height:1.5;
+  background:#f3eedd;border-radius:12px;padding:8px 11px;text-align:left;
+}
+
+.send-status{text-align:center;font-size:11.5px;font-weight:700;min-height:1.4em;margin-bottom:7px;color:var(--sub)}
+.send-status.ok{color:var(--green)}
+.send-status.wait{color:var(--amber)}
+.send-status.off{color:var(--sub)}
+
+.credit{text-align:center;font-size:10.5px;color:#b6ad95;margin-top:8px;letter-spacing:2px}
+
+@media (max-height:620px){
+  .frame.top .screen{height:198px}
+  #top-play{--rowh:46px}
+  .q-row{font-size:calc(var(--rowh)*.49);padding-left:10px}
+  .pad button{height:46px;font-size:24px}
+  .big-btn{padding:10px;font-size:19px}
+  .hinge{height:22px}
+  .bview{padding:9px 10px 8px}
+  .stat{padding:3px 4px;font-size:12.5px}
+  .stat b{font-size:14px}
+  .comment{margin:5px 0 6px}
+  .comment p{font-size:11.5px;padding:5px 8px;line-height:1.35}
+  .c-brain{font-size:25px}
+  .send-status{font-size:10px;margin-bottom:4px}
+  .sub-btn{margin-top:4px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="console">
+
+  <!-- ===== 上画面 ===== -->
+  <div class="frame top">
+    <div class="screen">
+
+      <div class="tview" id="top-title">
+        <div class="brain">🧠</div>
+        <h1 class="dot">計算20</h1>
+        <p class="tagline">いつもの20問を ランダムな順番で とこう！</p>
+        <p class="title-best" id="titleBest"></p>
+      </div>
+
+      <div class="tview hidden" id="top-count">
+        <div id="countNum" class="dot">3</div>
+      </div>
+
+      <div class="tview hidden" id="top-play">
+        <div class="hud">
+          <span class="q-label" id="qLabel">だい1もん</span>
+          <span id="timer" class="dot">0.00</span>
+        </div>
+        <div class="bar"><div id="barFill"></div></div>
+        <div class="q-viewport">
+          <div class="q-list" id="qList"></div>
+          <div class="q-frame"></div>
+        </div>
+      </div>
+
+      <div class="tview hidden" id="top-result">
+        <p class="r-label">タイム</p>
+        <div id="rTime" class="dot">0.00<span>秒</span></div>
+        <div class="r-rank"><span id="rEmoji">🚄</span><span id="rName"></span></div>
+        <p id="rNew" class="hidden">✨ しんきろく！ ✨</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== ヒンジ ===== -->
+  <div class="hinge">
+    <div class="dots"><span></span><span></span></div>
+    <button id="soundBtn" aria-label="おと ON/OFF" aria-pressed="true">🔊</button>
+  </div>
+
+  <!-- ===== 下画面 ===== -->
+  <div class="frame bottom">
+    <div class="screen">
+
+      <div class="bview" id="bot-title">
+        <div class="howto">
+          答えの数字を おすだけで、じどうで つぎへ！<br>
+          負の答えは「±」で マイナスにしよう。
+        </div>
+        <button class="big-btn" id="startBtn">スタート！</button>
+      </div>
+
+      <div class="bview hidden" id="bot-pad">
+        <div class="pad" id="pad">
+          <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+          <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+          <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+          <button data-k="sign" class="sign">±</button><button data-k="0">0</button><button data-k="del" class="del">⌫</button>
+        </div>
+      </div>
+
+      <div class="bview hidden" id="bot-result">
+        <div class="stats">
+          <div class="stat"><span>ミス</span><b id="rMiss">0回</b></div>
+          <div class="stat"><span>初回正解</span><b id="rFirstCorrect">20/20</b></div>
+          <div class="stat"><span>1問あたり</span><b id="rAvg">0.00秒</b></div>
+          <div class="stat"><span>きょうのベスト</span><b id="rBest">0.00秒</b></div>
+        </div>
+        <div class="comment"><span class="c-brain">🧠</span><p id="rComment"></p></div>
+        <p id="sendStatus" class="send-status"></p>
+        <button class="big-btn" id="retryBtn">もういちど</button>
+        <button class="sub-btn" id="homeBtn">タイトルへ もどる</button>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="credit">KEISAN 20 ─ 慶友塾</p>
+</div>
+
+<script>
+'use strict';
+
+/* =========================================================
+   先生が変更する設定
+   ========================================================= */
+const CONFIG = {
+  appId: 'KEISAN_20',
+  appVersion: '2.1.0',
+  schemaVersion: 1,
+  problemSetId: 'SET_A_V1',
+
+  // 例：'SOTA01'
+  studentId: 'STUDENT_ID_HERE',
+
+  // Apps Scriptをウェブアプリとして公開した後、/exec のURLを入れます。
+  // 未設定の間もゲームと端末内記録は正常に動きます。
+  gasUrl: 'GAS_URL_HERE'
+};
+
+/* =========================================================
+   固定問題リスト
+   ・idは一度決めたら変更しないでください。
+   ・ansは半角数字、負の答えは半角の - を使います。
+   ・出題順はゲーム開始時に自動でランダムになります。
+   ・以下は仮問題です。本番問題へ差し替えてください。
+   ========================================================= */
+const FIXED_PROBLEMS = [
+  { id:'Q001', text:'16×3',          ans:'48',  category:'memorized_multiplication' },
+  { id:'Q002', text:'7×8',           ans:'56',  category:'multiplication' },
+  { id:'Q003', text:'15−8',          ans:'7',   category:'subtraction' },
+  { id:'Q004', text:'13−6',          ans:'7',   category:'subtraction' },
+  { id:'Q005', text:'8＋7',           ans:'15',  category:'addition' },
+  { id:'Q006', text:'9＋6',           ans:'15',  category:'addition' },
+  { id:'Q007', text:'14−9',          ans:'5',   category:'subtraction' },
+  { id:'Q008', text:'6×7',           ans:'42',  category:'multiplication' },
+  { id:'Q009', text:'−3＋8',          ans:'5',   category:'signed_addition' },
+  { id:'Q010', text:'5−9',           ans:'-4',  category:'signed_subtraction' },
+  { id:'Q011', text:'−4−3',          ans:'-7',  category:'signed_subtraction' },
+  { id:'Q012', text:'−7＋2',          ans:'-5',  category:'signed_addition' },
+  { id:'Q013', text:'3×(−4)',        ans:'-12', category:'signed_multiplication' },
+  { id:'Q014', text:'(−5)×(−2)',     ans:'10',  category:'signed_multiplication' },
+  { id:'Q015', text:'−18÷3',         ans:'-6',  category:'signed_division' },
+  { id:'Q016', text:'−16÷(−4)',      ans:'4',   category:'signed_division' },
+  { id:'Q017', text:'−6＋10',         ans:'4',   category:'signed_addition' },
+  { id:'Q018', text:'7−12',          ans:'-5',  category:'signed_subtraction' },
+  { id:'Q019', text:'(−8)＋(−3)',     ans:'-11', category:'signed_addition' },
+  { id:'Q020', text:'(−4)×6',        ans:'-24', category:'signed_multiplication' }
+];
+
+/* ========== 状態 ========== */
+const P = {TITLE:'title', COUNT:'count', PLAY:'play', RESULT:'result'};
+let phase = P.TITLE;
+let problems = [], idx = 0, input = '', locked = false;
+let startT = 0, finalT = 0, questionStartT = 0;
+let rafId = null, countIv = null, signGraceTimer = null;
+let mistakes = 0, best = null, soundOn = true;
+let sessionId = '', startedAt = '', completedAt = '';
+let questionLogs = [], resultSent = false;
+
+const $ = id => document.getElementById(id);
+const topViews = {title:$('top-title'), count:$('top-count'), play:$('top-play'), result:$('top-result')};
+const botViews = {title:$('bot-title'), pad:$('bot-pad'), result:$('bot-result')};
+
+function show(map, key){
+  for(const k in map) map[k].classList.toggle('hidden', k !== key);
+}
+
+function setPhase(p){
+  phase = p;
+  if(p === P.TITLE){ show(topViews,'title'); show(botViews,'title'); renderTitleBest(); }
+  if(p === P.COUNT){ show(topViews,'count'); show(botViews,'pad'); }
+  if(p === P.PLAY){ show(topViews,'play'); show(botViews,'pad'); }
+  if(p === P.RESULT){ show(topViews,'result'); show(botViews,'result'); }
+}
+
+/* ========== 日付・ID・保存 ========== */
+function tokyoDateKey(){
+  return new Intl.DateTimeFormat('sv-SE', {
+    timeZone:'Asia/Tokyo', year:'numeric', month:'2-digit', day:'2-digit'
+  }).format(new Date());
+}
+
+function loadTodayBest(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('keisan20_daily_best_v2') || 'null');
+    best = saved && saved.date === tokyoDateKey() && Number.isFinite(saved.time) ? saved.time : null;
+  }catch(e){
+    best = null;
+  }
+}
+
+function saveTodayBest(){
+  try{
+    localStorage.setItem('keisan20_daily_best_v2', JSON.stringify({date:tokyoDateKey(), time:best}));
+  }catch(e){}
+}
+
+function renderTitleBest(){
+  loadTodayBest();
+  $('titleBest').textContent = best !== null ? 'きょうのベスト：' + best.toFixed(2) + '秒' : '';
+}
+
+function makeSessionId(){
+  if(window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+  return 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+/* ========== 問題準備 ========== */
+function shuffle(arr){
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function validateProblems(list){
+  if(!Array.isArray(list) || list.length === 0) throw new Error('問題が登録されていません。');
+  const ids = new Set();
+  for(const p of list){
+    if(!p.id || !p.text || !/^[-]?\d+$/.test(String(p.ans))){
+      throw new Error('問題データが正しくありません：' + JSON.stringify(p));
+    }
+    if(ids.has(p.id)) throw new Error('問題IDが重複しています：' + p.id);
+    ids.add(p.id);
+  }
+}
+
+function genProblems(){
+  validateProblems(FIXED_PROBLEMS);
+  return shuffle(FIXED_PROBLEMS.map(p => ({...p, ans:String(p.ans)})));
+}
+
+/* ========== ゲーム進行 ========== */
+function clearTimers(){
+  if(rafId) cancelAnimationFrame(rafId);
+  if(countIv) clearInterval(countIv);
+  if(signGraceTimer) clearTimeout(signGraceTimer);
+  rafId = null;
+  countIv = null;
+  signGraceTimer = null;
+}
+
+function startGame(){
+  initAudio();
+  clearTimers();
+
+  try{
+    problems = genProblems();
+  }catch(error){
+    alert(error.message);
+    return;
+  }
+
+  idx = 0;
+  input = '';
+  mistakes = 0;
+  locked = false;
+  resultSent = false;
+  finalT = 0;
+  questionLogs = [];
+  sessionId = makeSessionId();
+  startedAt = '';
+  completedAt = '';
+  $('sendStatus').textContent = '';
+  $('sendStatus').className = 'send-status';
+  setPhase(P.COUNT);
+
+  let n = 3;
+  setCount(n); sTick();
+  countIv = setInterval(() => {
+    n--;
+    if(n >= 1){
+      setCount(n); sTick();
+    }else{
+      clearInterval(countIv); countIv = null;
+      setCount('スタート!'); sGo();
+      setTimeout(beginPlay, 450);
+    }
+  }, 800);
+}
+
+function setCount(txt){
+  const el = $('countNum');
+  el.textContent = txt;
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+}
+
+function beginPlay(){
+  setPhase(P.PLAY);
+  buildList();
+  renderProblem();
+  renderInput();
+  startedAt = new Date().toISOString();
+  startT = performance.now();
+  beginQuestionLog();
+  tickTimer();
+}
+
+let rows = [];
+function buildList(){
+  const list = $('qList');
+  list.innerHTML = '';
+  rows = [];
+  problems.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'q-row';
+    const eq = document.createElement('span');
+    eq.className = 'q-eq';
+    eq.textContent = p.text + '＝';
+    const ansWrap = document.createElement('span');
+    ansWrap.className = 'q-ans';
+    const digits = document.createElement('span');
+    digits.className = 'q-digits';
+    const maru = document.createElement('span');
+    maru.className = 'q-maru';
+    maru.textContent = '○';
+    const batu = document.createElement('span');
+    batu.className = 'q-batu';
+    batu.textContent = '✕';
+    ansWrap.append(digits, maru, batu);
+    const caret = document.createElement('span');
+    caret.className = 'q-caret';
+    row.append(eq, ansWrap, caret);
+    row._digits = digits;
+    list.appendChild(row);
+    rows.push(row);
+  });
+
+  list.style.transition = 'none';
+  positionList();
+  void list.offsetWidth;
+  list.style.transition = '';
+}
+
+function rowH(){
+  return rows[0] ? rows[0].offsetHeight : 58;
+}
+
+function positionList(){
+  $('qList').style.transform = 'translateY(' + ((1 - idx) * rowH()) + 'px)';
+  rows.forEach((r, i) => r.classList.toggle('current', i === idx));
+}
+
+function tickTimer(){
+  const t = (performance.now() - startT) / 1000;
+  $('timer').textContent = t.toFixed(2);
+  rafId = requestAnimationFrame(tickTimer);
+}
+
+function renderProblem(){
+  const total = problems.length;
+  $('qLabel').textContent = 'だい' + (idx + 1) + 'もん';
+  $('barFill').style.width = (idx / total * 100) + '%';
+  positionList();
+}
+
+function displayInput(value){
+  return value.replace('-', '−');
+}
+
+function renderInput(){
+  if(rows[idx]) rows[idx]._digits.textContent = displayInput(input);
+}
+
+/* ========== 問題別記録 ========== */
+function beginQuestionLog(){
+  questionStartT = performance.now();
+  const p = problems[idx];
+  questionLogs[idx] = {
+    problemId: p.id,
+    shownOrder: idx + 1,
+    expression: p.text,
+    category: p.category || '',
+    correctAnswer: p.ans,
+    firstAnswer: null,
+    wrongAnswers: [],
+    attempts: 0,
+    firstTryCorrect: false,
+    firstResponseMs: null,
+    correctResponseMs: null
+  };
+}
+
+function recordAttempt(answer, isCorrect){
+  const now = performance.now();
+  const log = questionLogs[idx];
+  log.attempts++;
+  if(log.firstAnswer === null){
+    log.firstAnswer = answer;
+    log.firstResponseMs = Math.round(now - questionStartT);
+    log.firstTryCorrect = isCorrect;
+  }
+  if(isCorrect){
+    log.correctResponseMs = Math.round(now - questionStartT);
+  }else{
+    log.wrongAnswers.push(answer);
+  }
+}
+
+/* ========== 入力・判定 ========== */
+function answerDigitsLength(answer){
+  return answer.replace('-', '').length;
+}
+
+function toggleSign(value){
+  if(value === '' || value === '-') return value === '-' ? '' : '-';
+  if(Number(value) === 0) return value.replace('-', '');
+  return value.startsWith('-') ? value.slice(1) : '-' + value;
+}
+
+function clearSignGrace(){
+  if(signGraceTimer){
+    clearTimeout(signGraceTimer);
+    signGraceTimer = null;
+  }
+}
+
+function pressKey(k){
+  if(phase !== P.PLAY || locked) return;
+
+  if(k === 'del'){
+    clearSignGrace();
+    if(input){
+      input = input.slice(0, -1);
+      if(input === '-') input = '';
+      renderInput();
+    }
+    return;
+  }
+
+  if(k === 'sign'){
+    clearSignGrace();
+    input = toggleSign(input);
+    renderInput();
+    evaluateInput();
+    return;
+  }
+
+  const ans = problems[idx].ans;
+  const maxDigits = Math.max(answerDigitsLength(ans), 1);
+  const currentDigits = input.replace('-', '').length;
+  if(currentDigits >= maxDigits) return;
+
+  if(input === '0' || input === '-0') input = input.startsWith('-') ? '-' : '';
+  input += k;
+  renderInput();
+  evaluateInput();
+}
+
+function evaluateInput(){
+  clearSignGrace();
+  const ans = problems[idx].ans;
+  if(input === '' || input === '-') return;
+
+  if(input === ans){
+    onCorrect();
+    return;
+  }
+
+  const enteredDigits = input.replace('-', '').length;
+  const neededDigits = answerDigitsLength(ans);
+  if(enteredDigits < neededDigits) return;
+
+  // 符号だけ直せば正解になる場合は、±を押す時間を少し待ちます。
+  if(toggleSign(input) === ans){
+    signGraceTimer = setTimeout(() => {
+      signGraceTimer = null;
+      if(!locked && input !== ans) onWrong();
+    }, 700);
+    return;
+  }
+
+  onWrong();
+}
+
+function onCorrect(){
+  clearSignGrace();
+  locked = true;
+  recordAttempt(input, true);
+  rows[idx].classList.add('ok');
+  const last = (idx === problems.length - 1);
+
+  if(last){
+    finalT = (performance.now() - startT) / 1000;
+    completedAt = new Date().toISOString();
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    $('timer').textContent = finalT.toFixed(2);
+  }
+
+  sCorrect();
+  $('barFill').style.width = ((idx + 1) / problems.length * 100) + '%';
+  setTimeout(() => {
+    if(last){
+      showResult();
+    }else{
+      idx++;
+      input = '';
+      locked = false;
+      renderProblem();
+      renderInput();
+      beginQuestionLog();
+    }
+  }, 150);
+}
+
+function onWrong(){
+  clearSignGrace();
+  locked = true;
+  mistakes++;
+  recordAttempt(input, false);
+  const row = rows[idx];
+  row.classList.add('ng');
+  sWrong();
+  setTimeout(() => {
+    row.classList.remove('ng');
+    input = '';
+    renderInput();
+    locked = false;
+  }, 340);
+}
+
+/* ========== リザルト ========== */
+function rankOf(t){
+  if(t <= 15) return {e:'🚀', n:'ロケット速度', c:'ロケットなみの はやさ！ 計算マスターだ！！'};
+  if(t <= 25) return {e:'🚄', n:'新幹線速度', c:'新幹線なみ！ ものすごく はやい！'};
+  if(t <= 35) return {e:'🚗', n:'自動車速度', c:'自動車なみの スピード！ いいちょうし！'};
+  if(t <= 50) return {e:'🚲', n:'自転車速度', c:'自転車なみ！ まいにち つづければ もっと はやくなるよ！'};
+  return {e:'🚶', n:'徒歩速度', c:'あせらず まいにち つづけよう。かならず はやくなるよ！'};
+}
+
+function showResult(){
+  const t = finalT;
+  const total = problems.length;
+  const rk = rankOf(t);
+  const firstCorrect = questionLogs.filter(q => q.firstTryCorrect).length;
+
+  $('rTime').innerHTML = t.toFixed(2) + '<span>秒</span>';
+  $('rEmoji').textContent = rk.e;
+  $('rName').textContent = rk.n;
+  $('rComment').textContent = mistakes === 0 ? total + '問ノーミス！ すばらしい集中力だね！' : rk.c;
+  $('rMiss').textContent = mistakes + '回';
+  $('rFirstCorrect').textContent = firstCorrect + '/' + total;
+  $('rAvg').textContent = (t / total).toFixed(2) + '秒';
+
+  loadTodayBest();
+  const isNew = (best === null || t < best);
+  if(isNew){
+    best = t;
+    saveTodayBest();
+  }
+  $('rNew').classList.toggle('hidden', !isNew);
+  $('rBest').textContent = best.toFixed(2) + '秒';
+
+  setPhase(P.RESULT);
+  sFanfare();
+  sendResultOnce();
+}
+
+/* ========== GAS送信用データ ========== */
+function buildPayload(){
+  return {
+    schemaVersion: CONFIG.schemaVersion,
+    appId: CONFIG.appId,
+    problemSetId: CONFIG.problemSetId,
+    appVersion: CONFIG.appVersion,
+    studentId: CONFIG.studentId,
+    sessionId,
+    clientStartedAt: startedAt,
+    clientCompletedAt: completedAt,
+    clientTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+    clientUtcOffsetMinutes: -new Date().getTimezoneOffset(),
+    durationMs: Math.round(finalT * 1000),
+    totalQuestions: problems.length,
+    mistakesTotal: mistakes,
+    firstCorrectTotal: questionLogs.filter(q => q.firstTryCorrect).length,
+    perfect: mistakes === 0,
+    completed: true,
+    questionResults: questionLogs.map(q => ({...q}))
+  };
+}
+
+function gasIsConfigured(){
+  return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(CONFIG.gasUrl);
+}
+
+const PENDING_KEY = 'keisan20_pending_results_v2';
+
+function readPending(){
+  try{
+    const value = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]');
+    return Array.isArray(value) ? value : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function writePending(items){
+  try{ localStorage.setItem(PENDING_KEY, JSON.stringify(items)); }catch(e){}
+}
+
+function queuePayload(payload){
+  const items = readPending();
+  if(!items.some(item => item.sessionId === payload.sessionId)) items.push(payload);
+  writePending(items);
+}
+
+function removePending(sessionIdToRemove){
+  writePending(readPending().filter(item => item.sessionId !== sessionIdToRemove));
+}
+
+async function postToGas(payload){
+  // Apps ScriptへのPOSTは、GitHub Pagesからの送信でCORS応答を読めないためno-corsを使用します。
+  // この関数の完了だけでは保存成功と断定せず、直後にstatus APIで受信確認します。
+  await fetch(CONFIG.gasUrl, {
+    method:'POST',
+    mode:'no-cors',
+    cache:'no-store',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload)
+  });
+}
+
+function jsonpRequest(url, timeoutMs = 7000){
+  return new Promise((resolve, reject) => {
+    const callbackName = '__keisan20_jsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    let finished = false;
+
+    const cleanup = () => {
+      if(finished) return;
+      finished = true;
+      clearTimeout(timer);
+      try{ delete window[callbackName]; }catch(e){ window[callbackName] = undefined; }
+      script.remove();
+    };
+
+    window[callbackName] = data => {
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('受信確認に失敗しました。'));
+    };
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('受信確認がタイムアウトしました。'));
+    }, timeoutMs);
+
+    const separator = url.includes('?') ? '&' : '?';
+    script.src = url + separator + 'callback=' + encodeURIComponent(callbackName) + '&_=' + Date.now();
+    document.head.appendChild(script);
+  });
+}
+
+async function verifySessionReceived(sessionIdToCheck){
+  const base = CONFIG.gasUrl + '?action=status&sessionId=' + encodeURIComponent(sessionIdToCheck);
+  const waits = [500, 900, 1500, 2400, 3600];
+
+  for(const waitMs of waits){
+    await new Promise(resolve => setTimeout(resolve, waitMs));
+    try{
+      const result = await jsonpRequest(base);
+      if(result && result.ok && result.received && result.status === 'COMPLETE') return result;
+    }catch(error){
+      // 次の確認へ進みます。
+    }
+  }
+  return null;
+}
+
+function setSendStatus(text, type){
+  const el = $('sendStatus');
+  el.textContent = text;
+  el.className = 'send-status ' + (type || '');
+}
+
+async function sendResultOnce(){
+  if(resultSent) return;
+  resultSent = true;
+  const payload = buildPayload();
+  queuePayload(payload);
+
+  if(!gasIsConfigured()){
+    setSendStatus('学習記録：端末に保存（GAS URL未設定）', 'off');
+    return;
+  }
+
+  setSendStatus('学習記録：送信・受信確認中…', 'wait');
+  try{
+    await postToGas(payload);
+    const confirmation = await verifySessionReceived(payload.sessionId);
+    if(!confirmation) throw new Error('スプレッドシートへの保存を確認できませんでした。');
+
+    removePending(payload.sessionId);
+    setSendStatus('学習記録：スプレッドシートに記録済み', 'ok');
+  }catch(error){
+    setSendStatus('学習記録：未確認（次回、自動再送）', 'wait');
+    console.error('GAS送信・確認エラー', error);
+  }
+}
+
+async function retryPendingResults(){
+  if(!gasIsConfigured() || !navigator.onLine) return;
+  const items = readPending();
+  for(const payload of items){
+    try{
+      // すでにGASへ届いている可能性があるため、先に状態を確認します。
+      let confirmation = await verifySessionReceived(payload.sessionId);
+      if(!confirmation){
+        await postToGas(payload);
+        confirmation = await verifySessionReceived(payload.sessionId);
+      }
+      if(!confirmation) break;
+      removePending(payload.sessionId);
+    }catch(error){
+      console.error('保留記録の再送エラー', error);
+      break;
+    }
+  }
+}
+
+/* ========== サウンド（Web Audio） ========== */
+let ac = null;
+function initAudio(){
+  try{
+    if(!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if(ac.state === 'suspended') ac.resume();
+  }catch(e){ ac = null; }
+}
+
+function tone(f, dur, type, vol, delay){
+  if(!ac || !soundOn) return;
+  try{
+    const t0 = ac.currentTime + (delay || 0);
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.type = type || 'square';
+    o.frequency.value = f;
+    g.gain.setValueAtTime(vol || 0.1, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }catch(e){}
+}
+
+const sTick    = () => tone(700, 0.09, 'sine', 0.15);
+const sGo      = () => { tone(880, 0.12, 'sine', 0.15); tone(1175, 0.2, 'sine', 0.15, 0.1); };
+const sCorrect = () => { tone(1047, 0.07, 'square', 0.07); tone(1568, 0.1, 'square', 0.07, 0.07); };
+const sWrong   = () => tone(150, 0.18, 'sawtooth', 0.12);
+const sFanfare = () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.16, 'square', 0.08, i * 0.11));
+
+/* ========== イベント ========== */
+$('pad').addEventListener('pointerdown', e => {
+  const b = e.target.closest('button');
+  if(!b) return;
+  e.preventDefault();
+  b.classList.add('pressed');
+  setTimeout(() => b.classList.remove('pressed'), 120);
+  pressKey(b.dataset.k);
+});
+
+$('pad').addEventListener('contextmenu', e => e.preventDefault());
+$('startBtn').addEventListener('click', startGame);
+$('retryBtn').addEventListener('click', startGame);
+$('homeBtn').addEventListener('click', () => setPhase(P.TITLE));
+$('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  $('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+  $('soundBtn').setAttribute('aria-pressed', String(soundOn));
+  if(soundOn){ initAudio(); sTick(); }
+});
+
+document.addEventListener('keydown', e => {
+  if(e.repeat) return;
+  if(phase === P.PLAY){
+    if(e.key >= '0' && e.key <= '9') pressKey(e.key);
+    else if(e.key === '-' || e.key === '+') pressKey('sign');
+    else if(e.key === 'Backspace'){ e.preventDefault(); pressKey('del'); }
+  }else if(phase === P.TITLE && (e.key === 'Enter' || e.key === ' ')){
+    e.preventDefault(); startGame();
+  }else if(phase === P.RESULT && e.key === 'Enter'){
+    startGame();
+  }
+});
+
+window.addEventListener('online', retryPendingResults);
+
+/* ========== 初期化 ========== */
+loadTodayBest();
+setPhase(P.TITLE);
+retryPendingResults();
+</script>
+</body>
+</html>
