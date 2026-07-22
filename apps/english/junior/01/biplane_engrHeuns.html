@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#78c9ff">
+<title>空の三単現ゲート</title>
+<style>
+:root{
+  --ink:#17304a; --sky:#86d3ff; --deep:#347fc2; --cloud:#fff;
+  --gold:#ffd45a; --green:#55d68c; --red:#ff8d84; --panel:rgba(255,255,255,.93);
+  --shadow:0 10px 30px rgba(18,58,91,.22);
+  font-family:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic UI",Meiryo,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#82d2ff;color:var(--ink);touch-action:none}
+button{font:inherit}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{position:fixed;left:0;right:0;top:0;z-index:5;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;display:none;pointer-events:none}
+#hud.show{display:block}
+.hudrow{display:flex;gap:8px;align-items:center}
+.pill{background:rgba(20,47,76,.82);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.16)}
+#stagePill{max-width:48vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#soundBtn,#pauseBtn{pointer-events:auto;margin-left:auto;border:none;min-width:38px;height:38px;padding:0 10px;cursor:pointer}
+#pauseBtn{margin-left:0}
+#questionBox{position:fixed;z-index:6;left:50%;top:calc(env(safe-area-inset-top) + 62px);transform:translateX(-50%);width:min(92vw,520px);background:rgba(255,255,255,.92);border:2px solid rgba(53,127,194,.25);border-radius:18px;padding:9px 14px;text-align:center;box-shadow:var(--shadow);display:none;pointer-events:none}
+#questionBox.show{display:block}
+#questionSub{font-size:11px;color:#4c7397;font-weight:800;letter-spacing:.09em}
+#question{font-family:"Trebuchet MS",Verdana,sans-serif;font-size:clamp(25px,7vw,38px);font-weight:900;line-height:1.2;margin-top:2px;color:#17304a}
+#question .blank{color:#e7a900;border-bottom:4px solid #e7a900;padding:0 .12em}
+#tip{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);z-index:7;background:rgba(20,47,76,.82);color:#fff;border-radius:999px;padding:7px 15px;font-size:12px;font-weight:800;white-space:nowrap;display:none;pointer-events:none}
+#tip.show{display:block}
+#feedback{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.88);z-index:12;width:min(86vw,430px);background:var(--panel);border-radius:24px;padding:20px;text-align:center;box-shadow:0 18px 55px rgba(18,58,91,.35);opacity:0;pointer-events:none;transition:.2s}
+#feedback.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#fbIcon{font-size:42px;line-height:1}
+#fbTitle{font-size:24px;font-weight:900;margin-top:7px}
+#fbSentence{font-family:"Trebuchet MS",Verdana,sans-serif;font-size:30px;font-weight:900;margin-top:5px}
+#fbSentence .s{color:#e7a900;text-decoration:underline;text-decoration-thickness:4px}
+#fbNote{font-size:13px;color:#52728e;margin-top:5px;line-height:1.6}
+.overlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px);background:linear-gradient(180deg,rgba(75,164,225,.28),rgba(24,71,110,.58));overflow:auto}
+.overlay.show{display:flex}
+.card{width:min(94vw,520px);background:var(--panel);border:2px solid rgba(255,255,255,.7);border-radius:28px;padding:22px;box-shadow:0 20px 60px rgba(23,74,112,.33);text-align:center}
+h1{font-size:clamp(31px,9vw,49px);margin:0;line-height:1.1;color:#194f7c;text-shadow:0 3px 0 #fff}
+.logoPlane{font-size:55px;display:block;filter:drop-shadow(0 5px 4px rgba(0,0,0,.18));animation:float 2.2s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-8px) rotate(-2deg)}}
+.subtitle{font-weight:900;color:#347fc2;margin:9px 0 18px}
+.lead{font-size:14px;line-height:1.8;color:#496c88;margin:10px 0 18px}
+.btn{border:none;border-radius:16px;padding:13px 18px;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 5px 0 rgba(27,66,99,.22);transition:.12s}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(27,66,99,.22)}
+.btn-main{background:linear-gradient(160deg,#ffe878,#ffc94c);color:#533c00}
+.btn-blue{background:linear-gradient(160deg,#70caff,#3f95dc);color:white}
+.btn-ghost{background:#edf7ff;color:#2f6d9e;border:1px solid #bcdcf3}
+.btn-wide{width:100%}
+.small{font-size:12px;color:#66849c;line-height:1.7;margin-top:12px}
+#permissionNote{margin-top:12px;background:#eef8ff;border-radius:14px;padding:10px;font-size:12px;color:#416b8e;display:none}
+#permissionNote.show{display:block}
+.route{display:grid;gap:9px;margin:14px 0;text-align:left}
+.stage{width:100%;display:flex;align-items:center;gap:10px;background:#f5fbff;border:1px solid #cbe5f5;border-radius:16px;padding:11px 12px;color:#204d70;cursor:pointer}
+.stage.lock{opacity:.45;cursor:default;filter:grayscale(.5)}
+.stage.current{border:2px solid #ffc94c;background:#fff9dc}
+.stage .num{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#dff2ff;font-weight:900;flex:none}
+.stage.current .num{background:#ffd45a;color:#5d4300}
+.stage .txt{flex:1}.stage b{display:block;font-size:14px}.stage small{font-size:11px;color:#66849c}.stage .mark{font-size:20px}
+.actions{display:flex;gap:9px;margin-top:14px}.actions .btn{flex:1}
+#resultTitle{font-size:27px;font-weight:900;color:#236797}
+#resultSentence{font-family:"Trebuchet MS",Verdana,sans-serif;font-size:29px;font-weight:900;margin:13px 0}
+.stats{display:flex;justify-content:center;gap:18px;margin:15px 0}.stat b{display:block;font-size:25px}.stat span{font-size:11px;color:#66849c}
+#calibrateBtn{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:8;display:none;border:none;background:rgba(255,255,255,.9);color:#2f6d9e;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:900;box-shadow:0 4px 14px rgba(0,0,0,.16);cursor:pointer}
+#calibrateBtn.show{display:block}
+@media (max-height:690px){.card{padding:17px}.lead{margin:7px 0 12px}.route{gap:6px;margin:9px 0}.stage{padding:8px 10px}.stage .num{width:31px;height:31px}.logoPlane{font-size:42px}h1{font-size:32px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="複葉機で正しい英文ゲートを選ぶゲーム"></canvas>
+
+<div id="hud">
+  <div class="hudrow">
+    <span class="pill" id="stagePill">RUN平原</span>
+    <span class="pill" id="progressPill">1 / 5</span>
+    <span class="pill" id="scorePill">⭐ 0</span>
+    <span class="pill" id="comboPill">🔥 0</span>
+    <button class="pill" id="soundBtn" aria-label="音声切り替え">🔊</button>
+    <button class="pill" id="pauseBtn" aria-label="一時停止">Ⅱ</button>
+  </div>
+</div>
+<div id="questionBox"><div id="questionSub">正しいゲートへ飛ぼう</div><div id="question"></div></div>
+<div id="tip">スマホを傾けて操縦</div>
+<button id="calibrateBtn">🎯 傾きを調整</button>
+
+<div id="feedback">
+  <div id="fbIcon"></div><div id="fbTitle"></div><div id="fbSentence"></div><div id="fbNote"></div>
+</div>
+
+<div class="overlay show" id="titleOv">
+  <div class="card">
+    <span class="logoPlane">✈️</span>
+    <h1>空の三単現ゲート</h1>
+    <div class="subtitle">複葉機 × スマホの傾き × run / runs</div>
+    <p class="lead">雲や気球をよけながら、正しい英語のゲートへ。<br>最初は本当に <b>I run.</b> と <b>He runs.</b> だけです。</p>
+    <button class="btn btn-main btn-wide" id="startBtn">出発する！</button>
+    <button class="btn btn-ghost btn-wide" id="routeBtn" style="margin-top:9px">🗺️ 空の地図</button>
+    <div id="permissionNote">iPhoneでは「傾き操作を許可」を押してください。許可しなくても、指で飛行機を動かせます。</div>
+    <p class="small">傾き操作が使えない場合：画面を指でなぞる / PCは矢印キー・WASD<br>間違えても墜落しません。正しい形を見て、少し後でもう一度出ます。</p>
+  </div>
+</div>
+
+<div class="overlay" id="routeOv">
+  <div class="card">
+    <h2 style="margin:0;color:#236797">🗺️ 空の地図</h2>
+    <p class="lead" style="margin-bottom:8px">学習内容は一駅ずつ、ほんの少しだけ増えます。</p>
+    <div class="route" id="routeList"></div>
+    <button class="btn btn-ghost btn-wide" id="routeClose">もどる</button>
+  </div>
+</div>
+
+<div class="overlay" id="pauseOv">
+  <div class="card">
+    <h2 style="margin:0;color:#236797">ひと休み</h2>
+    <p class="lead">飛行は止まっています。</p>
+    <div class="actions">
+      <button class="btn btn-main" id="resumeBtn">飛行を続ける</button>
+      <button class="btn btn-ghost" id="quitBtn">飛行場へ</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="resultOv">
+  <div class="card">
+    <div style="font-size:50px">🏁</div>
+    <div id="resultTitle">ステージクリア！</div>
+    <div id="resultSentence">I run. / He runs.</div>
+    <div class="stats">
+      <div class="stat"><b id="resultStars">0</b><span>ほし</span></div>
+      <div class="stat"><b id="resultBest">0</b><span>最大コンボ</span></div>
+      <div class="stat"><b id="resultCoins">0</b><span>コイン</span></div>
+    </div>
+    <p class="lead" id="resultNote"></p>
+    <div class="actions">
+      <button class="btn btn-main" id="nextStageBtn">次の空へ</button>
+      <button class="btn btn-ghost" id="homeBtn">飛行場へ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+const $ = id => document.getElementById(id);
+const canvas = $('game');
+const ctx = canvas.getContext('2d');
+const STORAGE = 'biplane_sangenden_v1';
+
+const stages = [
+  {name:'RUN平原①', sub:'まずは見るだけ', kind:'observeI', target:3, obstacles:0, sentence:'I run.'},
+  {name:'RUN平原②', sub:'sが増えるのを見る', kind:'observeHe', target:3, obstacles:0, sentence:'He runs.'},
+  {name:'I の空', sub:'I なら run', kind:'i', target:5, obstacles:1, sentence:'I run.'},
+  {name:'He の空', sub:'He なら runs', kind:'he', target:5, obstacles:1, sentence:'He runs.'},
+  {name:'見くらべ雲海', sub:'I と He を見分ける', kind:'mixed', target:7, obstacles:2, sentence:'I run. / He runs.'},
+  {name:'一人の森', sub:'She・Kenも runs', kind:'person', target:7, obstacles:2, sentence:'She runs. / Ken runs.'},
+  {name:'LIKE海岸', sub:'文が長くても同じ', kind:'like', target:7, obstacles:3, sentence:'I like soccer. / He likes soccer.'}
+];
+
+let save = loadSave();
+let stageIndex = Math.min(save.selected || 0, save.unlocked || 0);
+let mode = 'title';
+let paused = false;
+let dpr=1,W=0,H=0;
+let last=performance.now();
+let time=0;
+let plane={x:0,y:.18,tx:0,ty:.18,roll:0};
+let control={tilt:false, gamma:0,beta:45,baseBeta:45,pointer:false,keys:{}};
+let world={objects:[],speed:.25,boost:0,shake:0,wind:0};
+let run=null;
+let currentQuestion=null;
+let audioCtx=null;
+let soundOn=save.sound !== false;
+let feedbackTimer=0;
+let spawnTimer=0;
+let gateId=0;
+
+function loadSave(){
+  try{
+    const s=JSON.parse(localStorage.getItem(STORAGE)||'{}');
+    return {unlocked:Math.max(0,Math.min(stages.length-1,s.unlocked||0)),selected:s.selected||0,coins:s.coins||0,best:s.best||{},sound:s.sound!==false};
+  }catch(e){return {unlocked:0,selected:0,coins:0,best:{},sound:true};}
+}
+function store(){try{localStorage.setItem(STORAGE,JSON.stringify(save));}catch(e){/* 保存不可でもゲームは続ける */}}
+
+function resize(){
+  dpr=Math.min(2,window.devicePixelRatio||1); W=innerWidth; H=innerHeight;
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+addEventListener('resize',resize,{passive:true});resize();
+
+function show(id,on=true){$(id).classList.toggle('show',on);}
+function setText(id,t){$(id).textContent=t;}
+function escapeHtml(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+function renderRoute(){
+  $('routeList').innerHTML='';
+  stages.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className='stage'+(i>save.unlocked?' lock':'')+(i===stageIndex?' current':'');
+    const cleared=(save.best[i]||0)>=s.target;
+    b.innerHTML=`<span class="num">${i+1}</span><span class="txt"><b>${escapeHtml(s.name)}</b><small>${escapeHtml(s.sub)}</small></span><span class="mark">${i>save.unlocked?'🔒':cleared?'✅':'✈️'}</span>`;
+    if(i<=save.unlocked)b.onclick=()=>{stageIndex=i;save.selected=i;store();renderRoute();};
+    $('routeList').appendChild(b);
+  });
+}
+renderRoute();
+
+async function requestTilt(){
+  try{
+    if(typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function'){
+      const p=await DeviceOrientationEvent.requestPermission();
+      if(p==='granted'){control.tilt=true;show('permissionNote',false);return true;}
+      show('permissionNote',true);return false;
+    }
+    if('DeviceOrientationEvent' in window){control.tilt=true;return true;}
+  }catch(e){show('permissionNote',true);}
+  return false;
+}
+addEventListener('deviceorientation',e=>{
+  if(e.gamma==null||e.beta==null)return;
+  control.gamma=e.gamma;control.beta=e.beta;
+},{passive:true});
+
+function calibrate(){control.baseBeta=control.beta||45;beep(520,.06,'sine',.05);toastTip('この傾きを中央にしました');}
+$('calibrateBtn').onclick=calibrate;
+
+function startStage(){
+  initAudio();
+  mode='playing';paused=false;
+  show('titleOv',false);show('routeOv',false);show('resultOv',false);show('pauseOv',false);
+  show('hud',true);show('questionBox',true);show('tip',true);show('calibrateBtn',true);
+  plane={x:0,y:.18,tx:0,ty:.18,roll:0};
+  world={objects:[],speed:.25,boost:0,shake:0,wind:0};
+  run={progress:0,stars:0,combo:0,bestCombo:0,coins:0,attempts:0,repeat:[],questionCount:0};
+  currentQuestion=null;feedbackTimer=0;spawnTimer=.45;
+  updateHud();
+  setTimeout(()=>show('tip',false),2600);
+}
+
+$('startBtn').onclick=async()=>{await requestTilt();calibrate();startStage();};
+$('routeBtn').onclick=()=>{renderRoute();show('routeOv',true);};
+$('routeClose').onclick=()=>show('routeOv',false);
+$('soundBtn').onclick=()=>{soundOn=!soundOn;save.sound=soundOn;store();setText('soundBtn',soundOn?'🔊':'🔇');if(!soundOn)window.speechSynthesis?.cancel();};
+$('pauseBtn').onclick=()=>pauseGame();
+$('resumeBtn').onclick=()=>{paused=false;show('pauseOv',false);last=performance.now();};
+$('quitBtn').onclick=()=>goHome();
+$('homeBtn').onclick=()=>goHome();
+$('nextStageBtn').onclick=()=>{stageIndex=Math.min(stages.length-1,stageIndex+1);save.selected=stageIndex;store();startStage();};
+
+function pauseGame(){if(mode!=='playing')return;paused=true;show('pauseOv',true);}
+function goHome(){mode='title';paused=false;show('pauseOv',false);show('resultOv',false);show('hud',false);show('questionBox',false);show('calibrateBtn',false);show('titleOv',true);renderRoute();}
+
+function updateHud(){
+  const s=stages[stageIndex];setText('stagePill',s.name);setText('progressPill',`${Math.min(run?.progress||0,s.target)} / ${s.target}`);setText('scorePill',`⭐ ${run?.stars||0}`);setText('comboPill',`🔥 ${run?.combo||0}`);
+  setText('soundBtn',soundOn?'🔊':'🔇');
+}
+
+function questionForStage(){
+  const s=stages[stageIndex]; let subject='I',base='run',correct='run',object='',observe=false;
+  if(s.kind==='observeI'){subject='I';correct='run';observe=true;}
+  if(s.kind==='observeHe'){subject='He';correct='runs';observe=true;}
+  if(s.kind==='i'){subject='I';correct='run';}
+  if(s.kind==='he'){subject='He';correct='runs';}
+  if(s.kind==='mixed'){subject=Math.random()<.5?'I':'He';correct=subject==='I'?'run':'runs';}
+  if(s.kind==='person'){
+    subject=['He','She','Ken','Tom'][Math.floor(Math.random()*4)];correct='runs';
+    if(Math.random()<.22){subject='I';correct='run';}
+  }
+  if(s.kind==='like'){
+    base='like';object=' soccer';subject=['I','He','She','Ken'][Math.floor(Math.random()*4)];correct=subject==='I'?'like':'likes';
+  }
+  return {id:++gateId,subject,base,correct,wrong:correct===base?base+'s':base,object,observe,sentence:`${subject} ${correct}${object}.`};
+}
+
+function setQuestion(q){
+  currentQuestion=q;
+  const sHtml=q.observe ? highlightSentence(q.sentence) : `${q.subject} <span class="blank">___</span>${q.object}.`;
+  $('question').innerHTML=sHtml;
+  setText('questionSub',q.observe?'まずは、この文の下を飛ぼう':'正しいゲートへ飛ぼう');
+  speak(q.sentence,.45);
+}
+
+function highlightSentence(sentence){
+  if(/runs\./.test(sentence))return sentence.replace('runs','run<span style="color:#e7a900;text-decoration:underline;text-decoration-thickness:4px">s</span>');
+  if(/likes\./.test(sentence))return sentence.replace('likes','like<span style="color:#e7a900;text-decoration:underline;text-decoration-thickness:4px">s</span>');
+  return escapeHtml(sentence);
+}
+
+function spawnGate(q){
+  const leftCorrect=Math.random()<.5;
+  if(q.observe){
+    world.objects.push({type:'gateSingle',z:1.08,x:0,y:0,label:q.sentence,question:q,resolved:false});
+  }else{
+    const choices=leftCorrect?[q.correct,q.wrong]:[q.wrong,q.correct];
+    world.objects.push({type:'gatePair',z:1.08,x:0,y:0,choices,correct:q.correct,question:q,resolved:false});
+  }
+  // 障害物はゲートより手前ではなく、その次の区間に控えめに置く
+  const count=stages[stageIndex].obstacles;
+  for(let i=0;i<count;i++){
+    const z=.72-i*.18-Math.random()*.07;
+    world.objects.push({type:Math.random()<.68?'cloud':'balloon',z,x:(Math.random()*1.5-.75),y:(Math.random()*.78-.3),hit:false,seed:Math.random()*10});
+  }
+}
+
+function nextQuestion(){
+  if(run.progress>=stages[stageIndex].target){finishStage();return;}
+  let q;
+  if(run.repeat.length && run.questionCount%2===1) q=run.repeat.shift(); else q=questionForStage();
+  run.questionCount++;
+  setQuestion(q);spawnGate(q);
+}
+
+function resolveGate(obj){
+  if(obj.resolved)return;obj.resolved=true;
+  run.attempts++;
+  if(obj.type==='gateSingle'){
+    correctAnswer(obj.question,true);return;
+  }
+  const chosen=plane.x<0?obj.choices[0]:obj.choices[1];
+  if(chosen===obj.correct)correctAnswer(obj.question,false);else wrongAnswer(obj.question,chosen);
+}
+
+function correctAnswer(q,observe){
+  run.progress++;run.stars+=observe?1:2;run.combo++;run.bestCombo=Math.max(run.bestCombo,run.combo);
+  if(run.combo%3===0){run.coins++;world.boost=1.4;world.wind=1;}
+  beep(observe?660:820,.12,'sine',.075);showFeedback(true,q,observe);
+  updateHud();feedbackTimer=1.25;
+}
+function wrongAnswer(q,chosen){
+  run.combo=0;world.speed=Math.max(.17,world.speed*.72);world.shake=.6;
+  if(!run.repeat.some(x=>x.id===q.id))run.repeat.push(q);
+  beep(190,.15,'triangle',.055);showFeedback(false,q,false,chosen);
+  updateHud();feedbackTimer=1.65;
+}
+function showFeedback(ok,q,observe,chosen=''){
+  setText('fbIcon',ok?(observe?'👀':'✨'):'☁️');setText('fbTitle',ok?(observe?'見つけた！':'せいかい！'):'だいじょうぶ');
+  $('fbSentence').innerHTML=highlightSentence(q.sentence);
+  if(ok && observe){setText('fbNote',q.correct.endsWith('s')?'He のときは、動詞に s がついたね。':'まずは I run. を、そのまま見よう。');}
+  else if(ok){setText('fbNote',run.combo>=3?'追い風がきた！　この調子。':'正しいゲートを通れました。');}
+  else {setText('fbNote',`${chosen} ではなく ${q.correct}。墜落はしません。少し後でもう一度出ます。`);}
+  show('feedback',true);speak(q.sentence,.12);
+}
+
+function finishStage(){
+  mode='result';show('hud',false);show('questionBox',false);show('calibrateBtn',false);show('feedback',false);
+  const s=stages[stageIndex];
+  const old=save.best[stageIndex]||0;save.best[stageIndex]=Math.max(old,run.progress);save.coins+=run.coins;
+  if(stageIndex===save.unlocked && stageIndex<stages.length-1)save.unlocked++;
+  store();renderRoute();
+  setText('resultTitle',stageIndex===stages.length-1?'三単現線、開通！':'ステージクリア！');
+  setText('resultSentence',s.sentence);setText('resultStars',run.stars);setText('resultBest',run.bestCombo);setText('resultCoins',run.coins);
+  setText('resultNote',stageIndex===0?'次は He runs.。増えるのは s 一文字だけです。':stageIndex===stages.length-1?'短い文で見つけたルールは、長い文でも同じでした。':'次の空でも、学ぶことは一つだけ増えます。');
+  $('nextStageBtn').style.display=stageIndex<stages.length-1?'block':'none';
+  show('resultOv',true);beep(660,.12,'sine',.08);setTimeout(()=>beep(880,.18,'sine',.08),130);
+}
+
+function initAudio(){if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}audioCtx?.resume();}
+function beep(freq=440,dur=.08,type='sine',gain=.05){
+  if(!soundOn||!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=gain;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);o.stop(audioCtx.currentTime+dur);
+}
+function speak(text,delay=0){
+  if(!soundOn||!('speechSynthesis'in window))return;setTimeout(()=>{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.82;u.pitch=1.03;speechSynthesis.speak(u);},delay*1000);
+}
+function toastTip(t){setText('tip',t);show('tip',true);setTimeout(()=>show('tip',false),1600);}
+
+function updateControls(dt){
+  let tx=plane.tx,ty=plane.ty;
+  if(control.tilt){tx=Math.max(-.9,Math.min(.9,control.gamma/28));ty=Math.max(-.5,Math.min(.5,(control.beta-control.baseBeta)/28));}
+  if(control.pointer){tx=control.px;ty=control.py;}
+  const k=control.keys;
+  if(k.ArrowLeft||k.a)tx-=1.5*dt;if(k.ArrowRight||k.d)tx+=1.5*dt;if(k.ArrowUp||k.w)ty-=1.3*dt;if(k.ArrowDown||k.s)ty+=1.3*dt;
+  plane.tx=Math.max(-.9,Math.min(.9,tx));plane.ty=Math.max(-.5,Math.min(.5,ty));
+  plane.x+=(plane.tx-plane.x)*Math.min(1,dt*4.7);plane.y+=(plane.ty-plane.y)*Math.min(1,dt*4.4);plane.roll+=(plane.x-plane.tx-plane.roll)*Math.min(1,dt*5);
+}
+
+canvas.addEventListener('pointerdown',e=>{control.pointer=true;setPointer(e);canvas.setPointerCapture?.(e.pointerId);},{passive:true});
+canvas.addEventListener('pointermove',e=>{if(control.pointer)setPointer(e);},{passive:true});
+canvas.addEventListener('pointerup',()=>control.pointer=false,{passive:true});
+canvas.addEventListener('pointercancel',()=>control.pointer=false,{passive:true});
+function setPointer(e){control.px=Math.max(-.9,Math.min(.9,(e.clientX/W-.5)*2));control.py=Math.max(-.5,Math.min(.5,(e.clientY/H-.62)*1.6));}
+addEventListener('keydown',e=>{control.keys[e.key]=true;control.keys[e.key.toLowerCase()]=true;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();});
+addEventListener('keyup',e=>{control.keys[e.key]=false;control.keys[e.key.toLowerCase()]=false;});
+
+function update(dt){
+  time+=dt;updateControls(dt);
+  if(mode!=='playing'||paused)return;
+  if(feedbackTimer>0){feedbackTimer-=dt;if(feedbackTimer<=0){show('feedback',false);if(run.progress>=stages[stageIndex].target)finishStage();else spawnTimer=.5;}}
+  if(spawnTimer>0){spawnTimer-=dt;if(spawnTimer<=0&&!currentGateAlive())nextQuestion();}
+  world.boost=Math.max(0,world.boost-dt);world.wind=Math.max(0,world.wind-dt*.7);world.shake=Math.max(0,world.shake-dt*2);
+  const targetSpeed=world.boost>0?.36:.25;world.speed+=(targetSpeed-world.speed)*Math.min(1,dt*2.2);
+  for(const o of world.objects){o.z-=world.speed*dt;}
+  for(const o of world.objects){
+    if((o.type==='cloud'||o.type==='balloon')&&!o.hit&&o.z<.13&&o.z>-.04){
+      if(Math.abs(plane.x-o.x)<.22 && Math.abs(plane.y-o.y)<.22){o.hit=true;world.shake=.45;world.speed=Math.max(.18,world.speed*.78);run.combo=0;updateHud();beep(150,.07,'triangle',.035);toastTip('ふわっ！　でも飛行は続きます');}
+    }
+    if((o.type==='gatePair'||o.type==='gateSingle')&&!o.resolved&&o.z<.085)resolveGate(o);
+  }
+  world.objects=world.objects.filter(o=>o.z>-.2);
+}
+function currentGateAlive(){return world.objects.some(o=>(o.type==='gatePair'||o.type==='gateSingle')&&!o.resolved);}
+
+function project(x,y,z){
+  const p=Math.max(0,1-z);const ease=p*p;const horizon=H*.31;return {x:W*.5+x*W*(.16+ease*.46),y:horizon+ease*H*.56+y*H*(.08+ease*.28),s:.18+ease*1.55,z};
+}
+
+function draw(){
+  ctx.save();if(world.shake>0)ctx.translate((Math.random()-.5)*8*world.shake,(Math.random()-.5)*7*world.shake);
+  drawSky();drawGround();
+  const sorted=[...world.objects].sort((a,b)=>b.z-a.z);for(const o of sorted)drawObject(o);
+  drawPlane();ctx.restore();
+}
+
+function drawSky(){
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#6fc2f5');g.addColorStop(.53,'#bfeaff');g.addColorStop(.54,'#8fd57e');g.addColorStop(1,'#4b9d55');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,244,176,.78)';ctx.beginPath();ctx.arc(W*.82,H*.16,36,0,Math.PI*2);ctx.fill();
+  // distant clouds
+  for(let i=0;i<5;i++){const x=(i*173+time*3)% (W+180)-90;drawCloud2D(x,H*(.17+(i%2)*.07),.55+(i%3)*.11,.58);}
+}
+function drawGround(){
+  const hy=H*.54;ctx.fillStyle='rgba(42,119,63,.32)';ctx.beginPath();ctx.moveTo(0,hy);for(let x=0;x<=W;x+=35)ctx.lineTo(x,hy-18-Math.sin(x*.017)*13);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+  // perspective field lines
+  ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;for(let i=-5;i<=5;i++){ctx.beginPath();ctx.moveTo(W*.5+i*18,hy);ctx.lineTo(W*.5+i*W*.18,H);ctx.stroke();}
+  const flow=(time*world.speed*120)%55;for(let i=0;i<8;i++){const y=hy+((i*55+flow)%(H-hy));ctx.globalAlpha=.12+(y-hy)/(H-hy)*.15;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}ctx.globalAlpha=1;
+}
+function drawObject(o){
+  const p=project(o.x,o.y,o.z);if(p.y<-100||p.y>H+150)return;
+  if(o.type==='cloud')drawCloud2D(p.x,p.y,p.s,1);
+  else if(o.type==='balloon')drawBalloon(p.x,p.y,p.s,o.seed);
+  else if(o.type==='gatePair')drawGatePair(o,p);
+  else if(o.type==='gateSingle')drawSingleGate(o,p);
+}
+function drawCloud2D(x,y,s,a=1){ctx.save();ctx.globalAlpha=a;ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='rgba(255,255,255,.88)';ctx.beginPath();ctx.arc(-32,3,24,0,Math.PI*2);ctx.arc(-4,-10,32,0,Math.PI*2);ctx.arc(28,3,25,0,Math.PI*2);ctx.rect(-35,0,66,25);ctx.fill();ctx.restore();}
+function drawBalloon(x,y,s,seed){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle=seed%2<1?'#ff7b72':'#ffd45a';ctx.beginPath();ctx.ellipse(0,-8,23,29,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(69,67,53,.45)';ctx.beginPath();ctx.moveTo(-9,15);ctx.lineTo(-5,29);ctx.moveTo(9,15);ctx.lineTo(5,29);ctx.stroke();ctx.fillStyle='#8a5a33';ctx.fillRect(-8,28,16,10);ctx.restore();}
+function gateGeom(centerX,p,label,good=false){
+  const w=90*p.s,h=92*p.s;const x=p.x+centerX*W*(.16+(1-p.z||0)*.46),y=p.y;
+  ctx.save();ctx.translate(x,y);ctx.lineWidth=Math.max(3,8*p.s);ctx.strokeStyle=good?'#55d68c':'rgba(255,255,255,.94)';ctx.shadowColor=good?'rgba(85,214,140,.8)':'rgba(35,114,173,.35)';ctx.shadowBlur=18*p.s;ctx.beginPath();ctx.moveTo(-w*.5,h*.5);ctx.lineTo(-w*.5,-h*.25);ctx.quadraticCurveTo(0,-h*.68,w*.5,-h*.25);ctx.lineTo(w*.5,h*.5);ctx.stroke();ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(20,47,76,.9)';roundRect(-w*.48,-h*.18,w*.96,h*.38,12*p.s);ctx.fill();ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(15,25*p.s)}px Trebuchet MS`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,0,0);ctx.restore();
+}
+function drawGatePair(o,p){gateGeom(-.47,p,o.choices[0]);gateGeom(.47,p,o.choices[1]);}
+function drawSingleGate(o,p){
+  const w=175*p.s,h=100*p.s;ctx.save();ctx.translate(p.x,p.y);ctx.lineWidth=Math.max(4,9*p.s);ctx.strokeStyle='#ffd45a';ctx.shadowColor='rgba(255,212,90,.8)';ctx.shadowBlur=24*p.s;ctx.beginPath();ctx.moveTo(-w*.5,h*.5);ctx.lineTo(-w*.5,-h*.22);ctx.quadraticCurveTo(0,-h*.7,w*.5,-h*.22);ctx.lineTo(w*.5,h*.5);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='rgba(20,47,76,.9)';roundRect(-w*.46,-h*.18,w*.92,h*.38,14*p.s);ctx.fill();ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(14,24*p.s)}px Trebuchet MS`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(o.label,0,0);ctx.restore();
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):(ctx.rect(x,y,w,h));}
+function drawPlane(){
+  const x=W*.5+plane.x*W*.36,y=H*.77+plane.y*H*.19;ctx.save();ctx.translate(x,y);ctx.rotate((plane.tx-plane.x)*.55);const s=Math.max(.7,Math.min(1.1,W/420));ctx.scale(s,s);
+  if(world.wind>0){ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=3;for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(-95-i*12,-18+i*10);ctx.lineTo(-50-i*8,-18+i*10);ctx.stroke();}}
+  // shadow
+  ctx.fillStyle='rgba(20,42,58,.15)';ctx.beginPath();ctx.ellipse(0,33,58,12,0,0,Math.PI*2);ctx.fill();
+  // lower wing
+  ctx.fillStyle='#d85145';roundRect(-58,6,116,16,7);ctx.fill();ctx.strokeStyle='#8e2f29';ctx.lineWidth=2;ctx.stroke();
+  // body
+  ctx.fillStyle='#f1b735';ctx.beginPath();ctx.moveTo(-42,4);ctx.quadraticCurveTo(-15,-18,37,-7);ctx.lineTo(60,0);ctx.lineTo(35,10);ctx.quadraticCurveTo(-10,20,-42,8);ctx.closePath();ctx.fill();ctx.strokeStyle='#845e12';ctx.stroke();
+  // upper wing
+  ctx.fillStyle='#e36053';roundRect(-68,-26,136,17,7);ctx.fill();ctx.strokeStyle='#8e2f29';ctx.stroke();
+  // struts
+  ctx.strokeStyle='#795226';ctx.lineWidth=3;for(const xx of [-35,35]){ctx.beginPath();ctx.moveTo(xx,-9);ctx.lineTo(xx,7);ctx.stroke();}
+  // cockpit
+  ctx.fillStyle='#24485f';ctx.beginPath();ctx.ellipse(10,-5,12,8,0,0,Math.PI*2);ctx.fill();
+  // tail
+  ctx.fillStyle='#d85145';ctx.beginPath();ctx.moveTo(-40,2);ctx.lineTo(-58,-14);ctx.lineTo(-33,-8);ctx.closePath();ctx.fill();
+  // propeller
+  ctx.save();ctx.translate(58,0);ctx.rotate(time*(world.boost>0?24:15));ctx.fillStyle='rgba(65,46,24,.65)';roundRect(-3,-27,6,54,3);ctx.fill();ctx.restore();ctx.fillStyle='#5c4225';ctx.beginPath();ctx.arc(58,0,5,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);draw();requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+
+// initial static scene
+setText('soundBtn',soundOn?'🔊':'🔇');
+show('permissionNote',typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function');
+})();
+</script>
+</body>
+</html>
