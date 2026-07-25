@@ -291,7 +291,7 @@ $("soundBtn").onclick=()=>{
 };
 
 const boost=$("boost");
-function boostOn(e){e.preventDefault();ctl.boost=true;boost.classList.add("on")}
+function boostOn(e){e.preventDefault();ctl.boost=true;boost.classList.add("on");if(navigator.vibrate)navigator.vibrate(30)}
 function boostOff(e){if(e)e.preventDefault();ctl.boost=false;boost.classList.remove("on")}
 boost.addEventListener("pointerdown",boostOn);addEventListener("pointerup",boostOff);addEventListener("pointercancel",boostOff);
 
@@ -346,11 +346,11 @@ function physics(dt){
   const lift=(flight.speed-58)*.055 + flight.pitch*19 - Math.abs(flight.roll)*2.1;
   flight.vertical += (lift-flight.vertical)*1.15*dt;
   flight.altitude += flight.vertical*dt;
-  if(flight.altitude<25){flight.altitude=25;flight.vertical=Math.max(0,flight.vertical)}
+  if(flight.altitude<25){flight.altitude=25;flight.vertical=Math.max(0,flight.vertical);if(navigator.vibrate&&flight.vertical<-2)navigator.vibrate(200)}
   if(flight.altitude>780){flight.altitude=780;flight.vertical=Math.min(0,flight.vertical)}
   flight.distance+=flight.speed*dt/3.6;
-  flight.shake=Math.max(0,flight.shake-dt*2.5);
-  if(flight.speed<49)flight.shake=Math.max(flight.shake,(49-flight.speed)/18);
+  flight.shake=Math.max(0,flight.shake-dt*2.5);if(Math.abs(flight.roll)>.4&&navigator.vibrate&&Math.random()<0.08)navigator.vibrate(20);
+  if(flight.speed<49){flight.shake=Math.max(flight.shake,(49-flight.speed)/18);if(navigator.vibrate&&Math.random()<0.15)navigator.vibrate([60,40,60]);}
 }
 function updateObjects(arr,dt,zMin,zMax){
   const adv=flight.speed*dt*.78;
@@ -374,7 +374,7 @@ function drawWorld(){
   const horizon=H*.47+flight.pitch*H*.72;
   ctx.save();
   ctx.translate(W/2,horizon);
-  ctx.rotate(-flight.roll*.84);
+  ctx.rotate(-flight.roll*.84-flight.yawRate*.15);
   ctx.translate(-W/2,-horizon);
 
   const hz=ctx.createLinearGradient(0,horizon-65,0,horizon+95);
