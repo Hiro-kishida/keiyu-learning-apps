@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -1361,9 +1362,18 @@ function activeRange(){
   return {lo:Math.max(lo,S.range.lo),hi:Math.min(hi,S.range.hi)};
 }
 function rangeCount(){const R=activeRange();return WORDS.filter(w=>w[0]>=R.lo&&w[0]<=R.hi).length;}
+const NUMOF={};WORDS.forEach(w=>NUMOF[w[1]]=w[0]);
+const MASTER_DEEP_FROM=701; /* この番号以上は「別々の3日で正解」して初めてMASTER(定着) */
+function correctDays(st){return st&&st.okDays?st.okDays.length:0;}
+/* MASTER判定の一元化: 701以上=日をまたいだ3回 / 700以下=従来どおり3回正解 */
+function isMastered(en){
+  const st=S.word[en];if(!st)return false;
+  if((NUMOF[en]||0)>=MASTER_DEEP_FROM)return correctDays(st)>=3;
+  return (st.right||0)>=3;
+}
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
-/* 軽量SRS: MASTER(3回正解)済み かつ 当日すでに正解した語は、その日もう出さない */
-function isRestingToday(en){const st=S.word[en];return !!(st&&(st.right||0)>=3&&st.okDay===todayStr());}
+/* 軽量SRS: MASTER済み かつ 当日すでに正解した語は、その日もう出さない */
+function isRestingToday(en){const st=S.word[en];return !!(st&&isMastered(en)&&st.okDay===todayStr());}
 function eligiblePool(){const R=activeRange();return WORDS.filter(w=>w[0]>=R.lo&&w[0]<=R.hi&&!isRestingToday(w[1]));}
 function pickWords(reviewOnly,count){
   const R=activeRange();
@@ -1459,7 +1469,8 @@ function answer(btn,ok,q,now,timeout=false){
   const st=S.word[q.en]=S.word[q.en]||{right:0,wrong:0};
   S.total++;
   if(ok){
-    S.correct++;st.right++;st.okDay=todayStr();
+    S.correct++;st.right++;
+    {const t=todayStr();st.okDay=t;if(!st.okDays)st.okDays=[];if(!st.okDays.includes(t))st.okDays.push(t);}
     G.ok++;G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
     const t=now-G.qStart;
     const speedBonus=Math.max(0,Math.round((G.qTime-t)/G.qTime*100));
@@ -1659,7 +1670,7 @@ async function endGame(){
 
 /* ================= ホーム & 図鑑 ================= */
 function masteredCount(){
-  return WORDS.filter(w=>(S.word[w[1]]?.right||0)>=3).length;
+  return WORDS.filter(w=>isMastered(w[1])).length;
 }
 /* 図鑑の段階進捗: 未挑戦=0 / 挑戦中・苦手=0.5 / MASTER(3回正解)=1。合計÷全語数で% */
 function zukanProgress(){
@@ -1669,7 +1680,7 @@ function zukanProgress(){
     if(w[0]<R.lo||w[0]>R.hi)return;
     const st=S.word[w[1]];if(!st)return;
     if((st.right||0)+(st.wrong||0)===0)return;
-    p+=(st.right||0)>=3?1:0.5;
+    p+=isMastered(w[1])?1:0.5;
   });
   return p;
 }
@@ -1718,7 +1729,7 @@ function renderZukan(){
     const d=document.createElement("div");
     let tag="",locked=false;
     if(!st||st.right+st.wrong===0){locked=true;}
-    else if(st.right>=3)tag=`<span class="tag m">★ MASTER</span>`;
+    else if(isMastered(w[1]))tag=`<span class="tag m">★ MASTER</span>`;
     else if(st.wrong>st.right)tag=`<span class="tag w">⚡ 苦手</span>`;
     else tag=`<span class="tag t">挑戦中</span>`;
     d.className="zw"+(locked?" locked":"");
