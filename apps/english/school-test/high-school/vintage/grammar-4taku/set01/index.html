@@ -101,73 +101,8 @@
     <div class="mini">答えを選ぶと、自動で次の問題へ進みます。間違えた問題は復習リストに保存されます。</div>
   </div>
 </div>
+<script src="questions.js"></script>
 <script>
-// 問題は、先生指定の画像から確認できたものだけを登録する。
-const QUESTIONS = [
-  {
-    id: "vintage_219_848",
-    no: 848,
-    section: 219,
-    type: "blank",
-    sentence: "I cannot (    ) a kimono by myself, so my mother always helps me.",
-    choices: ["put on", "wear", "wearing", "wear out"],
-    answer: "put on",
-    japanese: "私は一人で着物を着ることができないので、母がいつも手伝ってくれます。"
-  },
-  {
-    id: "vintage_219_849",
-    no: 849,
-    section: 219,
-    type: "blank",
-    sentence: "That hat is just the color I’ve been looking for. May I (    ), please?",
-    choices: ["do away with it", "try it on", "tear it off", "search it"],
-    answer: "try it on",
-    japanese: "その帽子はまさに私が探していた色です。試着してもいいですか。"
-  },
-  {
-    id: "vintage_219_850",
-    no: 850,
-    section: 219,
-    type: "converted_blank",
-    sentence: "Please (    ) your shoes after you step into the entrance.",
-    choices: ["repair", "remove", "regain", "restrict"],
-    answer: "remove",
-    japanese: "玄関に入ったら、靴を脱いでください。",
-    originalTarget: "take off"
-  },
-  {
-    id: "vintage_219_851",
-    no: 851,
-    section: 219,
-    type: "converted_blank",
-    sentence: "He had to (    ) his employees’ request.",
-    choices: ["accept", "criticize", "follow", "reject"],
-    answer: "reject",
-    japanese: "彼は従業員たちの要求を断らなければなりませんでした。",
-    originalTarget: "turn down"
-  },
-  {
-    id: "vintage_219_852",
-    no: 852,
-    section: 219,
-    type: "blank",
-    sentence: "Hey, I love this song. Could you turn (    ) the volume, please?",
-    choices: ["out", "into", "up", "from"],
-    answer: "up",
-    japanese: "ねえ、この曲好きです。音量を上げてもらえますか。"
-  },
-  {
-    id: "vintage_219_853",
-    no: 853,
-    section: 219,
-    type: "blank",
-    sentence: "Please be sure to (    ) the gas before you leave the apartment.",
-    choices: ["turn off", "stop off", "blow out", "shut out"],
-    answer: "turn off",
-    japanese: "アパートを出る前に、必ずガスを止めてください。"
-  }
-];
-
 const questions = QUESTIONS.map(question => ({
   ...question,
   en: question.sentence,
