@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>GRAMMAR RUSH — 英文法スプリント</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161233; --card:#221C4D; --card2:#2B2460;
+  --ink:#F6F2FF; --sub:#9D93C9;
+  --heat:#6FD6FF; --heat-soft:rgba(111,214,255,.18);
+  --good:#5EE6A8; --bad:#FF6B81; --gold:#FFD75E;
+  --r:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN',sans-serif;
+  overflow:hidden; user-select:none;
+}
+#app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;padding:16px;position:relative}
+
+.screen{display:none;flex-direction:column;flex:1;min-height:0}
+.screen.active{display:flex;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+button{font-family:inherit;border:none;cursor:pointer;color:inherit}
+.big-btn{
+  background:var(--heat); color:#161233;
+  font-weight:800;font-size:19px;padding:17px;border-radius:999px;width:100%;
+  box-shadow:0 6px 0 rgba(0,0,0,.35); transition:transform .08s;
+}
+.big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.big-btn.alt{background:var(--card2);color:var(--ink);margin-top:10px}
+.ghost-btn{background:var(--card);color:var(--sub);font-weight:700;font-size:14px;padding:13px;border-radius:999px;width:100%;margin-top:10px}
+.eyebrow{font-size:11px;letter-spacing:.25em;color:var(--sub);font-weight:700}
+
+/* ===== ホーム ===== */
+#home{justify-content:flex-start;gap:12px;overflow-y:auto;padding-top:2vh}
+.logo{font-family:'Archivo Black',sans-serif;font-size:17px;line-height:1;letter-spacing:-.02em}
+.logo .rush{color:var(--heat)}
+.stat-row{display:flex;gap:8px}
+.stat{flex:1;background:var(--card);border-radius:var(--r);padding:12px 8px;text-align:center}
+.stat b{display:block;font-size:21px;font-weight:800}
+.stat span{font-size:10px;color:var(--sub);font-weight:700}
+#toneBox{background:var(--card);border-radius:var(--r);padding:14px}
+#toneBox h3{font-size:11px;letter-spacing:.2em;color:var(--sub);margin-bottom:9px}
+#toneChips{display:flex;flex-wrap:wrap;gap:7px}
+#rangeBox{background:var(--card);border-radius:var(--r);padding:14px}
+#rangeBox h3{font-size:11px;letter-spacing:.2em;color:var(--sub);margin-bottom:9px}
+.range-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.range-row input{width:78px;background:var(--card2);border:1.5px solid transparent;border-radius:12px;padding:9px 10px;font-size:15px;font-weight:800;color:var(--ink);text-align:center}
+.range-row input:focus{outline:none;border-color:var(--heat)}
+.range-row .dash{color:var(--sub);font-weight:800}
+.range-now{margin-top:8px;font-size:12px;font-weight:700;color:var(--heat)}
+.chip{
+  background:var(--card2);border:1.5px solid transparent;border-radius:999px;
+  padding:8px 13px;font-size:12px;font-weight:800;color:var(--sub);
+  transition:transform .07s;
+}
+.chip:active{transform:scale(.94)}
+.chip.sel{border-color:var(--heat);color:var(--heat);background:var(--heat-soft)}
+#reviewBadge{display:none;background:var(--heat-soft);border:1.5px dashed var(--heat);color:var(--heat);border-radius:var(--r);padding:11px 14px;font-size:13px;font-weight:700;width:100%;text-align:left}
+#zukanBtn{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:var(--r);padding:13px 14px;width:100%;font-size:13px;font-weight:800;text-align:left}
+#zukanBtn .pct{color:var(--gold)}
+
+/* ===== クイズ ===== */
+#hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+#qnum{font-weight:800;color:var(--sub);font-size:14px}
+#lives{font-size:14px;letter-spacing:2px}
+.timerbar{height:8px;background:#0F0C26;border-radius:99px;overflow:hidden;margin-bottom:14px}
+#timerfill{height:100%;background:var(--heat);width:100%;border-radius:99px}
+#qcard{
+  background:var(--card);border-radius:24px;padding:22px 18px;text-align:left;
+  position:relative;border:2px solid transparent;
+}
+#qword{font-size:clamp(17px,4.6vw,21px);line-height:1.65;font-weight:700;word-break:normal;overflow-wrap:break-word}
+#qword .lead{display:block;color:var(--gold);font-size:13px;font-weight:800;margin-bottom:8px}
+#choices{display:grid;gap:12px;margin-top:14px;flex:1;align-content:start;overflow-y:auto}
+.choice{
+  background:var(--card2);border-radius:var(--r);padding:15px 14px;font-size:18px;font-weight:700;
+  text-align:left;display:flex;align-items:center;gap:12px;
+  transition:transform .07s, background .15s;border:2px solid transparent;
+}
+.choice:active{transform:scale(.97)}
+.choice .key{min-width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--sub);flex:none}
+.choice.correct{background:rgba(94,230,168,.16);border-color:var(--good);color:var(--good)}
+.choice.wrong{background:rgba(255,107,129,.14);border-color:var(--bad);color:var(--bad);animation:shake .35s}
+.choice.dim{opacity:.35}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* ===== 解説オーバーレイ(間違えたときだけ) ===== */
+#expl{display:none;position:fixed;inset:0;z-index:150;background:rgba(10,8,30,.86);
+  align-items:center;justify-content:center;padding:22px}
+#explCard{background:var(--card);border-radius:22px;padding:22px 20px;width:100%;max-width:400px;animation:pop .3s;
+  max-height:80dvh;overflow-y:auto}
+#explCard h4{font-size:12px;letter-spacing:.15em;color:var(--bad);font-weight:800;margin-bottom:10px}
+#explAns{font-size:19px;font-weight:800;color:var(--good);margin-bottom:12px;line-height:1.4}
+#explBody{font-size:15px;line-height:1.8;color:var(--ink);font-weight:500}
+.exp-sec{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.10)}
+.exp-sec h5{font-size:11px;letter-spacing:.12em;color:var(--sub);font-weight:800;margin-bottom:8px}
+.exp-wrong{display:flex;gap:8px;margin-bottom:9px;line-height:1.65}
+.exp-wrong .wc{color:var(--bad);font-weight:800;font-size:13px;flex:none;max-width:42%}
+.exp-wrong .wt{font-size:13px;color:var(--ink);font-weight:500;opacity:.92}
+.exp-plus{margin-top:14px;background:rgba(111,214,255,.10);border-left:3px solid var(--heat);border-radius:8px;padding:11px 12px;font-size:14px;line-height:1.7}
+.exp-plus .pl{font-size:11px;letter-spacing:.12em;color:var(--heat);font-weight:800;display:block;margin-bottom:5px}
+.exp-ex{margin-top:9px;font-size:14px;line-height:1.65}
+.exp-ex .en{font-weight:700}
+.exp-ex .ja{color:var(--sub);font-size:13px;font-weight:500}
+#explTap{margin-top:16px;text-align:center;font-size:12px;color:var(--sub);font-weight:700}
+
+/* ===== 結果 ===== */
+#result{justify-content:center;text-align:center}
+#resScore{font-family:'Archivo Black';font-size:60px;color:var(--heat)}
+#resMode{font-size:12px;color:var(--sub);font-weight:800;letter-spacing:.2em}
+#resBest{font-size:13px;font-weight:800;color:var(--good);min-height:20px;margin-top:2px}
+#resWrong{background:var(--card);border-radius:var(--r);padding:14px;text-align:left;font-size:14px;max-height:34dvh;overflow-y:auto;margin:14px 0}
+#resWrong h4{font-size:11px;color:var(--sub);letter-spacing:.15em;margin-bottom:8px}
+#resWrong .w{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-weight:700;line-height:1.5}
+#resWrong .w b{display:block;font-size:13px;font-weight:700;margin-bottom:3px}
+#resWrong .w span{color:var(--good);font-weight:800;font-size:13px}
+#praise{display:none;font-size:17px;font-weight:800;color:var(--gold);margin-bottom:6px;animation:pop .5s}
+
+/* ===== 図鑑 ===== */
+#zukan{overflow:hidden}
+#zukanHead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+#zukanHead h2{font-family:'Archivo Black';font-size:22px}
+#zukanPct{color:var(--gold);font-weight:800}
+.zbar{height:9px;background:#0F0C26;border-radius:99px;overflow:hidden;margin-bottom:12px}
+#zfill{height:100%;background:var(--gold);width:0%;border-radius:99px}
+#zlist{flex:1;overflow-y:auto;background:var(--card);border-radius:var(--r);padding:6px 14px}
+.zw{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);font-weight:700;font-size:13px;line-height:1.55}
+.zw .ztop{display:flex;align-items:flex-start;gap:9px}
+.znum{color:var(--heat);font-weight:800;font-size:12px;min-width:34px;font-family:'Archivo Black',sans-serif;flex:none;padding-top:2px}
+.zq{flex:1;font-weight:600}
+.zw .zans{color:var(--sub);font-weight:500;font-size:12px;margin-top:4px;margin-left:43px}
+.zw.locked{opacity:.35}
+.zw .tag{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;margin-left:6px;white-space:nowrap}
+.zw .tag.m{background:rgba(255,215,94,.18);color:var(--gold)}
+.zw .tag.t{background:rgba(111,214,255,.15);color:#6FD6FF}
+.zw .tag.w{background:rgba(255,107,129,.15);color:var(--bad)}
+
+/* ===== 全問正解 演出 ===== */
+#celebrate{position:fixed;inset:0;z-index:200;pointer-events:none;display:none;overflow:hidden;background:transparent}
+#arashiBg{position:absolute;inset:0;opacity:0;background:
+  linear-gradient(120deg,#FF5BA8,#FF9F43,#FFD75E,#5EE6A8,#6FD6FF,#A86CFF,#FF5BA8);
+  background-size:300% 300%}
+#arashiBg.go{animation:arBgFade 3.2s ease-out forwards, rbShift2 3s linear infinite}
+@keyframes arBgFade{0%{opacity:0}12%{opacity:.85}82%{opacity:.85}100%{opacity:0}}
+@keyframes rbShift2{from{background-position:0 0}to{background-position:300% 300%}}
+.praise-word{position:absolute;will-change:transform,opacity;pointer-events:none;
+  font-family:'M PLUS Rounded 1c','Archivo Black',sans-serif;font-weight:900;white-space:nowrap;
+  text-shadow:0 2px 8px rgba(0,0,0,.25),0 0 18px rgba(255,255,255,.5)}
+#flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fff,rgba(255,255,255,0));opacity:0}
+#flash.go{animation:flashAnim .5s ease-out}
+@keyframes flashAnim{0%{opacity:.9}100%{opacity:0}}
+.confetti{position:fixed;width:10px;height:10px;top:-12px;pointer-events:none;z-index:99;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110dvh) rotate(720deg)}}
+
+/* なまえ */
+#nameBtn{background:none;color:var(--sub);font-size:13px;font-weight:700;padding:4px 0 0;text-align:left}
+#nameModal{display:none;position:fixed;inset:0;background:rgba(10,8,30,.75);z-index:100;align-items:center;justify-content:center;padding:24px}
+#nameCard{background:var(--card);border-radius:22px;padding:24px 20px;width:100%;max-width:340px;text-align:center;animation:pop .3s}
+#nameCard h3{font-size:16px;font-weight:800;margin-bottom:4px}
+#nameCard p{font-size:12px;color:var(--sub);margin-bottom:14px}
+#nameInput{width:100%;background:#0F0C26;border:1.5px solid var(--card2);border-radius:14px;color:var(--ink);font-family:inherit;font-size:17px;font-weight:700;padding:13px;text-align:center;user-select:text;-webkit-user-select:text;outline:none}
+#nameInput:focus{border-color:var(--heat)}
+#nameBtns{display:flex;gap:10px;margin-top:14px}
+#nameBtns button{flex:1;border-radius:999px;padding:12px;font-weight:800;font-size:14px}
+#nameOk{background:var(--heat);color:#161233}
+#nameSkip{background:var(--card2);color:var(--sub)}
+#sndToggle{position:absolute;top:16px;right:16px;background:var(--card);width:40px;height:40px;border-radius:12px;font-size:18px;z-index:5}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="celebrate">
+    <div id="arashiBg"></div>
+    <div id="flash"></div>
+  </div>
+  <button id="sndToggle" aria-label="サウンド切り替え">🔊</button>
+
+  <!-- ホーム -->
+  <section id="home" class="screen active">
+    <div>
+      <p class="eyebrow">英文法スプリント</p>
+      <h1 class="logo">GRAMMAR <span class="rush">RUSH</span></h1>
+      <button id="nameBtn"></button>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><b id="stSurv">0</b><span>サバイバル記録</span></div>
+      <div class="stat"><b>🔥<span id="stStreak">0</span></b><span>連続日数</span></div>
+      <div class="stat"><b id="stAcc">-%</b><span>正答率</span></div>
+    </div>
+    <div id="toneBox">
+      <h3>♪ 効果音の音色(タップで試聴)</h3>
+      <div id="toneChips"></div>
+    </div>
+    <button id="zukanBtn">📖 問題図鑑 <span class="pct" id="zukanRate">0%</span></button>
+    <button id="reviewBadge">⚡ 苦手な問題が <b id="weakCount">0</b> 問 — 復習しよう</button>
+    <div id="rangeBox">
+      <h3>📏 出題範囲(問題番号)</h3>
+      <div class="range-row">
+        <input id="rangeLo" type="number" inputmode="numeric">
+        <span class="dash">〜</span>
+        <input id="rangeHi" type="number" inputmode="numeric">
+        <button id="rangeSet" class="chip sel">セット</button>
+        <button id="rangeAll" class="chip">全部</button>
+      </div>
+      <div id="rangeNow" class="range-now"></div>
+    </div>
+    <div style="margin-top:auto;padding-top:8px">
+      <button class="big-btn" id="startBtn">スプリント(8問)▶</button>
+      <button class="big-btn alt" id="survBtn">🛡 サバイバル(3ミスで終了)</button>
+      <button class="ghost-btn" id="reviewBtn" style="display:none">苦手だけ復習する</button>
+    </div>
+  </section>
+
+  <!-- クイズ -->
+  <section id="quiz" class="screen">
+    <div id="hud">
+      <span id="qnum">Q1 / 8</span>
+      <span id="lives"></span>
+    </div>
+    <div class="timerbar"><div id="timerfill"></div></div>
+    <div id="qcard">
+      <div id="qword"></div>
+    </div>
+    <div id="choices"></div>
+  </section>
+
+  <!-- 解説(間違えたときだけ) -->
+  <div id="expl">
+    <div id="explCard">
+      <h4>✗ もう一歩</h4>
+      <div id="explAns"></div>
+      <div id="explBody"></div>
+      <div id="explTap">タップで次へ ▶</div>
+    </div>
+  </div>
+
+  <!-- 結果 -->
+  <section id="result" class="screen">
+    <p class="eyebrow" id="resMode">RESULT</p>
+    <div id="praise"></div>
+    <div id="resScore">0</div>
+    <div id="resBest"></div>
+    <div id="resWrong" style="display:none"><h4>まちがえた問題</h4><div id="resWrongList"></div></div>
+    <button class="big-btn" id="againBtn">もう1回 ▶</button>
+    <button class="ghost-btn" id="homeBtn">ホームへ</button>
+  </section>
+
+  <!-- 図鑑 -->
+  <section id="zukan" class="screen">
+    <div id="zukanHead"><h2>問題図鑑</h2><span id="zukanPct">0%</span></div>
+    <div class="zbar"><div id="zfill"></div></div>
+    <div id="zlist"></div>
+    <button class="ghost-btn" id="zukanBack">ホームへ戻る</button>
+  </section>
+
+  <!-- なまえ入力 -->
+  <div id="nameModal">
+    <div id="nameCard">
+      <h3>なまえを教えてね</h3>
+      <p>あとで「ようこそ」のところから変えられます</p>
+      <input id="nameInput" maxlength="10" placeholder="ニックネームでもOK">
+      <div id="nameBtns"><button id="nameSkip">あとで</button><button id="nameOk">けってい</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= 問題データ =================
+   [番号, 問題文, 正解, 誤答1, 誤答2, 誤答3, 解説]
+   ・空所は ( ) で表記
+   ・下線同意型は問題文の先頭に 【○○ と同じ意味は?】 を付ける
+*/
+const QUESTIONS = [
+[848,"I cannot ( ) a kimono by myself, so my mother always helps me.","put on","wear","wearing","wear out","put on A / put A on「A(衣服など)を身につける」。put on は「着る」という1回の動作、wear は「着ている」という状態を表す。"],
+[849,"That hat is just the color I've been looking for. May I ( ), please?","try it on","do away with it","tear it off","search it","try on A / try A on「A(衣服など)を試着する」。代名詞が目的語のときは必ず try it on の語順。"],
+[850,"【take off と同じ意味は?】Please take off your shoes after you step into the entrance.","remove","repair","regain","restrict","take off A / take A off「A(衣服など)を脱ぐ」(= remove A)。目的語を取らない take off は「離陸する」。"],
+[851,"【turn down と同じ意味は?】He had to turn down his employees' request.","reject","accept","criticize","follow","turn down A / turn A down「A(申し出・要求・招待など)を断る」(= reject A)。「A(の音量)を下げる」の意味もある。"],
+[852,"Hey, I love this song. Could you turn ( ) the volume, please?","up","out","into","from","turn up A / turn A up「A(の音量)を上げる」(⇔ turn down A / turn A down)。"],
+[853,"Please be sure to ( ) the gas before you leave the apartment.","turn off","stop off","blow out","shut out","turn off A / turn A off「A(水道・ガスなど)を止める/A(テレビ・照明など)を消す」(⇔ turn on A)。"],
+[854,"【put off と同じ意味は?】The game has been put off due to the bad weather.","postponed","cancelled","expected","announced","put off A / put A off「A（予定など）を延期する」= postpone A。put off doing「…することを延期する」の形もある。"],
+[855,"【call off と同じ意味は?】The trip to Disneyland has been called off because of the weather.","cancelled","postponed","designed","planned","call off A / call A off「A（予定など）を中止する」= cancel A。put off「延期する」との違いに注意。"],
+[856,"【pick up と同じ意味は?】Within a few days, I managed to pick up a little French.","learn","load","hear of","speak up","pick up A / pick A up「A（言葉・技術など）を習得する」= learn A。"],
+[857,"Would you ( ) me up at the station at six?","pick","bring","catch","take","pick up A / pick A up「A（人）を車で迎えに行く［来る］」。ここでは pick me up「私を車で迎えに来る」。"],
+[858,"【picked out と同じ意味は?】Cathy picked out a good book to give to her brother as a graduation gift.","selected","delivered","hid","published","pick out A / pick A out「Aを選び出す」= choose A / select A。"],
+[859,"Please ( ) away your things when you've finished using them.","put","go","get","pass","put away A / put A away「Aを片付ける／元の場所へしまう」。"],
+[860,"【put away と同じ意味は?】Every month I try to put away some money.","save","rescue","spend","make","put away A / put A away「A（お金・時間・食物など）をとっておく／蓄える」= save A。"],
+[861,"【put aside と同じ意味は?】John is a hard worker and he makes it a rule to put aside 20 percent of his income every month.","save","spend","send","score","put aside A / put A aside「A（お金・時間・食物など）をとっておく／蓄える」= save A。"],
+[862,"【set up と同じ意味は?】I'm planning to set up a joint venture with them.","establish","come over","get out","make in","set up A / set A up「A（会社・制度・施設など）を設立する」= establish A。"],
+[863,"Charley made ( ) a very good excuse about why he was late for class.","up","in","off","away","make up A / make A up「A（話・弁解・うそなど）をでっちあげる」= invent A。make up A には「Aを構成する」の意味もある。"],
+[864,"【make out と同じ意味は?】The book contained many hard words, and Ann could not make out what the writer meant.","understand","create","show","produce","make out A / make A out「Aを理解する」= understand A / comprehend A。"],
+[865,"【figure out と同じ意味は?】Can you figure out this word?","understand","hear","imagine","calculate","figure out A / figure A out「Aを理解する」= understand A / comprehend A / make out A。"],
+[866,"【work out と同じ意味は?】I'm going to work out this math problem all by myself.","solve","soak","apply","decline","work out A / work A out「A（問題など）を苦労して解く」= solve A。「A（計画・理論など）を考え出す」= devise A の意味もある。"],
+[867,"【take on と同じ意味は?】Margaret was asked to take on the additional work at the office.","undertake","confuse","stop","remove","take on A / take A on「A（仕事など）を引き受ける」= undertake A / agree to do A。"],
+[868,"【take on と同じ意味は?】We will have to take on someone to do his work while he is away.","employ","dismiss","hide","remove","take on A / take A on「A（人）を雇う」= hire A / employ A。"],
+[869,"【put out と同じ意味は?】It took a whole day to put out the fire.","extinguish","light","start","cancel","put out A / put A out「A（火・照明など）を消す」= extinguish A。"],
+[870,"【keep up と同じ意味は?】It is hard to keep up that kind of lifestyle.","maintain","destroy","analyze","hide","keep up A / keep A up「Aを維持する」= maintain A / continue A。keep up with A「Aについて行く」と混同しない。"],
+[871,"【called up と同じ意味は?】He called up his former boss.","rang","consulted","shouted at","visited","call up A / call A up「A（人）に電話する」= (tele)phone A / ring A。"],
+[872,"【back up と同じ意味は?】I will gladly back up your suggestion.","support","satisfy","supply","provide","back up A / back A up「Aを支持［支援］する」= support A。"],
+[873,"John has ( ) his smoking from thirty to ten cigarettes a day.","cut down","put up","shaken up","turned down","cut down A / cut A down「A（数・量）を減らす」= reduce A。cut down on A も同じ意味で用いる。"],
+[874,"Unknown words should be ( ) in a dictionary.","looked up","checked with","consulted by","discovered from","look up A / look A up「Aを本・辞書・コンピューターなどで調べる」。look up a word in a dictionary が基本。× look up a dictionary は不可。"],
+[875,"【look over と同じ意味は?】I want to look over the letter before it goes out.","examine","put off","finish up","add to","look over A / look A over「Aにざっと目を通す」= examine A quickly。"],
+[876,"This is a big decision, so please take time to ( ) it over.","think","approve","insist","take","think over A / think A over「Aを熟考する」= consider A carefully。"],
+[877,"In order to apply for the dormitory, you need to ( ) your name, address, and telephone number on this form.","fill in","write off","give out","tell off","fill in A / fill A in「氏名・職業などを書き込む／書類に必要事項を記入する」。用紙そのものについては fill out A も使う。"],
+[878,"【fill out と同じ意味は?】Please fill out this application form.","complete","compose","compromise","contain","fill out A / fill A out「A（書類・用紙など）に必要事項を記入する」= fill in A / complete A。"],
+[879,"【hand in と同じ意味は?】You are supposed to hand in the report by the end of this week.","submit","complete","acquire","read","hand in A / hand A in「Aを提出する」= submit A。"],
+[880,"You should ( ) your assignment no later than Monday.","turn in","get along","see off","try on","turn in A / turn A in「Aを提出する」= submit A / hand in A。no later than A「遅くともAまでに」。"],
+[881,"【took back と同じ意味は?】He took back what he had said previously.","withdrew","persuaded","pretended","established","take back A / take A back「A（言葉など）を取り消す／撤回する」= withdraw A。"],
+[882,"【held back と同じ意味は?】It was with great difficulty that I held back my anger.","controlled","expressed","softened","showed","hold back A / hold A back「A（感情など）を抑える」= control A。"],
+[883,"The manager suddenly resigned, and I took ( ) her position last week.","over","down","off","through","take over A / take A over「A（職務など）を引き継ぐ」。"],
+[884,"【brought up と同じ意味は?】She was brought up by her grandmother in Hokkaido.","raised","spoiled","scolded","treasured","bring up A / bring A up「A（子ども）を育てる」= raise A。grow up「育つ」と区別。"],
+[885,"【brought about と同じ意味は?】Heavy rains brought about heavy flooding.","caused","responded","saved","transformed","bring about A / bring A about「Aを引き起こす」= cause A。"],
+[886,"【show off と同じ意味は?】I felt a little uncomfortable because everybody in the English class tried to show off their English skills.","proudly display","reservedly hide","bluntly criticize","modestly describe","show off A / show A off「Aを見せびらかす／誇示する」。"],
+[887,"【carried out と同じ意味は?】Most of the tasks were carried out carefully.","completed","given","held","discussed","carry out A / carry A out「A（計画・命令など）を遂行する／行う」= accomplish A / perform A / complete A。"],
+[888,"Last month the company had to ( ) several hundred factory workers.","lay off","stir up","turn over","come across","lay off A / lay A off「A（人）を一時解雇する」。"],
+[889,"【leave out と同じ意味は?】Why did Bill leave out the first two questions on his examination?","omit","look up","answer","turn out","leave out A / leave A out「Aを除外する／（うっかり）抜かす」= omit A。"],
+[890,"We left in a hurry and I must have left my keys ( ).","behind","with me","alone","a place","leave behind A / leave A behind「Aを置き忘れる／後に残す」。"],
+[891,"【let you down と同じ意味は?】He will never let you down.","disappoint you","hold you","put you down","defend you","let down A / let A down「A（人）を失望させる」= disappoint A。"],
+[892,"【ruled out と同じ意味は?】Police have not ruled out the possibility that the man was murdered.","excluded","been aware of","attached importance to","supported","rule out A / rule A out「A（可能性・疑いなど）を排除する／除外する」= exclude A。"],
+[893,"【taken in と同じ意味は?】People are often taken in by the fact that advertisements appear in reputable magazines and papers.","deceived","accused","criticized","gratified","take in A / take A in「Aをだます」= deceive A。特に be taken in「だまされる」の受動態でよく使われる。"],
+[894,"He listened to the lecture, but could take ( ) none of it.","in","through","to","up","take in A / take A in「Aを理解する」= understand A / comprehend A。"],
+[896,"The team ( ) of two professionals and five amateurs.","consists","includes","limits","made","consist of A「Aから成る／成り立っている」= be composed of A / be made up of A。"],
+[897,"The main duty of the midwife ( ) in assisting in the birthing process.","consists","grows up","organizes","establishes","consist in A「（本質が）Aにある」= lie in A。"],
+[899,"【deal with と同じ意味は?】The international community is ready to deal with serious issues.","handle","discover","produce","understand","deal with A「A（問題など）に対処する／Aを処理する」= handle A。"],
+[900,"Another issue to think about is how banks cope ( ) computer hackers.","with","in","at","to","cope with A「A（問題など）にうまく対処する／Aをうまく処理する」。"],
+[901,"Tooth decay often ( ) from eating sweets.","results","is resulted","causes","is caused","result from A「A（原因）から生じる」= be caused by A。"],
+[902,"Lack of preparation and effort ( ) in a poor performance.","results","amounts","brings","causes","result in A「A（結果）に終わる／Aという結果になる」。result from＝原因、result in＝結果 の区別が重要。"],
+[905,"I wonder why you won't agree ( ) my plan.","to","for","in","of","agree to A「A（提案・計画など）に同意する」。agree with A は「A（人）と意見が一致する／A（意見・考え）に同意する」。"],
+[906,"I'd better not eat fried oysters. Oily food does not ( ) with me.","agree","taste","digest","satisfy","agree with A「（環境・気候・食べ物などが）A（人の体質・性格）に合う」。"],
+[907,"It ( ) on the circumstances whether they go on a strike.","depends","appears","differs","insists","depend on [upon] A「A次第である／Aによって決まる」。「Aに依存する／頼る」= rely on A の意味もある。"],
+[908,"Craft shops in many small villages ( ) to tour buses to bring them customers.","rely on","take after","stand out","attend","rely on [upon] A「Aに頼る／Aを当てにする」= depend on [upon] A。ここでは rely on A to do「Aが…するのを当てにする」。"],
+[909,"He's a reliable boss, so you can always count ( ) him.","on","by","out","to","count on [upon] A「Aに頼る／Aを当てにする」= depend on A / rely on A。"],
+[910,"We live ( ) the very small income of our father.","on","with","in","for","live on A「A（少額のお金）で生活する」。「A（食物）を常食にする」の意味もある。"],
+[911,"She got ( ) her office half an hour late because of the traffic jam.","to","at","up","on","get to A「A（場所）に到着する」= arrive at A / reach A。"],
+[913,"Mr. Kimura specialized ( ) commerce when he was in university.","in","at","for","on","specialize in A「A（学問）を専攻する／A（研究・商売など）を専門にする」= major in A。"],
+[914,"My cousin Bob majored ( ) French in college.","in","at","for","on","major in A「A（学問）を専攻する」= specialize in A。"],
+[915,"We had to do ( ) petrol during the fuel crisis.","without","into","to","with","do without A「Aなしですます／Aなしでやっていく」= dispense with A。"],
+[916,"【dispense with と同じ意味は?】Yoko has to dispense with her father's support.","do without","put down","come across","agree with","dispense with A「Aなしですます／Aなしでやっていく」= do without A。"],
+[917,"The sales manager stuck ( ) the original plan even though the market situation had changed.","to","on","up","for","stick to A「A（主義・決定など）を堅持する／Aに固執する」= cling to A。stick－stuck－stuck。"],
+[918,"【ran across と同じ意味は?】I ran across an old friend in town last week.","met by chance","found easily","saw off","heard of","run across A「A（人・物）に偶然出くわす」= meet/find A by chance / come across A。"],
+[919,"【ran into と同じ意味は?】Mary was walking down the street when she suddenly ran into Joan.","met by chance","saw off","got over","looked into","run into A「A（人）に偶然出会う」= meet A by chance / come[run] across A。「Aに衝突する」の意味もある。"],
+[920,"Where did you come ( ) such a rare old photo?","across","about","to","true","come across A「A（人・物）に偶然出くわす」= meet/find A by chance / run across A。"],
+[921,"It never ( ) to her that graduate school would be so difficult.","occurred","happened","reminded","thought","occur to A「（考えなどが）A（人）の心に浮かぶ」。It occurs to A that SV の形で頻出。"],
+[922,"【hit on と同じ意味は?】Julie hit on the idea while they were discussing the problem.","discovered","opposed","suggested","supported","hit on[upon] A「A（考えなど）を思いつく」= come up with A。"],
+[923,"The university does not ( ) of smoking on campus at all.","approve","consist","dispose","learn","approve of A「Aに賛成する／Aを是認する」⇔ disapprove of A「Aに反対する」。"],
+[924,"You were foolish enough to part ( ) all your money on one night.","with","for","in","on","part with A「（やむなく）Aを手放す／売り払う」。"],
+[925,"There is too much noise for me to ( ) on my homework.","concentrate","hold","lead","count","concentrate on A「Aに（注意・努力を）集中する／専念する」。"],
+[926,"【amount to と同じ意味は?】Susan's savings will soon amount to one million yen.","total","look like","decrease to","exceed","amount to A「（総計が）A（数・量・額）に達する」= total A。amount to doing「結局…することになる」。"],
+[927,"【referred to と同じ意味は?】The student referred to the accident he had witnessed.","mentioned","made","passed","submitted","refer to A「Aに言及する」= mention A / speak about A。「Aを参照する／調べる」の意味もある。"],
+[928,"Mr. Brown ( ) angrily at the class. \"Who has taken my homework folder?\" he shouted.","stared","glimpsed","viewed","watched","stare at A「（驚いて・怒って）Aをじっと見つめる／にらみつける」。"],
+[929,"My sister insisted ( ) the problem by myself.","on my solving","me to solve","on me to solve","that I should be solved","insist on A / A's doing「Aを要求する／Aが…するよう要求する」。My sister insisted that I (should) solve ... と書き換えられる。"],
+[930,"If you persist ( ) late, I'm afraid I'll have to report it to the director.","in arriving","for arriving","of arriving","to arrive","persist in A / doing「A［…すること］に固執する／…し続ける」= continue to do。"],
+[931,"If a holiday ( ) on a Sunday, we usually get the next Monday off.","falls","turns","sets","goes","fall on A「休日・日程・行事などがA（特定の日）にあたる」。"],
+[932,"The famous actor died ( ) cancer.","of","by","in","out","die of A「Aが原因で死ぬ」= die from A。"],
+[933,"Simon succeeded ( ) starting the car.","in","on","for","to","succeed in A / doing「A［…すること］に成功する」。succeed to A は「Aのあとを継ぐ」。"],
+[935,"Please refrain ( ) smoking.","from","at","for","on","refrain from A / doing「A［…すること］を差し控える」= abstain from A。"],
+[936,"【set about と同じ意味は?】She had better set about her work immediately.","begin","stop","choose","decide","set about A / doing「A［…すること］にとりかかる」= begin A。"],
+[937,"An old woman was run ( ) by a truck.","over","on","under","up","run over A「車などがAをひく／はねる」。受動態 A is run over の形でよく用いる。"],
+[938,"【get over と同じ意味は?】It is necessary for him to get over his depression.","overcome","analyze","obtain","consult","get over A「A（障害・困難・不幸など）を克服する／乗り越える」= overcome A。"],
+[939,"Would you like to ( ) your speech with me before you go to the conference?","go over","take over","turn over","get over","go over A「A（せりふ・説明など）を読み返す／繰り返し見直す」。「Aを入念に調べる」の意味もある。"],
+[940,"【called on と同じ意味は?】I called on you last night but you were not in.","visited","telephoned","remembered","saw","call on A「A（人）を訪ねる」= visit A。場所なら call at A。"],
+[941,"Please keep ( ) the grass when you play catch there.","off","up","in","from","keep off A「Aに近づかない／Aから離れておく」。Keep off the grass.「芝生立ち入り禁止」。"],
+[942,"【went through と同じ意味は?】The company went through a difficult time.","experienced","stopped","examined","heard","go through A「A（苦しみ・困難など）を経験する」= experience A / undergo A。"],
+[943,"I'll have to ( ) the phone now. I'm out of time.","hang up","set about","hang on","make up","hang up A「A（電話）を切る」。hang on は「電話を切らずに待つ」。"],
+[944,"【carry on と同じ意味は?】I'll carry on my business there.","continue","convey","delay","transport","carry on A / doing「A［…すること］を続ける」= continue A。"],
+[945,"【takes after と同じ意味は?】He takes after his older brother.","resembles","cares","hates","likes","take after A「A（親など）に容姿・性質が似ている」= resemble A。"],
+[946,"【stand by と同じ意味は?】My sister would often stand by me when I was in trouble.","support","assist","comfort","prepare","stand by A「困難な状況でA（人）を支える／Aの力になる」= support A。"],
+[947,"【stands for と同じ意味は?】The white bird in this picture stands for peace.","represents","guards","loves","worships","stand for A「Aを表す／象徴する」= represent A / symbolize A。"],
+[948,"My friend said that he would look ( ) my dog for me while I am away on vacation next week.","after","of","at","into","look after A「A（人）の世話をする／A（物・事）の面倒を見る」= take care of A。"],
+[949,"The police are looking ( ) the cause of the murder.","into","after","around","like","look into A「Aを調査する／研究する」= investigate A。"],
+[950,"I can't find my keys. Could you help me ( ) them?","look for","look after","look to","look at","look for A「Aを探し求める」= search for A。"],
+[951,"The house was broken ( ) while the owner was on holiday.","into","away","out","with","break into A「A（建物など）に侵入する／押し入る」。ここでは受動態 was broken into。"],
+[952,"【waited on と同じ意味は?】She waited on shoppers all day at the department store.","served","spoke to","showed","looked for","wait on A「店員がA（客）に応対する」= serve A。"],
+[953,"【come by と同じ意味は?】How did you come by such a precious painting?","obtain","search","sell","create","come by A「Aを手に入れる」= obtain A / get A。"],
+[954,"My uncle is going to ( ) for governor in the election next fall.","run","walk","come","fly","run for A「A（役職など）に立候補する」。run for office「選挙に出馬する」。"],
+[955,"In conclusion, I want to thank all who have ( ) to our success.","contributed","applied","reported","enabled","contribute to A「Aに貢献する／寄与する」。「A（結果）の一因になる」の意味もある。"],
+[956,"You can pay ( ) your purchases at any of the cashiers.","for","up","by","with","pay for A「Aの代金を払う」。"],
+[957,"When are you going to apply ( ) the job?","for","at","in","on","apply for A「A（仕事・許可・援助など）を求める／申し込む」。"],
+[958,"It is not always easy for some new students to ( ) to the busy life at university.","adapt","accustom","adopt","learn","adapt to A「A（環境など）に順応［適応］する」。"],
+[959,"【added to と同じ意味は?】Our students' accident added to the teachers' troubles.","increased","led","demanded","calculated","add to A「Aを増やす」= increase A。"],
+[960,"The doctor ( ) immediately after the car accident, and the victim survived.","was sent for","could not get there","was lost","had been seen","send for A「A（人・助けなど）を呼ぶ／Aに来てくれるよう頼む」。ここでは受動態 A was sent for。"],
+[961,"【ask for と同じ意味は?】Don't ask for money.","request","waste","think about","look after","ask for A「A（助け・忠告・情報など）を求める」= request A。"],
+[962,"【called for と同じ意味は?】The economy has high inflation, so the workers called for a salary increase.","demanded","decided","declared","demonstrated","call for A「（公に）Aを要求する」= demand A。"],
+[963,"【believe in と同じ意味は?】You must believe in your own abilities.","trust","trade","train","transform","believe in A「A（人柄・能力など）を信用［信頼］する」= trust A。「Aの存在・正しさを信じる」の意味もある。"],
+[964,"If anything goes wrong, I'll ( ) for the consequences.","answer","call","indict","long","answer for A「Aの責任を取る」= be responsible for A。"],
+[965,"A lack of sleep is ( ) my health.","telling on","asking for","depriving of","heating off","tell on A「Aに悪い影響を与える」= have a harmful effect on A。"],
+[966,"【see to と同じ意味は?】The chef used to see to a lot of dishes at dinner.","deal with","avoid","enjoy","look for","see to A「Aを引き受ける／処理する」= deal with A。see to it that SV「必ずSVするよう取り計らう」も重要。"],
+[967,"I was introduced to the new boss yesterday. I can't say I ( ) him.","took to","took on","took off","took up","take to A「A（人・物）を好きになる」= start to like A。take to doing「習慣的に…するようになる」。"],
+[968,"It started raining, so Kiyomi made ( ) the nearest shelter.","for","out","to","up","make for A「Aに向かっていく」= head for A。"],
+[969,"I don't care ( ) the expense. I just want the party to be a real success.","about","for","in","on","care about A「Aを気にする／心配する」。"],
+[970,"It has become more difficult for families to ( ) for their elderly at home.","care","help","support","treat","care for A「Aの世話をする」= take care of A / look after A。"],
+[971,"【care for と同じ意味は?】He is an old man, and he doesn't care for long trips.","like","worry about","take care of","look for","否定文の care for A は「Aを好む」。don't care for A = don't like A。"],
+[972,"【account for と同じ意味は?】We couldn't account for the fact that she left without saying good-bye.","explain","deny","conceal","accept","account for A「Aの理由を説明する／Aの原因となる」= explain A。"],
+[973,"Asian countries such as Japan, China and South Korea ( ) about 45% of the international students at the university in 2006.","accounted for","made up for","sent for","stood up for","account for A「A（割合・部分など）を占める」= make up A。"],
+[974,"The plane will be ready to ( ) off in a few minutes.","take","hand","look","make","take off「離陸する」⇔ land「着陸する」。衣服を「脱ぐ」の take off A とは別用法。"],
+[975,"The heavy rain forced us to spend the last night at a hotel. = Because of the heavy rain, we had to ( ) up at a hotel last night.","put","go","like","take","put up (at A)「（Aに）泊まる」= stay (at A)。"],
+[976,"Computers may be very useful, but the problem is that mine breaks ( ) as often as my car does.","down","out","up","off","break down「機械・乗り物などが故障する／動かなくなる」。"],
+[977,"Before the meeting breaks ( ), I'd like to say something to you all.","up","out","off","on","break up「会議・パーティーなどが終わる／解散する」。夫婦・友人関係などが「終わる」の意味もある。"],
+[978,"【turned out to be と同じ意味は?】Unfortunately the murderer turned out to be my neighbor.","proved","brought","managed","exploded","turn out (to be) A「Aであると判明する／わかる」= prove (to be) A。"],
+[979,"【stayed up と同じ意味は?】I stayed up until midnight to watch the TV show last night.","didn't go to bed","didn't mind the noise","kept silent","was in a rush","stay up「寝ないで起きている」。stay up late「夜遅くまで起きている」、stay up all night「徹夜する」。"],
+[980,"\"( ) There's a motorbike about to pass us.\" \"Yes, I saw it coming, but thanks for warning me.\"","Watch out!","Dangerous!","Be careless!","Take Attention!","watch out「気をつける／警戒する」= look out / be careful。"],
+[981,"【passed away と同じ意味は?】He was shocked to hear that his friend had passed away.","died","disappeared","left","retired","pass away「（人が）亡くなる」= die。die の婉曲表現。"],
+[982,"Try to keep up with the others in the group. Don't ( ).","fall behind","hold over","leave behind","carry over","fall behind (A)「（Aに）遅れをとる」。"],
+[983,"His shoes ( ) quickly when he takes a walk every day.","wear out","put off","put on","wear on","wear out「靴などがすり減る」= wear away/down。他動詞では wear A out「Aをすり減らす／人を疲れさせる」。"],
+[984,"\"Do wolves still live in the wild in Japan?\" \"No. They died ( ) about a hundred years ago.\"","out","of","over","on","die out「家系・種族などが絶滅する」。"],
+[985,"【set off と同じ意味は?】Jim and Mary set off to visit their relatives in Virginia.","set out","set up","set in","showed up","set off「旅行などに出発する」= set out。"],
+[986,"【starts と同じ意味は?】Why don't you go on a picnic before the rainy season starts?","sets in","turns in","sets up","turns out","set in「季節・天候などが始まる」。"],
+[987,"Why don't you ( ) in and see me some time?","drop","fit","take","set","drop in「ぶらりと立ち寄る／顔を出す」= drop by / drop around。相手を明示すると drop in on A、場所なら drop in at A。"],
+[988,"【went off と同じ意味は?】The bomb went off.","exploded","explained","exercised","experimented","go off「爆弾などが爆発する」= explode。警報・時計などが「鳴る」の意味もある。"],
+[989,"【regained consciousness と同じ意味は?】Mary fainted but regained consciousness after a while.","came to","came at","came in","came on","come to「人が意識を取り戻す」。"],
+[990,"【pulled up と同じ意味は?】The big car pulled up at the traffic light.","stopped","hurried","turned","started","pull up「車などが止まる／一時停止する」= stop。"],
+[991,"【stand out と同じ意味は?】His light brown hair makes him stand out from others in the group.","distinct","favorable","absent","available","stand out「目立つ」。stand out from A「Aよりも目立つ」。ここでは distinct「はっきり異なる、目立つ」。"],
+[992,"【be published と同じ意味は?】Bill's new book will be published at the end of this month.","come out","look out","force out","figure out","come out「本・CDなどが出版［発売］される」= be published。"],
+[993,"【show up と同じ意味は?】It really gets on my nerves that Robert shows up late for every class.","comes","expands","leaves","overflows","show up「人が場所に現れる／来る」= turn up / come。"],
+[994,"【turn up と同じ意味は?】I'm sure your ring will turn up soon.","be found","be bought","submit","sell","turn up「紛失物が見つかる／出てくる」。"],
+[995,"【broke out と同じ意味は?】Many diseases broke out after the war.","appeared","died","disappeared","changed","break out「戦争・火事・病気などが発生する／始まる」。"],
+[996,"【come about と同じ意味は?】How did this accident come about?","happen","appear","end","descend","come about「予想外のことが起こる」= happen。"],
+[997,"【break in on と同じ意味は?】Please don't break in on our conversation.","interrupt","injure","interpret","start","break in (on A)「A（会話など）の邪魔をする／Aに割り込む」= interrupt (A)。"],
+[998,"【come up with と同じ意味は?】In order for your business to succeed, you need to come up with a new strategy.","think of","pick out","put away","try on","come up with A「A（考えなど）を思いつく」= think of A。「A（考えなど）を提案する」= propose A。"],
+[999,"China will soon ( ) with Japan in the field of computer engineering.","catch up","overcome","surpass","go on ahead","catch up with A「A（人・車・国など）に追いつく」。"],
+[1000,"Mr. Roberts gave an interesting lecture today. But most of the students were not able to ( ) his rapid pace.","keep up with","cut down on","look forward to","run out of","keep up with A「A（人・会話・勉強・流行・国際情勢など）に遅れずについていく」。"],
+[1001,"【put up with と同じ意味は?】We had to put up with intense heat this summer.","endure","disregard","overcome","forget","put up with A「A（不快な状況・嫌な相手）をがまんする／Aに耐える」= endure / stand / bear / tolerate A。"],
+[1002,"Sometimes technology falls ( ) its promises.","short of","across","fast","apart","fall short of A「A（目標・期待・基準など）に達しない／及ばない」。"],
+[1003,"He is ( ) short of money.","running","walking","expecting","saving","run short of A「A（お金・水・時間など）が不足する／足りなくなる」。be short of A は「Aが不足している」という状態。"],
+[1004,"The truck stopped in the middle of the road. It seemed to have ( ) fuel.","run out of","cut down on","kept up with","looked forward to","run out of A「A（食料・お金・燃料など）が尽きる／なくなる」。"],
+[1005,"【looked up to と同じ意味は?】Although Bill was only twenty, people looked up to him as a great leader.","respected","neglected","elected","called","look up to A「A（人）を尊敬する／称賛する」= respect A / admire A。"],
+[1006,"【look down on と同じ意味は?】Living in a rich country, we should not look down on homeless people.","disrespect","praise","regard","analyze","look down on A「A（人）を見下す／軽蔑する」= despise A / disrespect A。"],
+[1007,"I feel quite uncomfortable in his presence; he is very hard to get ( ) with.","along","friend","away","together","get along with A「A（人）と仲良くやっていく」。get along だけなら「なんとかやっていく／うまくいく」の意味。"],
+[1008,"She ( ) on with the colleagues in her office.","gets","goes","helps","puts","get on with A「A（人）と仲良くやっていく」。"],
+[1009,"Would you help me with my homework when you get ( ) with yours?","through","over","by","away","get through (with) A「A（仕事など）を終える／仕上げる」= complete A。"],
+[1010,"【live up to と同じ意味は?】My only daughter always studied hard and was able to live up to my expectations.","meet","demand","increase","surprise","live up to A「A（期待・要求など）に応える」= meet A。"],
+[1011,"【speaks ill of と同じ意味は?】Sandy speaks ill of her colleagues very often.","criticizes","chats with","quarrels with","scolds","speak ill [badly] of A「A（人）のことを悪く言う／けなす」= criticize A。⇔ speak well [highly] of A。"],
+[1012,"All of us must look ( ) pickpockets as we walk the streets.","out for","up to","aside from","forward to","look out for A「Aに注意する／気を配る」= watch (out) for A。"],
+[1013,"【stood up for と同じ意味は?】Tom stood up for his friend in the argument.","defended","gave his number to","punished","fought with","stand up for A「A（人・思想・権利など）を守る／擁護する」= defend A / support A。"],
+[1014,"【make up for と同じ意味は?】Nothing can make up for the loss of nature.","compensate for","send for","seek for","stand for","make up for A「A（不足・損失など）の埋め合わせをする」= compensate for A。"],
+[1015,"【did away with と同じ意味は?】The government finally did away with the law.","abolished","announced","devised","recognized","do away with A「A（規則・制度など）を廃止する」= abolish A。"],
+[1016,"【brush up on と同じ意味は?】We need to brush up on our math skills before the next test.","improve","involve","discuss","describe","brush up (on) A「A（忘れていた知識・技術など）を磨き直す」= improve A。"],
+[1017,"【get rid of と同じ意味は?】They should get rid of their differences and become friends.","remove","get involved in","give away","cultivate","get rid of A「A（不快な状況など）から抜け出す／Aを取り除く」= remove A。"],
+[1018,"【given in to と同じ意味は?】My mother finally has given in to my view.","yielded","got","succeeded","opposed","give in (to A)「Aに降参する／屈服する」= yield (to A)。"],
+[1019,"Susan had to make ( ) with her old dress because she couldn't afford to buy a new one.","do","get","go","set","make do with A「十分ではないが、何とかAで間に合わせる／すます」。"],
+[1020,"Customs that older Britons have always taken very seriously are being ( ) by many young people in the UK today.","made light of","made the most of","made something of","made short of","make light of A「Aを軽んじる／甘く見る」。"],
+[1021,"【make much of と同じ意味は?】I didn't make much of her opinion.","value","accept","agree with","welcome","make much of A「Aを重視する／重んじる」= value A。"],
+[1022,"She felt like slapping him in the face, but thought ( ) of it.（= changed her mind）","better","bad","good","much","think better of A「Aを考え直してやめる」。"],
+[1023,"私はルームメートを探している。 I am looking ( ).","for someone to share the room with","for someone with to share the room","someone for to share the room with","for the room to share someone with","share A with B「A（物）をB（人）と共有する」。someone to share the room with「その部屋を共有する誰か」=「ルームメート」。"],
+[1024,"What is frequently said among many linguists is that language is one of the characteristics which ( ) humans from the other animals.","distinguishes","differs","diversifies","distracts","distinguish A from B「AとBを区別する」= tell A from B。"],
+[1025,"The two girls were so much alike that I couldn't ( ) one from the other.","tell","speak","talk","say","tell A from B「AとBを区別する」。"],
+[1026,"彼は何冊かの本をアメリカへ注文した。 He ordered some books ( ) America.","from","to","for","in","order A from B「A（品物）をB（店・場所）に注文する」。"],
+[1027,"Today, people ( ) much less time on their children than before.","spend","hand","make","take","spend A on B「A（時間・お金）をBに使う／費やす」。"],
+[1028,"I congratulated her ( ) winning the tournament.","on","in","by","with","congratulate A on [upon] B / doing「A（人）にB［…したこと］でお祝いを述べる」。"],
+[1029,"The students ( ) most of their free time to the cleanup campaign sponsored by the local community.","contributed","attributed","substituted","distributed","contribute A to B「A（お金・時間・援助など）をBに与える／提供する」。"],
+[1030,"He decided to ( ) the rest of his life to helping young people in developing countries.","devote","perform","promise","remain","devote A to B / doing「A（時間・お金・労力など）をB［…すること］にささげる」= dedicate A to B。"],
+[1031,"The executives attributed the slowdown ( ) the government's economic policy.","to","from","in","except","attribute A to B「A（結果）はBが原因だと考える」= ascribe A to B。"],
+[1032,"I am going to leave Tokyo ( ) Osaka.","for","on","to","near","leave A for B「B（目的地）に向けてAを離れる／AからBへ向かう」。"],
+[1033,"Can I exchange dollars ( ) yen here?","for","by","from","in","exchange A for B「A（通貨）をB（別の通貨）に両替する／AをBと交換する」。"],
+[1034,"Even though Nancy is over twenty, she is often ( ) for a high school student.","taken","regarded","thought","seen","take A for B「AをBだと思う／AをBと間違える」= mistake A for B。"],
+[1035,"The teacher mistook me ( ) my twin brother.","for","with","by","from","mistake A for B「AをB（別の人・物）と間違える」= take A for B。"],
+[1036,"I asked the waiter ( ) tea, but he brought milk.","for","of","about","to","ask A for B「A（人）にBをくれと頼む／要求する」。"],
+[1037,"Grandma had four daughters and no sons. She named each of her four daughters ( ) a flower.","after","in","of","with","name A after [for] B「BにちなんでAに名前をつける」。"],
+[1038,"While he was studying at university, he depended on his parents ( ) financial support.","for","in","of","on","depend on [upon] A for B「B（援助など）をAに依存する／頼る」。"],
+[1039,"In my anguish, I ( ) to my father for help.","turned","appeared","asked","made","turn to A for B「B（援助・忠告など）を求めてAに頼る」。"],
+[1040,"【take part in と同じ意味は?】I have to take part in a meeting.","participate in","be absent from","be late for","leave for","take part in A「A（活動・催しものなど）に参加する」= participate in A。"],
+[1041,"Tourism plays an important ( ) in the economy of Switzerland.","part","favor","name","spot","play a part [role] in A「Aにおいて役割を果たす」。"],
+[1042,"I try to do my ( ) in protecting the environment by reducing my garbage.","part","thinking","position","way","do one's part「自分の役割を果たす」。"],
+[1043,"裏庭の塀の下を、その猫が走っていくのがチラッと見えた。 I caught ( ) of the cat running under the fence in the backyard.","sight","view","look","vision","catch [get] sight of A (doing)「Aが（…するのが）ちらっと見える」= catch/get/have a glimpse of A。"],
+[1044,"We caught sight of a ship in the distance, but soon ( ) sight of it.","lost","avoided","escaped","neglected","lose sight of A「Aを見失う／見落とす」。"],
+[1045,"You should ( ) your time in everything that you do.","take","come","make","go","take one's time「ゆっくり／じっくり時間をかけてやる」。"],
+[1046,"\"How did you ( ) time while you were waiting for me?\" \"Well, I looked at some books in the college bookshop.\"","kill","save","keep","lose","kill time「時間をつぶす」。"],
+[1047,"【give way to と同じ意味は?】No solution was reached in the discussion, as neither side would give way to the other.","yield","attack","insist","persuade","give way (to A)「Aに譲歩する／屈する」= give in (to A) / yield (to A)。"],
+[1048,"They drove slowly to ( ) for each other.","make way","put ahead","lead in","come in","make way for A「Aに道をあける／道を譲る」。"],
+[1049,"Her husband wants to have his own ( ) in everything.","way","habit","means","opinion","have [get] one's (own) way「自分の思い通りにする／勝手なまねをする」。"],
+[1050,"The next Olympics will ( ) place in Tokyo.","take","approve","insist","stick","take place「催しなどが予定通り行われる／偶然起こる」。"],
+[1051,"Today, e-mail has almost ( ) the place of writing letters.","taken","made","got","had","take the place of A / take A's place「Aに取って代わる」= replace A。"],
+[1052,"Smoking has a bad ( ) on our health.（= Smoking affects our health in a negative way.）","effect","procedure","expense","taste","have an effect on A「Aに影響を及ぼす／効果がある」= affect A / influence A。"],
+[1053,"The pill I took is starting to take ( ). My stomach feels a little better already.","effect","effectively","effective","effecting","take effect「薬などが効く／効果を現す」。"],
+[1054,"【take into account と同じ意味は?】When talking with people from foreign countries, we should always take into account their cultural background.","consider","improve","neglect","explain","take A into account / take into account A「Aを考慮に入れる」= consider A。"],
+[1055,"You should take what he said into ( ).","consideration","amount","counting","liking","take A into consideration「Aを考慮に入れる」= take A into account。"],
+[1056,"【felt ashamed と同じ意味は?】She felt ashamed because she couldn't answer the question.","lost face","lost interest","lost her way","lost time","lose face「面目を失う／顔をつぶす」⇔ save face。"],
+[1057,"The quarrelling boys stood ( ) faces at each other.","making","doing","getting","taking","make a face [faces] (at A)「Aにしかめ面をする」。"],
+[1058,"You must always keep ( ) on these children; they aren't good swimmers.","an eye","attention","care","insight","keep an eye on [upon] A「Aから目を離さない／Aをじっと見守る」。"],
+[1059,"On hearing the news, she burst ( ) tears.（= burst out crying）","into","in","out","with","burst into tears「突然泣き出す」= burst out crying。"],
+[1060,"The teacher told Jack to hold his ( ).","tongue","cheek","lip","nose","hold one's tongue「黙っている／沈黙を守る」。"],
+[1061,"The canyon is so large that seeing it takes my breath ( ).","away","in","out","up","take A's breath away「美しさ・驚きなどでAをはっとさせる／息をのませる」。"],
+[1062,"Tomorrow is not a holiday. Don't believe George. He's just pulling your ( ).","leg","face","head","neck","pull A's leg「Aをからかう／Aを冗談でだます」。"],
+[1063,"【rose to their feet と同じ意味は?】When the President entered, all those present rose to their feet.","stood up","sat down","followed up","began to walk","rise [get / come] to one's feet「立ち上がる」= stand up。"],
+[1064,"I wish that noise would stop. It gets on my ( ).","nerves","head","brain","feelings","get on A's nerves「Aの神経にさわる／Aをいらいらさせる」。"],
+[1065,"She always stays calm. I've never seen her lose her ( ).","temper","temptation","temple","temperature","lose one's temper「腹を立てる」= get angry。"],
+[1066,"I can't learn so many words by ( ) at one time.","heart","mind","brain","oneself","learn A by heart「Aを暗記する」= memorize A。"],
+[1067,"【make up his mind と同じ意味は?】He has to make up his mind which university is better for him.","decide","worry about","tell","argue","make up one's mind「決心する」= decide。"],
+[1068,"【keep in mind と同じ意味は?】You should keep in mind what I said yesterday.","not forget","not mind","not remove","not remember","keep [bear] A in mind「Aを心に留めておく／覚えている」= remember A。"],
+[1069,"Michael ( ), so we can trust him.","keeps his word","keeps fit","breaks the rules","breaks his promises","keep one's word [promise]「約束を守る」。"],
+[1070,"【had words と同じ意味は?】We had words again last night, so today we're not speaking.","had a quarrel","talked a lot","had a discussion","made a decision","have words (with A)「Aと口論する／口げんかする」= quarrel (with A)。"],
+[1071,"The airplane ( ) fire soon after it was struck by lightning.","caught","went","flew","made","catch fire「物が燃え出す／火がつく」。"],
+[1072,"【gained weight と同じ意味は?】My mother has gained weight again. She needs some exercise.","put on","stayed on","kept on","taken on","put on weight「体重が増える／太る」= gain weight。"],
+[1073,"【keep good hours と同じ意味は?】Paul makes it a rule to keep good hours.","get up and go to bed early","enjoy himself","have a nice time","read books","keep good [early] hours「早寝早起きをする」⇔ keep bad [late] hours。"],
+[1074,"He was slow in putting his idea ( ) practice.","into","across","to","upon","put A into practice「A（考え・計画など）を実行に移す」。"],
+[1075,"I've come to ask a big ( ) of you.","favor","question","kindness","service","ask a favor of A「A（人）にお願い［頼み事］をする」= ask A a favor。"],
+[1076,"【finds fault with と同じ意味は?】He always finds fault with something in my personality.","criticizes","praises","respects","despises","find fault with A「あら探しをしてAに文句を言う／けちをつける」= criticize A。"],
+[1077,"【got in touch with と同じ意味は?】He got in touch with me as soon as he arrived in Nagoya.","contacted","grasped","told","heard","get in touch with A「A（人）と連絡を取る」= contact A。"],
+[1078,"Your behavior will ( ) rise to misunderstanding.","give","cause","get","lead","give rise to A「A（悪いことなど）を引き起こす」= cause A。"],
+[1079,"My sister ( ) birth to a baby boy the day before yesterday.","gave","offered","did","got","give birth to A「A（子ども）を産む」。"],
+[1080,"What he says does not make any ( ) to me.","sense","cause","means","reason","make sense「発言・行動などが意味をなす／理解できる」。"],
+[1081,"【make no difference と同じ意味は?】It will make no difference whether he joins us or not.","be unimportant","be different","be unknown","be impossible","make no difference「どうでもよい／重要ではない」。"],
+[1082,"私は野菜を育てて売ることで生計をたてるつもりだ。 I'm going to make a ( ) by growing and selling vegetables.","living","life","money","business","make a [one's] living「生計をたてる／収入を得る」= earn a [one's] living。"],
+[1083,"I'm afraid we won't be able to ( ) it on time because of the traffic.","make","arrive","come","success","make it「目的地に到着する／間に合う」。「都合がつく」の意味もある。"],
+[1084,"You should make ( ) of this opportunity.","use","emphasis","glimpse","impact","make use of A「Aを使う／利用する」= take advantage of A。"],
+[1085,"Companies should take ( ) of this wonderful opportunity to get new customers.","advantage","merchandise","advice","industry","take advantage of A「A（機会など）を利用する」= make use of A。"],
+[1086,"Guests are free to ( ) themselves of our hotel facilities.","avail","get","leave","make","avail oneself of A「A（機会・申し出など）を利用する」= make use of A / take advantage of A。"],
+[1087,"Kunio was ( ) fun of by his friends at school.","made","cooked","created","prepared","make fun of A「A（人・事）をからかう／笑いものにする」= mock A。"],
+[1088,"If you really stand up and start singing on your own during the solemn ceremony, you will ( ) a fool of yourself.","make","show","get","drive","make a fool of oneself「馬鹿なまねをして笑いものになる／恥をかく」。"],
+[1089,"The only way to ( ) ends meet will be to cut back on the cost of equipment.","make","reach","satisfy","approach","make (both) ends meet「収支を合わせる／収入内でやりくりする」。"],
+[1090,"I ( ) it a rule to get up early in the morning.","make","give","do","perform","make it a rule to do「いつも…するようにしている／…する決まりにしている」。"],
+[1091,"高校生だった頃、花子はこの深夜番組を必ず見るようにしていた。 As a high school student, Hanako ( ) watching this late-night TV program.","made a point of","made up her mind","made it a rule to","made sense of","make a point of doing「必ず…するように努力している」。"],
+[1092,"We're looking for someone to ( ) care of our pets.","take","get","give","be","take care of A「A（人）の世話をする／A（物・事）の面倒を見る」= look after A。"],
+[1093,"Helen asked him to ( ) the office while she was away.","take charge of","take notice of","take pride in","take the place of","take charge of A「Aを管理する」= control A。"],
+[1094,"私の抗議は無視された。 Nobody ( ).","took any notice of my protests","took my protests any notice of","took notice my protests of any","took of my protests any notice","take notice of A「Aに注目する／関心を寄せる」。take no [little] notice of A「Aにまったく［ほとんど］注目しない」。"],
+[1095,"We take great pride ( ) our unique Japanese cultural traditions.","in","for","of","on","take pride in A「Aに誇りを持つ」= be proud of A。"],
+[1096,"Take a close ( ) at the dish on the table. It is made of rubber!","look","smell","bite","touch","take [have] a look at A「Aを見る」= look at A。"],
+[1097,"わざわざ迎えに来るようなことはしないでください。 Don't ( ) and meet me.","take the trouble to come","take to the trouble come","trouble to take the come","take the come to trouble","take (the) trouble to do「わざわざ…する／手間をかけて…する」= make a special effort to do。"],
+[1098,"Tony Blair has done more than any other Western leader to force people to pay ( ) to climate change and poverty in Africa.","attention","interest","money","taxes","pay attention to A「Aに注意を払う」。"],
+[1099,"His daughter came (　　　) age last year.","of","on","to","for","come of age＝成人になる（訳: 彼の娘は昨年成人になった。）"],
+[1100,"The first Japanese law against workplace sex discrimination came (　　　) existence in the 1980s.","into","around","on","under","come into existence＝生まれる／成立する（訳: 職場での性差別を禁止する最初の日本の法律は、1980年代に成立した。）"],
+[1101,"The sudden change in weather (　　　) an end to our picnic.","put","gave","did","caused","put an end to A＝Aを終わらせる（訳: 天気の急激な変化が私たちのピクニックを終わらせた。）"],
+[1102,"【came to terms with と同じ意味は?】I finally came to terms with my terminal cancer.","accepted","cured","refused","condemned","come to terms with A＝Aを受け入れる（訳: 私は自分の末期ガンをようやく受け入れた。）"],
+[1103,"Congratulations! Your performance left (　　　) to be desired.","nothing","much","a lot","something","leave nothing to be desired＝申し分ない／完璧である（訳: おめでとう。君の演技は完璧だった。）"],
+[1104,"This Russian composition (　　　) much to be desired.（= is far from perfect）","leaves","makes","gives","keeps","leave much to be desired＝改善の余地がかなりある（訳: このロシア語の作文は改善の余地がかなりある。）"],
+[1105,"This is my first trip abroad, so I'm going to (　　　) it.","make the most of","make sense of","make off with","make way for","make the most of A＝Aを最大限に活用する（訳: これが初めての海外旅行なので、私は存分に楽しむつもりだ。）"],
+[1106,"【brought home to me と同じ意味は?】My cousin's death from cancer brought home to me the danger of being a heavy smoker.","caused me to realize","helped me to get rid of","taught me how to fight","told me to risk","bring A home to B＝AをBに痛感させる（訳: いとこのガンによる死は、ヘビースモーカーであることの危険性を私に痛感させた。）"],
+[1107,"This contract still (　　　) good.","holds","does","lasts","stays","hold good＝有効である（訳: この契約はまだ有効です。）"],
+[1108,"The twins are so similar that most people cannot tell them (　　　).","apart","at all","afar","alike","tell A apart＝Aを見分ける（訳: その双子はとても似ているので、ほとんどの人は2人を見分けられない。）"],
+[1109,"【indicates と同じ意味は?】She indicates that money alone never makes great schools.","points out","points in","makes believe","makes sure","point out that ...＝…ということを指摘する（訳: お金だけでは決して偉大な学校は作れないと彼女は指摘する。）"],
+[1110,"I (　　　) to it that things were done as she wished.","saw","cared","heard","watched","see to it that ...＝必ず…するように取りはからう（訳: 私は、彼女の願い通りに事が運ぶよう取りはからった。）"],
+[1111,"I took it (　　　) granted that he had received the letter.","for","to","in","from","take it for granted that ...＝…を当然と思う（訳: 私は、彼がその手紙を受け取ったのは当然だと思った。）"],
+[1112,"He (　　　) they kept in touch even after he moved to Osaka.","persuaded her to make sure that","made sure her to persuade that","persuaded to her make sure that","persuaded her that to make sure","persuade A to do＝Aを説得して…させる／make sure that ...＝必ず…するようにする（訳: 大阪へ引っ越した後も確実に連絡を取り合うよう、彼は彼女を説得した。）"],
+[1113,"【make believe と同じ意味は?】Let's make believe that we know nothing about the matter.","pretend","insist","accept","forget","make believe (that) ...＝…というふりをする（訳: その件については私たちは何も知らないふりをしよう。）"],
+[1114,"私は真実を話さざるをえなかった。","I had no choice but to tell the truth.","I had no choice to but tell the truth.","I no had choice but to tell the truth.","I had choice no but tell to the truth.","have no choice but to do＝…するより仕方ない（訳: 私は真実を話さざるをえなかった。）"],
+[1115,"Kazumi is entirely dependent (　　　) her parents.","upon","by","at","of","be dependent on/upon A＝Aに依存している（訳: カズミは完全に両親に依存している。）"],
+[1116,"I'm a student but working part-time to be (　　　) of my family.","independent","intelligent","international","interesting","be independent of A＝Aから自立している（訳: 私は学生だが、家族から自立するためにアルバイトをしている。）"],
+[1117,"I am quite familiar (　　　) the place you visited last week.","with","to","for","at","be familiar with A＝Aをよく知っている（訳: 私は、あなたが先週訪れた場所についてかなり詳しい。）"],
+[1118,"The song is now very familiar (　　　) us.","to","about","at","in","be familiar to A＝Aによく知られている（訳: その歌は、現在では私たちにとてもよく知られている。）"],
+[1119,"【concerned about と同じ意味は?】Most students were very concerned about the results of their final examinations.","worried about","satisfied with","surprised at","interested in","be concerned about A＝Aを心配する（訳: ほとんどの学生たちは期末試験の結果をとても気にしていた。）"],
+[1120,"She established an organization (　　　) child adoption.","concerned with","been concerned with","connected","having connected","be concerned with A＝Aに関係する（訳: 彼女は養子縁組に関わる組織を設立した。）"],
+[1121,"We are (　　　) with the most serious problem in our company's history.","faced","made","loved","catch up","be faced with A＝Aに直面している（訳: わが社の歴史の中で、最も深刻な問題に直面している。）"],
+[1122,"Drinking water must be (　　　) from anything capable of causing disease.","free","apart","lack","except","be free from A＝Aがない（訳: 飲用水は、病気の原因となる可能性のあるものは何も含んでいてはならない。）"],
+[1123,"Jack is sure (　　　) overcoming the difficulties he meets.","of","in","with","from","be sure of/about A＝Aを確信している（訳: 自分が直面する困難を克服することをジャックは確信している。）"],
+[1124,"Be (　　　) to call me when you arrive at the airport.","sure","afraid","easy","necessary","Be sure to do＝必ず…しなさい（訳: 空港に着いたら、必ず私に電話しなさい。）"],
+[1125,"The boy was very conscious (　　　) his girlfriend's attitude toward him that night.","of","by","in","to","be conscious of A＝Aを意識している（訳: その少年は、その晩の彼に対するガールフレンドの態度をかなり意識していた。）"],
+[1126,"This evidence indicates that the governor is (　　　) in the scandal.","involved","attended","determined","obsessed","be involved in A＝Aに関わっている（訳: この証拠は、知事がそのスキャンダルに関与していることを示唆している。）"],
+[1127,"I am (　　　) about Italian food.","crazy","like","weakness","fever","be crazy about A＝Aが大好きである（訳: 私はイタリア料理が大好きだ。）"],
+[1128,"【keen on studying English と同じ意味は?】Most of the students are quite keen on studying English.","enthusiastic about","pessimistic on","clever about","skilled on","be keen on A/doing＝A／…することに熱心である（訳: ほとんどの学生は英語の勉強に大変熱心だ。）"],
+[1129,"He was (　　　) in a book and didn't seem to hear me.","absorbed","considered","estimated","obtained","be absorbed in A＝Aに夢中である（訳: 彼は本に夢中で私の声が聞こえないようだった。）"],
+[1130,"I am not very good (　　　) learning new things.","at","in","for","with","be good at A/doing＝A／…することが得意である（訳: 私は新しいことを学ぶのがあまり得意ではない。）"],
+[1131,"【know nothing about と同じ意味は?】He seems to know nothing about the matter.","to be ignorant of","to be indifferent to","to be uninterested in","to be accustomed to","be ignorant of/about A＝Aを知らない（訳: 彼はそのことを何も知らないらしい。）",{core:"be ignorant of[about] A は「Aを知らない」という意味。know nothing about A とほぼ同じ意味になる。",wrongs:[["to be indifferent to","be indifferent to A は「Aに無関心である／Aに興味がない」。「知らない」という意味ではない。"],["to be uninterested in","be uninterested in A は「Aに興味がない」。知識がないことを表す表現ではない。"],["to be accustomed to","be accustomed to A は「Aに慣れている」という意味。"]],plus:"ignorant は「知らない」という意味で、indifferent や uninterested の「興味・関心がない」と区別する。",ex:["He is ignorant of the facts.","彼はその事実を知らない。"]}],
+[1132,"【short of と同じ意味は?】We were short of food.","lacked","dumped","found","collected","be short of A＝Aが不足している（訳: 私たちは食料不足だった。）"],
+
+[1133,"All prices are (　　　) to change.","subject","verb","object","predicate","be subject to A＝Aの影響を受けやすい／Aに左右される（訳: すべての価格は変更されることがあります。）",{core:"be subject to A は「Aの影響・支配を受けやすい／Aに左右される」という意味。be subject to change で「変更される可能性がある」という定番表現になる。",wrongs:[["verb","verb は「動詞」という名詞で、be verb to change という熟語はない。"],["object","object は「物・目的語」などの意味で、be object to change とは言わない。なお object to A なら「Aに反対する」という別表現になる。"],["predicate","predicate は文法用語で「述語」という意味。be predicate to change という表現にはならない。"]],plus:"subject to change は、予定・価格・規則などについて「変更される場合がある」という意味でよく使われる。",ex:["The schedule is subject to change.","予定は変更される場合があります。"]}],
+[1134,"The translation is quite (　　　) to the original.","true","honest","complete","familiar","be true to A＝Aに忠実である（訳: その翻訳は原文にきわめて忠実である。）",{core:"be true to A は「Aと寸分違わない／Aに忠実である」という意味。したがって true to the original で「原文に忠実な」となる。",wrongs:[["honest","honest は「正直な」。人に対して正直であるなら be honest with A を用いる。ここで honest to the original とはしない。"],["complete","complete は「完全な」という意味だが、complete to A で「Aに忠実な」という意味にはならない。"],["familiar","be familiar to A は「（物・事が）Aによく知られている／Aに見覚え・聞き覚えがある」という意味で、原文に忠実という意味ではない。"]],plus:"be true of A には「Aに当てはまる」という別の意味がある。",ex:["Tom works very hard, and the same is true of Kate.","トムはよく働くが、同じことがケイトにも言える。"]}],
+
+
+[1135,"The new teacher is really popular (　　　) his pupils.","with","between","for","in","be popular with/among A＝Aの間で人気がある（訳: その新しい先生は、彼の教え子たちに本当に人気があります。）"],
+[1136,"Watson was very ill and not (　　　) to the long journey.","equal","able","easy","likely","be equal to A＝Aに耐えられる／Aをする能力がある（訳: ワトソンは重病で、長旅には耐えられなかった。）"],
+[1137,"The work of a nurse is (　　　) to the work of a doctor.","similar","regular","same","resemble","be similar to A＝Aと似ている（訳: 看護師の仕事は医者の仕事と似ている。）"],
+[1138,"The student was absent (　　　) school yesterday.","from","to","in","for","be absent from A＝Aを欠席する（訳: その学生は昨日学校を休んだ。）"],
+[1139,"To my surprise, the room was (　　　) of flowers.","full","filling","filled","fully","be full of A＝Aでいっぱいである（訳: 私が驚いたことに、その部屋は花でいっぱいだった。）"],
+[1140,"This train is bound (　　　) Central Station.","for","into","at","in","be bound for A＝A行きである（訳: この電車は中央駅行きです。）"],
+[1141,"Sorry, I'm a little late (　　　) my appointment. It took time to find a parking space.","for","about","at","with","be late for A＝Aに遅れる（訳: ごめんなさい。約束に少し遅れました。）"],
+[1142,"That author is well known (　　　) his comments on education.","for","by","to","with","be well known for A＝Aでよく知られている（訳: その作家は教育に関する論評でよく知られている。）"],
+[1143,"We are responsible (　　　) our own choices.","for","by","of","at","be responsible for A＝Aに対して責任がある（訳: 私たちは自分自身の選択に対して責任がある。）"],
+[1144,"When I was a child, I was (　　　) of dogs.","afraid","frightening","scary","terrible","be afraid of A＝Aを恐れる（訳: 子どものとき、私は犬が怖かった。）"],
+[1145,"I'm very worried (　　　) taking final exams next week.","about","for","at","of","be worried about A＝Aを心配する（訳: 私は来週の期末試験を受けることがとても心配だ。）"],
+[1146,"People were fed (　　　) with the noise coming from the nearby nightclubs.","up","back","down","through","be fed up with A＝Aにうんざりする（訳: 人々は近くのナイトクラブからもれてくる騒音にうんざりしていた。）",{core:"be fed up with A は「Aにうんざりする／飽き飽きする」という意味。fed up with the noise で「その騒音にうんざりして」となる。",wrongs:[["back","be fed back with という形では「〜にうんざりする」という意味にならない。"],["down","be fed down with という熟語は、この意味では用いない。"],["through","be fed through with では「〜にうんざりする」という意味にならない。"]],plus:"be fed up with A は be sick of A / be tired of A とほぼ同じ意味。",ex:["I'm fed up with his excuses.","私は彼の言い訳にうんざりしている。"]}],
+[1147,"You should be (　　　) of yourself for doing such a silly thing.","ashamed","afraid","angry","delighted","be ashamed of A＝Aを恥じている（訳: あなたはそんな愚かなことをした自分を恥じるべきだ。）"],
+[1148,"Peter has always been jealous (　　　) Tom's natural athletic ability.","of","from","by","for","be jealous of A＝Aをねたむ（訳: ピーターはずっとトムの天性の運動能力をねたんできた。）"],
+[1149,"She is (　　　) about keeping her room clean.","particular","care","exciting","fond","be particular about A/doing＝A／…することにやかましい（訳: 彼女は自分の部屋をきれいにしておくことについて、口うるさい。）"],
+[1150,"【indifferent to と同じ意味は?】Many young people these days seem to be indifferent to what is happening in the world.","unconcerned about","common to","interested in","familiar with","be indifferent to A＝Aに無関心である（訳: 最近の若者の多くは世界で起きている出来事に無関心のようだ。）"],
+[1151,"Bill's schoolmates were proud (　　　) him because he told the truth.","of","for","with","in","be proud of A＝Aを誇りに思う（訳: ビルの学友たちは、彼が真実を話したので、彼を誇りに思った。）"],
+[1152,"This book (　　　) of essays written over the last twenty years.","is composed","is consisted","is completed","is comprehended","be composed of A＝Aから構成されている（訳: この本は、過去20年間に書かれた随筆で構成されている。）",{core:"be composed of A は「Aから構成されている／Aから成り立っている」という意味。This book is composed of essays ... で「この本は随筆から構成されている」となる。",wrongs:[["is consisted","consist of A も「Aから成る」だが、consist は通常受動態にしない。したがって is consisted of ではなく consists of とする。"],["is completed","complete は「完成させる」という意味で、be completed of A という形で「Aから構成される」とは表さない。"],["is comprehended","comprehend は「理解する」という意味で、be comprehended of A は「Aから構成される」という意味にはならない。"]],plus:"be composed of A ＝ be made up of A ＝ consist of A。なお consist of は受動態にしない。",ex:["The committee is composed of ten members.","その委員会は10人の委員で構成されている。"]}],
+[1153,"People who are constantly exposed (　　　) dust may suffer from breathing difficulties.","to","against","by","from","be exposed to A＝Aにさらされている（訳: 絶えずほこりにさらされている人々は、呼吸困難に苦しんでいる可能性もある。）"],
+[1154,"Wendy's father is opposed (　　　) her going to Egypt by herself.","to","against","for","over","be opposed to A/doing＝A／…することに反対する（訳: ウェンディーの父親は彼女がひとりでエジプトに行くことに反対している。）"],
+[1155,"As I was just getting (　　　) with classical music, I had much to ask the musician.","acquainted","fair","good","know","get acquainted with A＝Aの知識を得る／Aを知る（訳: 私はちょうどクラシック音楽に親しみ始めたところだった。）",{core:"be acquainted with A は「Aの知識がある／Aを知っている」。get acquainted with A は「Aの知識を得る／Aを知る」という動作を表す。本問では getting acquainted with classical music で「クラシック音楽に親しみ始めて」となる。",wrongs:[["fair","get fair with A という形で「Aを知る／Aに親しむ」という意味にはならない。"],["good","good は「良い／得意な」などの意味だが、get good with classical music では本問の「知識を得る・親しむ」という意味を表せない。"],["know","know は動詞なので get know with A とはしない。「Aを知る」なら get to know A という形がある。"]],plus:"be acquainted with A には「Aと知り合いである」という意味もある。",ex:["I'm acquainted with the woman you met yesterday.","私はあなたが昨日会った女性と知り合いです。"]}],
+[1156,"Based (　　　) various legal systems and cultural values, the document is an agreed set of standards.","on","at","for","to","be based on/upon A＝Aに基づいている（訳: さまざまな法律制度や文化的価値観に基づき、その文書は合意された一連の基準となっている。）"],
+[1157,"I am (　　　) to know the results of the examination in chemistry.","anxious","good","kind","rude","be anxious to do＝…したいと切望している（訳: 私は化学の試験結果を知りたいと切望している。）"],
+[1158,"【eager to show off their new dresses と同じ意味は?】The girls were eager to show off their new dresses when they went to their friend's birthday party.","happy to display their new dresses","reluctant to show their new dresses","ready to try on their new dresses","pleased to sew their new dresses","be eager to do＝しきりに…したがる／show off＝見せびらかす（訳: 少女たちは、しきりに自分の新しいドレスを見せびらかしたがった。）"],
+[1159,"Mary was (　　　) to go to the party at first, but she found that it was fun.","reluctant","pleasant","likely","willing","be reluctant to do＝…したがらない（訳: メアリーは最初そのパーティーに行く気がしなかった。）",{core:"be reluctant to do は「…したがらない／…するのを嫌がる」という意味で、be unwilling to do とほぼ同じ。本問は後半の but she found that it was fun から、最初は行きたくなかったことがわかる。",wrongs:[["pleasant","pleasant は、人を主語にすると「感じのよい」、物・事を主語にすると「楽しい」という意味。Mary was pleasant なら「メアリーは感じのよい人だった」であり、「行きたくなかった」という意味にはならない。"],["likely","be likely to do は「…しそうである／たぶん…する」という意味。本問の「最初は行きたくなかった」という内容には合わない。"],["willing","be willing to do は「…する意志がある／…するのをいとわない」という意味。後半の but she found that it was fun と対比にならず、文脈に合わない。"]],plus:"be reluctant to do ＝ be unwilling to do。反対方向の表現 be willing to do は「…する意志がある／…してもかまわない」。",ex:["I am willing to pay the bill.","私が勘定を払ってもかまわない。"]}],
+[1160,"There (　　　) be a technological development in the near future.","is likely to","like","likely","likes to","be likely to do＝…しそうである（訳: 近い将来、技術的発展が見られそうである。）"],
+[1161,"【are apt to と同じ意味は?】Television and video games are apt to deprive children of reading time.","tend to","happen to","rob","call","be apt to do＝…しがちである（訳: テレビやビデオゲームは子どもたちから読書時間を奪いがちである。）"],
+[1162,"【are bound to と同じ意味は?】Parents are bound to look after their children.","are obliged to","are allowed to","are asked to","are offered to","be bound to do＝…する義務がある（訳: 両親は必ず自分の子どもたちの面倒を見なければならない。）"],
+[1163,"When you enter a Japanese house, you are (　　　) off your shoes.","supposed to take","necessary to take","needed taking","requested taking","be supposed to do＝…することになっている（訳: 日本家屋に入るときは、靴を脱ぐことになっています。）",{core:"be supposed to do は「…することになっている／…しなければならない」という意味。したがって are supposed to take off your shoes で「靴を脱ぐことになっている」となる。",wrongs:[["necessary to take","necessary は、この意味では人を主語にして You are necessary to ... の形にはしない。通常は It is necessary for 人 to do の形を使う。"],["needed taking","need doing は「（物が）…される必要がある」という意味。例: The car needs repairing.＝その車は修理される必要がある。ここでは人を主語にして「あなたは靴を脱ぐ必要がある」とは表せない。"],["requested taking","request はこの形で動名詞 taking を続けて be requested taking とはしない。人に行為を求めるなら be requested to do などの形を使う。"]],plus:"be supposed to do には「…だと思われている」という意味もある。",ex:["She was supposed to have a lot of money.","彼女は大金を持っていると思われていた。"]}],
+[1164,"【well off と同じ意味は?】He owns his house. It seems he is quite well off.","rich","happy","healthy","gorgeous","be well off＝裕福である（訳: 彼はかなり裕福なようだ。）"],
+[1165,"He is (　　　) off now than he used to be.","worse","well","badly","better","be worse off＝以前より暮らし向きが悪い（訳: 彼は昔より暮らし向きが良くありません。）"],
+[1166,"You hung that picture (　　　) down. The bottom part should be on top.","upside","being","forward","way","upside down＝逆さまに（訳: あなたはその絵画を逆さまに掛けましたね。）"],
+[1167,"The girl is wearing her sweater inside (　　　).","out","down","up","back","inside out＝裏返しに（訳: その少女はセーターを裏返しに着ている。）"],
+[1168,"【right away と同じ意味は?】He said you should do it right away.","at once","correctly","occasionally","regularly","right away＝すぐに（訳: 彼はあなたはすぐにこれをやるべきだと言った。）"],
+[1169,"【now and then と同じ意味は?】I love to visit the park now and then.","occasionally","often","always","constantly","now and then＝ときどき（訳: ときどきその公園を訪れることが私は大好きである。）"],
+[1170,"【off and on と同じ意味は?】I don't go to the movies often, just off and on.","occasionally","gradually","frequently","usually","off and on＝時おり（訳: 私は頻繁には映画に行きません。時おり行く程度です。）"],
+[1171,"シアトルでは、よく雨が降る。","In Seattle, it rains more often than not.","In Seattle, it more rains often than not.","In Seattle, more often it rains than not.","In Seattle, it rains often more than not.","more often than not＝たいてい／しばしば（訳: シアトルでは、よく雨が降る。）"],
+[1172,"【once and for all と同じ意味は?】My daughter told her boyfriend once and for all that she wouldn't date him any more.","for the last time","again and again","all the time","only once","once and for all＝これを最後に／きっぱりと（訳: 私の娘は、もういっしょにデートはしないとボーイフレンドにきっぱりと告げた。）"],
+[1173,"Our horse-riding club has won all the competitions (　　　).","so far","wholly","previously","first","so far＝今までのところ（訳: 私たちの乗馬クラブはこれまですべての競技会で勝ってきた。）"],
+[1174,"(　　　) little is known of the causes of the disease.","As yet","As follows","As with","As much","as yet＝通例否定文で「今までのところ」（訳: 今までのところ、その病気の原因はほとんど知られていない。）"],
+[1175,"The war is as (　　　) as over.","good","bad","early","well","as good as ...＝…も同然だ（訳: その戦争は終わったも同然だ。）"],
+[1176,"Our teacher, as (　　　) as many of our classmates, will get to the party on time.","well","far","long","soon","A as well as B＝BだけでなくAもまた（訳: たくさんの同級生だけでなく、先生も時間通りにパーティー会場に着くだろう。）"],
+[1177,"【by and large と同じ意味は?】Sometimes my job is boring, but by and large I enjoy it.","on the whole","above all","in particular","now and then","by and large＝概して／全体的に見て（訳: 自分の仕事が退屈なときもあるが、概して私は仕事を楽しんでいる。）",{core:"by and large は「概して／全体的に見て」という意味で、on the whole とほぼ同じ意味。",wrongs:[["above all","above all は「とりわけ／何よりも」という意味。"],["in particular","in particular は「特に／とりわけ」という意味。"],["now and then","now and then は「ときどき」という意味。"]],plus:"by and large ＝ on the whole。どちらも個々の例外ではなく、全体としてどうかを述べる表現。",ex:["By and large, the students were satisfied.","概して、生徒たちは満足していた。"]}],
+[1178,"【next to impossible と同じ意味は?】It is next to impossible for him to see her off at the airport.","almost","exactly","soon","simply","next to ...＝ほとんど…（訳: 空港で彼女を見送るなど、彼にはほとんど不可能なことだ。）"],
+[1179,"【more or less と同じ意味は?】She speaks English more or less.","to some degree","at most","at least","at best","more or less＝多少／多かれ少なかれ（訳: 彼女は多少の英語は話す。）"],
+[1180,"【Sooner or later と同じ意味は?】Sooner or later he'll see what is right and wrong.","In time","At one time","On time","Behind time","sooner or later＝遅かれ早かれ／いつかは（訳: 遅かれ早かれ、彼にも善悪がわかるだろう。）"],
+[1181,"We haven't got the money to phone home, (　　　) stay in a hotel.","let alone","much more","as well as","besides","let alone＝否定文の後で「…は言うまでもなく」（訳: ホテルに泊まるお金は言うまでもなく、家に電話をするお金も持っていない。）",{core:"let alone ... は、通例否定文の後に置いて「…は言うまでもなく」という意味を表す。より容易なことさえできないのだから、より難しいことはなおさらできない、という関係を表す。",wrongs:[["much more","much more は「ずっと多くの／まして〜」などの意味を持つが、この形で否定文の後に置いて let alone と同じ構文を作る選択肢ではない。"],["as well as","as well as は「AだけでなくBも／Aと同様に」などを表すが、本問の「Aさえない、ましてBはなおさらない」という否定の強調には合わない。"],["besides","besides は「そのうえ／〜に加えて」という意味で、否定文の後の「〜は言うまでもなく」という意味にはならない。"]],plus:"let alone ... と同じような意味を表す表現に still less ... / much less ... がある。",ex:["He can't walk, let alone run.","彼は歩くことさえできない。まして走ることなどできない。"]}],
+[1182,"What (　　　) club activities and studying, I couldn't travel during the summer vacation.","with","keeps","on","was","what with A and B＝AやらBやらで（訳: クラブ活動やら勉強やらで、私はこの夏休みに旅行に行けなかった。）"],
+
+
+
+[2131,"【know nothing about と同じ意味は?】He seems to know nothing about the matter.","to be ignorant of","to be indifferent to","to be uninterested in","to be accustomed to","be ignorant of/about A＝Aを知らない（訳: 彼はそのことを何も知らないらしい。）",{core:"be ignorant of[about] A は「Aを知らない」という意味。know nothing about A とほぼ同じ意味になる。",wrongs:[["to be indifferent to","be indifferent to A は「Aに無関心である／Aに興味がない」。「知らない」という意味ではない。"],["to be uninterested in","be uninterested in A は「Aに興味がない」。知識がないことを表す表現ではない。"],["to be accustomed to","be accustomed to A は「Aに慣れている」という意味。"]],plus:"ignorant は「知らない」という意味で、indifferent や uninterested の「興味・関心がない」と区別する。",ex:["He is ignorant of the facts.","彼はその事実を知らない。"]}],
+
+[2133,"All prices are (　　　) to change.","subject","verb","object","predicate","be subject to A＝Aの影響を受けやすい／Aに左右される（訳: すべての価格は変更されることがあります。）",{core:"be subject to A は「Aの影響・支配を受けやすい／Aに左右される」という意味。be subject to change で「変更される可能性がある」という定番表現になる。",wrongs:[["verb","verb は「動詞」という名詞で、be verb to change という熟語はない。"],["object","object は「物・目的語」などの意味で、be object to change とは言わない。なお object to A なら「Aに反対する」という別表現になる。"],["predicate","predicate は文法用語で「述語」という意味。be predicate to change という表現にはならない。"]],plus:"subject to change は、予定・価格・規則などについて「変更される場合がある」という意味でよく使われる。",ex:["The schedule is subject to change.","予定は変更される場合があります。"]}],
+[2134,"The translation is quite (　　　) to the original.","true","honest","complete","familiar","be true to A＝Aに忠実である（訳: その翻訳は原文にきわめて忠実である。）",{core:"be true to A は「Aと寸分違わない／Aに忠実である」という意味。したがって true to the original で「原文に忠実な」となる。",wrongs:[["honest","honest は「正直な」。人に対して正直であるなら be honest with A を用いる。ここで honest to the original とはしない。"],["complete","complete は「完全な」という意味だが、complete to A で「Aに忠実な」という意味にはならない。"],["familiar","be familiar to A は「（物・事が）Aによく知られている／Aに見覚え・聞き覚えがある」という意味で、原文に忠実という意味ではない。"]],plus:"be true of A には「Aに当てはまる」という別の意味がある。",ex:["Tom works very hard, and the same is true of Kate.","トムはよく働くが、同じことがケイトにも言える。"]}],
+
+[2146,"People were fed (　　　) with the noise coming from the nearby nightclubs.","up","back","down","through","be fed up with A＝Aにうんざりする（訳: 人々は近くのナイトクラブからもれてくる騒音にうんざりしていた。）",{core:"be fed up with A は「Aにうんざりする／飽き飽きする」という意味。fed up with the noise で「その騒音にうんざりして」となる。",wrongs:[["back","be fed back with という形では「〜にうんざりする」という意味にならない。"],["down","be fed down with という熟語は、この意味では用いない。"],["through","be fed through with では「〜にうんざりする」という意味にならない。"]],plus:"be fed up with A は be sick of A / be tired of A とほぼ同じ意味。",ex:["I'm fed up with his excuses.","私は彼の言い訳にうんざりしている。"]}]
+
+
+
+];
+
+
+/* ================= 状態 ================= */
+const QN=8, TIME_MS=12000;
+let S={bestSurv:0,streakDays:0,lastDay:"",total:0,correct:0,word:{},sound:true,tone:"piano",name:"",askedName:false,perfects:0,range:null};
+const $=id=>document.getElementById(id);
+
+async function storeGet(k){
+  if(window.storage){const r=await window.storage.get(k);return r?r.value:null;}
+  try{return localStorage.getItem(k);}catch(e){return null;}
+}
+async function storeSet(k,v){
+  if(window.storage)return window.storage.set(k,v);
+  try{localStorage.setItem(k,v);}catch(e){}
+}
+async function loadState(){
+  try{
+    const v=await storeGet("wordrush_vintage");
+    if(v)S={...S,...JSON.parse(v)};
+  }catch(e){}
+  renderHome();
+  if(!S.name&&!S.askedName){S.askedName=true;saveState();askName(true);}
+}
+async function saveState(){
+  try{ await storeSet("wordrush_vintage",JSON.stringify(S)); }catch(e){}
+}
+
+/* ================= サウンド(音階は据え置き) ================= */
+const SCALE=[523.25,587.33,659.25,698.46,783.99,880,987.77,1046.5,
+             1174.66,1318.5,1396.9,1568,1760,1975.5,2093];
+const TONES={piano:"ピアノ",clar:"クラリネット",bari:"バリトンサックス",mbox:"オルゴール",bit:"8bit"};
+let AC=null;
+function ctx(){AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function playNote(freq,tone,delay=0,vol=1){
+  if(!S.sound)return;
+  try{
+    const ac=ctx(),t=ac.currentTime+delay;
+    const out=ac.createGain();out.connect(ac.destination);
+    const env=(g,a,peak,dec)=>{
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.linearRampToValueAtTime(peak*vol,t+a);
+      g.gain.exponentialRampToValueAtTime(.0001,t+dec);
+    };
+    let dur=1;
+    if(tone==="piano"){
+      [[1,"triangle",.16],[2,"sine",.05],[3,"sine",.02]].forEach(([m,w,p])=>{
+        const o=ac.createOscillator(),g=ac.createGain();
+        o.type=w;o.frequency.value=freq*m;
+        env(g,.004,p,.862);
+        o.connect(g).connect(out);o.start(t);o.stop(t+.9);
+      });
+      dur=.9;
+    }else if(tone==="mbox"){
+      [[1,.14,1.3],[4,.05,.45],[5.4,.02,.3]].forEach(([m,p,d])=>{
+        const o=ac.createOscillator(),g=ac.createGain();
+        o.type="sine";o.frequency.value=freq*m;
+        env(g,.002,p,d);
+        o.connect(g).connect(out);o.start(t);o.stop(t+d+.05);
+      });
+      dur=1.3;
+    }else if(tone==="clar"){
+      const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+      o.type="square";o.frequency.value=freq/2;
+      f.type="lowpass";f.frequency.value=freq*1.8;f.Q.value=.8;
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.linearRampToValueAtTime(.09*vol,t+.05);
+      g.gain.setValueAtTime(.09*vol,t+.22);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.38);
+      o.connect(f).connect(g).connect(out);o.start(t);o.stop(t+.4);
+      dur=.4;
+    }else if(tone==="bari"){
+      [0,-7].forEach(cents=>{
+        const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+        o.type="sawtooth";o.frequency.value=(freq/4)*Math.pow(2,cents/1200);
+        f.type="lowpass";f.frequency.value=freq*1.1;f.Q.value=1;
+        g.gain.setValueAtTime(.0001,t);
+        g.gain.linearRampToValueAtTime(.07*vol,t+.06);
+        g.gain.setValueAtTime(.07*vol,t+.24);
+        g.gain.exponentialRampToValueAtTime(.0001,t+.42);
+        o.connect(f).connect(g).connect(out);o.start(t);o.stop(t+.45);
+      });
+      dur=.45;
+    }else{
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type="square";o.frequency.value=freq;
+      g.gain.setValueAtTime(.06*vol,t);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.12);
+      o.connect(g).connect(out);o.start(t);o.stop(t+.13);
+      dur=.13;
+    }
+    setTimeout(()=>out.disconnect(),(delay+dur+.2)*1000);
+  }catch(e){}
+}
+function playChord(freqs,tone,delay=0,vol=.6){freqs.forEach(f=>playNote(f,tone,delay,vol));}
+function beep(freq,dur=.09,type="square",gain=.06){
+  if(!S.sound)return;
+  try{
+    const ac=ctx();
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(gain,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);
+    o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+dur);
+  }catch(e){}
+}
+const sfx={
+  ok:c=>{ /* 連続正解数で音階を登る(表示はしない) */
+    const i=Math.min(Math.max(c-1,0),SCALE.length-1);
+    playNote(SCALE[i],S.tone);
+    if(c===8)playChord([523.25,659.25,783.99],S.tone,0,.4);
+  },
+  ng:()=>beep(160,.18,"sawtooth",.05),
+  tick:()=>beep(880,.04,"sine",.03),
+  fanfare:()=>{
+    [523.25,659.25,783.99,1046.5].forEach((f,i)=>playNote(f,S.tone,i*.13));
+    playChord([523.25,659.25,783.99,1046.5],S.tone,.55,.5);
+  },
+  preview:tone=>{[523.25,659.25,783.99,1046.5].forEach((f,i)=>playNote(f,tone,i*.16));}
+};
+
+/* ================= 出題 ================= */
+function dataLo(){return Math.min(...QUESTIONS.map(q=>q[0]));}
+function dataHi(){return Math.max(...QUESTIONS.map(q=>q[0]));}
+function activeRange(){
+  const lo=dataLo(),hi=dataHi();
+  if(!S.range)return {lo,hi};
+  return {lo:Math.max(lo,S.range.lo),hi:Math.min(hi,S.range.hi)};
+}
+function rangeCount(){const R=activeRange();return QUESTIONS.filter(q=>q[0]>=R.lo&&q[0]<=R.hi).length;}
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function keyOf(q){return "q"+q[0];}
+function correctDays(st){return st&&st.okDays?st.okDays.length:0;}
+/* 全問が定着モード: 別々の3日に正解して初めてMASTER */
+function isMastered(k){const st=S.word[k];if(!st)return false;return correctDays(st)>=3;}
+/* 軽量SRS: MASTER済み かつ 当日すでに正解した問題は、その日もう出さない */
+function isRestingToday(k){const st=S.word[k];return !!(st&&isMastered(k)&&st.okDay===todayStr());}
+function eligiblePool(){const R=activeRange();return QUESTIONS.filter(q=>q[0]>=R.lo&&q[0]<=R.hi&&!isRestingToday(keyOf(q)));}
+function pickQs(reviewOnly,count){
+  const R=activeRange();
+  let inRange=QUESTIONS.map(q=>({num:q[0],text:q[1],ans:q[2],wrongs:[q[3],q[4],q[5]],expl:q[6],rich:q[7]||null,key:keyOf(q)}))
+                       .filter(q=>q.num>=R.lo&&q.num<=R.hi);
+  inRange=inRange.filter(q=>!isRestingToday(q.key));
+  let pool=inRange;
+  if(reviewOnly)pool=pool.filter(q=>{const st=S.word[q.key];return st&&st.wrong>st.right;});
+  if(!pool.length)pool=inRange.length?inRange:QUESTIONS.map(q=>({num:q[0],text:q[1],ans:q[2],wrongs:[q[3],q[4],q[5]],expl:q[6],rich:q[7]||null,key:keyOf(q)}));
+  const weight=q=>{
+    const st=S.word[q.key]||{};
+    return Math.max(.1, 1+(st.wrong||0)*3-Math.min((st.right||0)*.3,.8));
+  };
+  const picked=[],bag=[...pool];
+  while(picked.length<count&&bag.length){
+    const tot=bag.reduce((s,q)=>s+weight(q),0);
+    let r=Math.random()*tot;
+    for(let k=0;k<bag.length;k++){
+      r-=weight(bag[k]);
+      if(r<=0){picked.push(bag.splice(k,1)[0]);break;}
+    }
+  }
+  while(picked.length<count)picked.push(pool[Math.floor(Math.random()*pool.length)]);
+  return picked;
+}
+/* 選択肢は問題ごとに固定(他問から拾わない) */
+function makeChoices(q){
+  return [q.ans,...q.wrongs].sort(()=>Math.random()-.5);
+}
+/* 【指示】部分を色分けして表示 */
+function renderQuestionText(text){
+  const m=text.match(/^【(.+?)】(.*)$/);
+  if(m)return `<span class="lead">【${m[1]}】</span>${m[2]}`;
+  return text;
+}
+
+/* ================= ゲーム進行 ================= */
+let G=null,timerId=null,tickId=null,pendingNext=null;
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");}
+
+function startGame(mode){
+  hideCelebrate();
+  if(mode!=="review" && eligiblePool().length===0){ showDoneToday(); return; }
+  const count=mode==="survival"?eligiblePool().length:QN;
+  G={mode,qs:pickQs(mode==="review",count),idx:0,combo:0,ok:0,wrongList:[],lives:3};
+  $("lives").textContent=mode==="survival"?"❤️❤️❤️":"";
+  show("quiz");nextQ();
+}
+function showDoneToday(){
+  const d=document.createElement("div");
+  d.innerHTML="🎉 今日のぶんは完了！<br>また明日ね";
+  d.style.cssText="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:500;background:var(--card);color:var(--ink);padding:20px 24px;border-radius:16px;font-weight:800;font-size:16px;line-height:1.6;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,.5);border:1px solid #3a3270;max-width:80%";
+  document.body.appendChild(d);
+  setTimeout(()=>{d.style.transition="opacity .4s";d.style.opacity="0";},2400);
+  setTimeout(()=>d.remove(),2900);
+}
+function curTime(){
+  if(G.mode!=="survival")return TIME_MS;
+  return Math.max(6000, TIME_MS - G.idx*200);
+}
+function nextQ(){
+  clearTimeout(timerId);clearInterval(tickId);
+  const isOver = G.mode==="survival" ? (G.lives<=0||G.idx>=G.qs.length) : (G.idx>=QN);
+  if(isOver)return endGame();
+  const q=G.qs[G.idx];
+  $("qnum").textContent=G.mode==="survival"?`Q${G.idx+1}`:`Q${G.idx+1} / ${QN}`;
+  $("qword").innerHTML=renderQuestionText(q.text);
+  const cs=makeChoices(q);
+  $("choices").innerHTML="";
+  cs.forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.innerHTML=`<span class="key">${i+1}</span><span>${c}</span>`;
+    b.dataset.ans=c;
+    b.onclick=()=>answer(b,c===q.ans,q);
+    $("choices").appendChild(b);
+  });
+  const f=$("timerfill"),tm=curTime();
+  f.style.transition="none";f.style.width="100%";
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    f.style.transition=`width ${tm}ms linear`;f.style.width="0%";
+  });});
+  G.qStart=Date.now();G.qTime=tm;
+  timerId=setTimeout(()=>answer(null,false,q),tm);
+  tickId=setInterval(()=>{ if(Date.now()-G.qStart>G.qTime-2000) sfx.tick(); },500);
+}
+function answer(btn,ok,q){
+  clearTimeout(timerId);clearInterval(tickId);
+  document.querySelectorAll(".choice").forEach(b=>{
+    b.onclick=null;
+    if(b.dataset.ans===q.ans)b.classList.add("correct");
+    else if(b!==btn)b.classList.add("dim");
+  });
+  const st=S.word[q.key]=S.word[q.key]||{right:0,wrong:0};
+  S.total++;
+  if(ok){
+    S.correct++;st.right++;
+    {const t=todayStr();st.okDay=t;if(!st.okDays)st.okDays=[];if(!st.okDays.includes(t))st.okDays.push(t);}
+    G.ok++;G.combo++;
+    sfx.ok(G.combo);
+    G.idx++;
+    setTimeout(nextQ,550);
+  }else{
+    st.wrong++;
+    if(btn)btn.classList.add("wrong");
+    G.combo=0;
+    G.wrongList.push(q);
+    if(G.mode==="survival"){
+      G.lives--;
+      $("lives").textContent="❤️".repeat(G.lives)+"🖤".repeat(3-G.lives);
+    }
+    sfx.ng();
+    G.idx++;
+    setTimeout(()=>showExpl(q),600);
+  }
+}
+/* 間違えたときだけ解説 → タップで次へ */
+function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function showExpl(q){
+  $("explAns").textContent="正解: "+q.ans;
+  const r=q.rich;
+  if(r){
+    let h="";
+    if(r.core)h+=`<div>${esc(r.core)}</div>`;
+    if(r.wrongs&&r.wrongs.length){
+      h+=`<div class="exp-sec"><h5>なぜ他はダメか</h5>`;
+      r.wrongs.forEach(w=>{
+        h+=`<div class="exp-wrong"><span class="wc">${esc(w[0])}</span><span class="wt">${esc(w[1])}</span></div>`;
+      });
+      h+=`</div>`;
+    }
+    if(r.plus){
+      h+=`<div class="exp-plus"><span class="pl">＋α</span>${esc(r.plus)}`;
+      if(r.ex)h+=`<div class="exp-ex"><span class="en">${esc(r.ex[0])}</span><br><span class="ja">${esc(r.ex[1])}</span></div>`;
+      h+=`</div>`;
+    }else if(r.ex){
+      h+=`<div class="exp-ex"><span class="en">${esc(r.ex[0])}</span><br><span class="ja">${esc(r.ex[1])}</span></div>`;
+    }
+    $("explBody").innerHTML=h;
+  }else{
+    $("explBody").textContent=q.expl||"";
+  }
+  $("expl").style.display="flex";
+  pendingNext=()=>{ $("expl").style.display="none"; pendingNext=null; nextQ(); };
+}
+$("expl").addEventListener("click",()=>{ if(pendingNext)pendingNext(); });
+
+const PRAISES=["すごい！","天才！","神！","最高！","完璧！","さすが！","よくやった！","素晴らしい！",
+  "やるね！","パーフェクト！","ブラボー！","AMAZING!","GENIUS!","PERFECT!","WONDERFUL!","BRAVO!",
+  "GREAT!","花マル！","100点！","えらい！","きらきら✨","NICE!","超人！","脱帽！","圧巻！","お見事！"];
+let celebrating=false;
+function praiseStorm(){
+  const cel=$("celebrate");
+  const cols=["#fff","#FFD75E","#FF5BA8","#6FD6FF","#5EE6A8","#FFE9A8","#C9A0FF"];
+  const nm=(S.name?S.name+"ちゃん、":"あなた、");
+  const total=12;
+  for(let i=0;i<total;i++){
+    setTimeout(()=>{
+      if(!celebrating)return;
+      const el=document.createElement("div");
+      el.className="praise-word";
+      el.textContent=nm+PRAISES[Math.floor(Math.random()*PRAISES.length)];
+      el.style.color=cols[Math.floor(Math.random()*cols.length)];
+      el.style.fontSize=(17+Math.random()*22)+"px";
+      el.style.left=(Math.random()*78)+"vw";
+      el.style.top=(Math.random()*86)+"vh";
+      const rot=Math.random()*24-12;
+      cel.appendChild(el);
+      el.animate([
+        {opacity:0,transform:`scale(.4) rotate(${rot}deg)`},
+        {opacity:1,transform:`scale(1.1) rotate(${rot}deg)`,offset:.22},
+        {opacity:1,transform:`scale(1) rotate(${rot}deg)`,offset:.78},
+        {opacity:0,transform:`scale(1.04) rotate(${rot}deg) translateY(-18px)`}
+      ],{duration:1800,easing:"cubic-bezier(.2,1.4,.4,1)",fill:"forwards"});
+      setTimeout(()=>el.remove(),1840);
+      if(S.sound&&i%3===0){const f=[660,740,880,990][i%4];playNote(f,S.tone,0,.5);}
+    }, i*130);
+  }
+}
+function hideCelebrate(){
+  celebrating=false;
+  const c=$("celebrate");
+  c.style.display="none";
+  $("arashiBg").classList.remove("go");
+  $("flash").classList.remove("go");
+  c.querySelectorAll(".praise-word").forEach(e=>e.remove());
+  document.querySelectorAll(".confetti").forEach(e=>e.remove());
+}
+function celebratePerfect(){
+  const cel=$("celebrate");
+  celebrating=true;
+  cel.style.display="block";
+  ["arashiBg","flash"].forEach(id=>{const e=$(id);e.classList.remove("go");void e.offsetWidth;});
+  $("arashiBg").classList.add("go");
+  $("flash").classList.add("go");
+  praiseStorm();
+  burstConfetti(30);
+  sfx.fanfare();
+  if(navigator.vibrate)try{navigator.vibrate([0,30,30,30,30,30,30,90]);}catch(e){}
+  setTimeout(hideCelebrate,3500);
+}
+function burstConfetti(n){
+  const colors=["#6FD6FF","#FFC53D","#FF7A45","#FF3D8A","#5EE6A8"];
+  for(let i=0;i<n;i++){
+    const c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"vw";
+    c.style.background=colors[i%colors.length];
+    c.style.animationDuration=(1.2+Math.random())+"s";
+    c.style.borderRadius=Math.random()>.5?"50%":"2px";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2400);
+  }
+}
+
+async function endGame(){
+  const t=todayStr();
+  if(S.lastDay!==t){
+    const y=new Date(Date.now()-864e5);
+    const ys=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();
+    S.streakDays=(S.lastDay===ys)?S.streakDays+1:1;
+    S.lastDay=t;
+  }
+  let newBest=false;
+  if(G.mode==="survival"&&G.ok>S.bestSurv){S.bestSurv=G.ok;newBest=true;}
+  let praise="";
+  const nm=S.name?S.name+"ちゃん":"";
+  let doCelebrate=false;
+  if(G.mode!=="survival"&&G.ok===QN){
+    S.perfects=(S.perfects||0)+1;
+    praise=(nm?nm+"、":"")+"全問正解!オクターブ完成🎵";
+    doCelebrate=true;
+  }else if(newBest){
+    praise="新記録!";
+  }
+  await saveState();
+
+  $("praise").textContent=praise;
+  $("praise").style.display=praise?"block":"none";
+  if(doCelebrate)setTimeout(celebratePerfect,120);
+  $("resMode").textContent=G.mode==="survival"?"SURVIVAL RESULT":G.mode==="review"?"REVIEW RESULT":"SPRINT RESULT";
+  $("resScore").textContent=G.mode==="survival"?`${G.ok}問`:`${G.ok} / ${QN}`;
+  $("resBest").textContent=newBest?"🏆 サバイバル記録更新!":"";
+  const box=$("resWrong"),list=$("resWrongList");
+  if(G.wrongList.length){
+    box.style.display="block";
+    list.innerHTML=G.wrongList.map(q=>`<div class="w"><b>${q.text}</b><span>正解: ${q.ans}</span></div>`).join("");
+  }else box.style.display="none";
+  show("result");
+}
+
+/* ================= ホーム & 図鑑 ================= */
+function zukanProgress(){
+  const R=activeRange();
+  let p=0;
+  QUESTIONS.forEach(q=>{
+    if(q[0]<R.lo||q[0]>R.hi)return;
+    const k=keyOf(q),st=S.word[k];if(!st)return;
+    if((st.right||0)+(st.wrong||0)===0)return;
+    p+=isMastered(k)?1:0.5;
+  });
+  return p;
+}
+function renderHome(){
+  $("stSurv").textContent=S.bestSurv;
+  $("stStreak").textContent=S.streakDays;
+  $("stAcc").textContent=S.total?Math.round(S.correct/S.total*100)+"%":"-%";
+  const R=activeRange();
+  const rc=rangeCount();
+  const weak=QUESTIONS.filter(q=>{if(q[0]<R.lo||q[0]>R.hi)return false;const v=S.word[keyOf(q)];return v&&v.wrong>v.right;}).length;
+  $("weakCount").textContent=weak;
+  $("reviewBadge").style.display=weak>=3?"block":"none";
+  $("reviewBtn").style.display=weak>=3?"block":"none";
+  $("zukanRate").textContent=(rc?Math.round(zukanProgress()/rc*100):0)+"%";
+  if(document.activeElement!==$("rangeLo"))$("rangeLo").value=R.lo;
+  if(document.activeElement!==$("rangeHi"))$("rangeHi").value=R.hi;
+  $("rangeNow").textContent=`いまの範囲: ${R.lo}〜${R.hi}（${rc}問）`;
+  $("sndToggle").textContent=S.sound?"🔊":"🔇";
+  $("nameBtn").textContent=S.name?`ようこそ、${S.name}ちゃん 🎵`:"✏️ なまえを設定";
+  const tc=$("toneChips");tc.innerHTML="";
+  Object.entries(TONES).forEach(([k,name])=>{
+    const b=document.createElement("button");
+    b.className="chip"+(S.tone===k?" sel":"");
+    b.textContent=name;
+    b.onclick=()=>{S.tone=k;saveState();renderHome();sfx.preview(k);};
+    tc.appendChild(b);
+  });
+}
+function renderZukan(){
+  const R=activeRange();
+  const rc=rangeCount();
+  const prog=zukanProgress();
+  const pct=rc?Math.round(prog/rc*100):0;
+  $("zukanPct").textContent=`${pct}%（${R.lo}〜${R.hi}）`;
+  $("zfill").style.width=(rc?prog/rc*100:0)+"%";
+  const zl=$("zlist");zl.innerHTML="";
+  QUESTIONS.forEach(q=>{
+    if(q[0]<R.lo||q[0]>R.hi)return;
+    const k=keyOf(q),st=S.word[k];
+    const d=document.createElement("div");
+    let tag="",locked=false;
+    if(!st||st.right+st.wrong===0){locked=true;}
+    else if(isMastered(k))tag=`<span class="tag m">★ MASTER</span>`;
+    else if(st.wrong>st.right)tag=`<span class="tag w">⚡ 苦手</span>`;
+    else tag=`<span class="tag t">挑戦中</span>`;
+    d.className="zw"+(locked?" locked":"");
+    d.innerHTML=`<div class="ztop"><span class="znum">${q[0]}</span><span class="zq">${locked?"???":renderQuestionText(q[1])}${tag}</span></div>`
+      +(locked?"":`<div class="zans">正解: ${q[2]}</div>`);
+    zl.appendChild(d);
+  });
+}
+
+/* ================= イベント ================= */
+$("startBtn").onclick=()=>startGame("sprint");
+$("survBtn").onclick=()=>startGame("survival");
+$("reviewBtn").onclick=()=>startGame("review");
+$("rangeSet").onclick=()=>{
+  const dlo=dataLo(),dhi=dataHi();
+  let lo=parseInt($("rangeLo").value,10),hi=parseInt($("rangeHi").value,10);
+  if(isNaN(lo))lo=dlo; if(isNaN(hi))hi=dhi;
+  if(lo>hi){const t=lo;lo=hi;hi=t;}
+  lo=Math.max(dlo,Math.min(lo,dhi)); hi=Math.max(dlo,Math.min(hi,dhi));
+  S.range=(lo===dlo&&hi===dhi)?null:{lo,hi};
+  saveState();renderHome();
+};
+$("rangeAll").onclick=()=>{S.range=null;saveState();renderHome();};
+$("reviewBadge").onclick=()=>startGame("review");
+$("againBtn").onclick=()=>startGame(G?G.mode:"sprint");
+$("homeBtn").onclick=()=>{hideCelebrate();renderHome();show("home");};
+$("zukanBtn").onclick=()=>{renderZukan();show("zukan");};
+$("zukanBack").onclick=()=>{renderHome();show("home");};
+$("sndToggle").onclick=()=>{S.sound=!S.sound;$("sndToggle").textContent=S.sound?"🔊":"🔇";saveState();};
+function askName(first){
+  $("nameInput").value=S.name||"";
+  $("nameSkip").textContent=first?"あとで":"キャンセル";
+  $("nameModal").style.display="flex";
+  setTimeout(()=>$("nameInput").focus(),100);
+}
+$("nameBtn").onclick=()=>askName(false);
+$("nameOk").onclick=()=>{
+  S.name=$("nameInput").value.trim().slice(0,10);
+  $("nameModal").style.display="none";
+  saveState();renderHome();
+};
+$("nameSkip").onclick=()=>{$("nameModal").style.display="none";};
+$("nameInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("nameOk").click();});
+document.addEventListener("keydown",e=>{
+  if($("nameModal").style.display==="flex")return;
+  if($("expl").style.display==="flex"){if(pendingNext)pendingNext();return;}
+  if(!$("quiz").classList.contains("active"))return;
+  const n=parseInt(e.key);
+  if(n>=1&&n<=4){const b=$("choices").children[n-1];if(b&&b.onclick)b.click();}
+});
+
+loadState();
+</script>
+</body>
+</html>
