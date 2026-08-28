@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Share Note v0.1</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.7/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#f5f7fa;--card:#fff;--text:#17202a;--muted:#667085;--line:#dfe4ea;--accent:#3156d3;--soft:#eef2ff}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP","Yu Gothic",Meiryo,sans-serif}
+header{max-width:1300px;margin:auto;padding:18px 16px 8px;display:flex;justify-content:space-between;align-items:center;gap:10px}h1{font-size:1.45rem;margin:0}header small{color:var(--muted)}
+main{max-width:1300px;margin:auto;padding:10px 16px 30px;display:grid;grid-template-columns:minmax(320px,.9fr) minmax(420px,1.15fr);gap:16px}.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}.editor{padding:16px}.panel-title{font-weight:800;margin:0 0 12px}.label{display:block;font-size:.82rem;font-weight:700;margin:10px 0 6px}input,textarea,button{font:inherit}input,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff}textarea{min-height:58vh;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.55}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;cursor:pointer}.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.preview-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.preview-head span{font-size:.78rem;color:var(--muted)}article{max-width:860px;margin:auto;padding:28px clamp(17px,4vw,42px) 55px;line-height:1.82}.article-title{font-size:clamp(1.6rem,4vw,2.25rem);line-height:1.35;margin:0 0 1.2rem}article h2{margin:2.1em 0 .75em;padding-bottom:.35em;border-bottom:2px solid var(--line)}article blockquote{margin:1.2em 0;padding:.8em 1em;background:var(--soft);border-left:4px solid var(--accent);border-radius:8px}.table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:1.1em 0 1.5em;border:1px solid var(--line);border-radius:10px}table{width:100%;min-width:680px;border-collapse:collapse;font-size:.9rem;line-height:1.55}th,td{padding:.7em .75em;border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f7f8fa}.chart-card{margin:1.4em 0 1.7em;border:1px solid var(--line);border-radius:12px;padding:15px}.chart-card h4{margin:0 0 12px}.chart-box{position:relative;min-height:300px}.error{padding:12px;background:#fff2f0;color:#9b1c1c;border-radius:8px;font-size:.84rem}details{margin-top:12px;color:var(--muted);font-size:.82rem}pre{overflow:auto;background:#111827;color:#fff;padding:12px;border-radius:9px}.status{font-size:.78rem;color:var(--muted);margin-top:8px}
+@media(max-width:900px){main{grid-template-columns:1fr}textarea{min-height:42vh}}@media(max-width:600px){header{padding:14px 12px 6px}main{padding:8px 0 24px}.panel{border-radius:0;border-left:0;border-right:0}.editor{padding:15px}.buttons{grid-template-columns:1fr}article{padding:22px 16px 48px}.chart-box{min-height:270px}}
+</style>
+</head>
+<body>
+<header><div><h1>Share Note <small>v0.1</small></h1><small>AI分析を、表とグラフごと共有するための試作</small></div><button id="sampleBtn">サンプル</button></header>
+<main>
+<section class="panel editor">
+  <div class="panel-title">① ChatGPTの内容を貼る</div>
+  <label class="label" for="title">タイトル</label>
+  <input id="title" value="非中国ドローン市場メモ">
+  <label class="label" for="source">Markdown本文</label>
+  <textarea id="source" spellcheck="false"></textarea>
+  <div class="buttons"><button class="primary" id="renderBtn">② プレビュー更新</button><button id="downloadBtn">③ このページを保存</button></div>
+  <div class="status">※ v0.1 は「表示の再現性」を試す段階です。URL共有は次版で追加します。</div>
+  <details><summary>グラフの書き方</summary><pre><code>```chart
+{
+  "type":"bar",
+  "title":"部品市場",
+  "labels":["モーター","電池","センサー"],
+  "values":[480,600,720],
+  "unit":"億円"
+}
+```</code></pre></details>
+</section>
+<section class="panel">
+  <div class="preview-head"><strong>スマホ表示プレビュー</strong><span>表は横スクロール</span></div>
+  <article id="preview"></article>
+</section>
+</main>
+<script>
+const titleEl=document.getElementById('title');
+const sourceEl=document.getElementById('source');
+const preview=document.getElementById('preview');
+let charts=[];
+
+const sample=`## 結論
+
+完成機メーカー1社に賭けるより、**複数OEMへ供給できる部品・AI・通信・センサー側**も見る。
+
+## 日本企業の比較
+
+| 企業 | 主な領域 | テーマ感応度 | 主なリスク |
+|---|---|---:|---|
+| ACSL | 国産産業用ドローン | 高 | 量産・価格競争 |
+| 村田製作所 | IMU・電子部品 | 中〜高 | 全社への寄与はまだ小さい |
+| ルネサス | MCU・AI・制御 | 中〜高 | 半導体競争 |
+| ニデック | モーター・ESC | 中 | 採用OEM・搭載単価が未確定 |
+
+## 100万機時の部品市場（仮定）
+
+\`\`\`chart
+{
+  "type":"bar",
+  "title":"年間部品プール（仮定）",
+  "labels":["モーター・プロペラ","ESC・電源","バッテリー","カメラ・センサー","演算・半導体","通信・航法"],
+  "values":[480,320,600,720,480,480],
+  "unit":"億円"
+}
+\`\`\`
+
+> 大事なのは「機数」だけではなく、**採用OEM数 × 搭載単価 × 粗利率**。
+
+## 時系列グラフの例
+
+\`\`\`chart
+{
+  "type":"line",
+  "title":"量産規模のイメージ（例示）",
+  "labels":["2026","2027","2028","2029","2030"],
+  "values":[10,25,45,70,100],
+  "unit":"万機"
+}
+\`\`\``;
+
+function extractCharts(md){
+  const specs=[];
+  const cleaned=md.replace(/```chart\s*([\s\S]*?)```/g,(_,raw)=>{
+    const id='chart-'+specs.length;
+    try{specs.push({id,spec:JSON.parse(raw.trim())})}
+    catch(e){specs.push({id,error:e.message})}
+    return `\n<div data-chart-id="${id}"></div>\n`;
+  });
+  return {cleaned,specs};
+}
+function clearCharts(){charts.forEach(c=>c.destroy());charts=[];}
+function render(){
+  clearCharts();
+  const {cleaned,specs}=extractCharts(sourceEl.value);
+  const html=DOMPurify.sanitize(marked.parse(cleaned,{gfm:true,breaks:true}),{USE_PROFILES:{html:true},ADD_ATTR:['data-chart-id']});
+  preview.innerHTML='<h1 class="article-title"></h1><div class="body">'+html+'</div>';
+  preview.querySelector('.article-title').textContent=titleEl.value.trim()||'無題';
+  preview.querySelectorAll('table').forEach(t=>{const w=document.createElement('div');w.className='table-wrap';t.parentNode.insertBefore(w,t);w.appendChild(t)});
+  specs.forEach(item=>{
+    const ph=preview.querySelector(`[data-chart-id="${item.id}"]`);if(!ph)return;
+    const card=document.createElement('section');card.className='chart-card';
+    if(item.error){card.innerHTML='<div class="error">chart JSON エラー: '+item.error+'</div>';ph.replaceWith(card);return;}
+    const s=item.spec;const type=['bar','line','pie','doughnut'].includes(s.type)?s.type:'bar';
+    const h=document.createElement('h4');h.textContent=s.title||'グラフ';const box=document.createElement('div');box.className='chart-box';const canvas=document.createElement('canvas');box.appendChild(canvas);card.appendChild(h);card.appendChild(box);ph.replaceWith(card);
+    const unit=s.unit||'';const pie=type==='pie'||type==='doughnut';
+    charts.push(new Chart(canvas,{type,data:{labels:Array.isArray(s.labels)?s.labels:[],datasets:[{label:s.title||'値',data:Array.isArray(s.values)?s.values:[],borderWidth:2,tension:type==='line'?.25:undefined}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:pie},tooltip:{callbacks:{label:x=>`${x.label?x.label+': ':''}${x.raw}${unit}`}}},scales:pie?{}:{y:{beginAtZero:true,ticks:{callback:v=>v+unit}}}}}}));
+  });
+}
+function download(){
+  const blob=new Blob([document.documentElement.outerHTML],{type:'text/html;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='share-note-v01.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+document.getElementById('renderBtn').onclick=render;document.getElementById('sampleBtn').onclick=()=>{titleEl.value='非中国ドローン市場メモ';sourceEl.value=sample;render()};document.getElementById('downloadBtn').onclick=download;
+sourceEl.value=sample;render();
+</script>
+</body>
+</html>
