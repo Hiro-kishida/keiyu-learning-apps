@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>WORD RUSH 92 — 意味のうわがき</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161233; --card:#221C4D; --card2:#2B2460;
+  --ink:#F6F2FF; --sub:#9D93C9;
+  --heat:#6FD6FF; --heat-soft:rgba(111,214,255,.18);
+  --good:#5EE6A8; --bad:#FF6B81; --gold:#FFD75E;
+  --r:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN',sans-serif;
+  overflow:hidden; user-select:none; transition:background .6s;
+}
+body.fever{animation:feverBg 1s infinite alternate}
+@keyframes feverBg{from{background:#2A1040}to{background:#3A0E33}}
+#app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;padding:16px;position:relative}
+.screen{display:none;flex-direction:column;flex:1;min-height:0}
+.screen.active{display:flex;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+button{font-family:inherit;border:none;cursor:pointer;color:inherit}
+.big-btn{
+  background:var(--heat); color:#161233;
+  font-weight:800;font-size:19px;padding:17px;border-radius:999px;width:100%;
+  box-shadow:0 6px 0 rgba(0,0,0,.35); transition:transform .08s, background .4s;
+}
+.big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.big-btn.alt{background:var(--card2);color:var(--ink);margin-top:10px}
+.ghost-btn{background:var(--card);color:var(--sub);font-weight:700;font-size:14px;padding:13px;border-radius:999px;width:100%;margin-top:10px}
+.eyebrow{font-size:11px;letter-spacing:.25em;color:var(--sub);font-weight:700}
+
+/* ===== ホーム ===== */
+#home{justify-content:flex-start;gap:12px;overflow-y:auto;padding-top:2vh}
+.logo{font-family:'Archivo Black',sans-serif;font-size:17px;line-height:1;letter-spacing:-.02em}
+.logo .rush{color:var(--heat);transition:color .4s}
+.stat-row{display:flex;gap:8px}
+.stat{flex:1;background:var(--card);border-radius:var(--r);padding:12px 8px;text-align:center}
+.stat b{display:block;font-size:21px;font-weight:800}
+.stat span{font-size:10px;color:var(--sub);font-weight:700}
+#levelBox{background:var(--card);border-radius:var(--r);padding:14px}
+#levelTitle{display:flex;justify-content:space-between;align-items:baseline;font-weight:800}
+#rankName{font-size:15px}
+#lvNum{color:var(--heat);font-family:'Archivo Black';transition:color .4s}
+.xpbar{height:9px;background:#0F0C26;border-radius:99px;margin-top:9px;overflow:hidden}
+.xpfill{height:100%;background:var(--heat);border-radius:99px;width:0%;transition:width .8s cubic-bezier(.2,1,.3,1), background .4s}
+.xptext{font-size:10px;color:var(--sub);margin-top:5px;text-align:right;font-weight:700}
+#toneBox,#rangeBox{background:var(--card);border-radius:var(--r);padding:14px}
+#toneBox h3,#rangeBox h3{font-size:11px;letter-spacing:.2em;color:var(--sub);margin-bottom:9px}
+#toneChips{display:flex;flex-wrap:wrap;gap:7px}
+.range-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.range-row input{width:72px;background:var(--card2);border:1.5px solid transparent;border-radius:12px;
+  padding:9px 10px;font-size:15px;font-weight:800;color:var(--ink);text-align:center;
+  font-family:inherit;user-select:text;-webkit-user-select:text}
+.range-row input:focus{outline:none;border-color:var(--heat)}
+.range-row .dash{color:var(--sub);font-weight:800}
+.range-now{margin-top:8px;font-size:12px;font-weight:700;color:var(--heat)}
+.chip{background:var(--card2);border:1.5px solid transparent;border-radius:999px;
+  padding:8px 13px;font-size:12px;font-weight:800;color:var(--sub);transition:transform .07s}
+.chip:active{transform:scale(.94)}
+.chip.sel{border-color:var(--heat);color:var(--heat);background:var(--heat-soft)}
+#reviewBadge{display:none;background:var(--heat-soft);border:1.5px dashed var(--heat);color:var(--heat);
+  border-radius:var(--r);padding:11px 14px;font-size:13px;font-weight:700;width:100%;text-align:left;
+  transition:border-color .4s,color .4s}
+#zukanBtn{display:flex;justify-content:space-between;align-items:center;background:var(--card);
+  border-radius:var(--r);padding:13px 14px;width:100%;font-size:13px;font-weight:800;text-align:left}
+#zukanBtn .pct{color:var(--gold)}
+#nameBtn{background:none;color:var(--sub);font-size:13px;font-weight:700;padding:4px 0 0;text-align:left}
+#sndToggle{position:absolute;top:16px;right:16px;background:var(--card);width:40px;height:40px;border-radius:12px;font-size:18px;z-index:5}
+
+/* ===== クイズ ===== */
+#hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+#qnum{font-weight:800;color:var(--sub);font-size:14px}
+#lives{font-size:14px;letter-spacing:2px}
+#score{font-family:'Archivo Black';font-size:22px}
+#feverBanner{display:none;position:absolute;top:48px;left:0;right:0;text-align:center;
+  font-family:'Archivo Black';font-size:16px;color:var(--gold);letter-spacing:.15em;
+  pointer-events:none;z-index:4;text-shadow:0 2px 10px rgba(0,0,0,.6);
+  animation:feverPulse .5s infinite alternate}
+@keyframes feverPulse{from{transform:scale(1);opacity:.85}to{transform:scale(1.08);opacity:1}}
+#combo{position:absolute;top:42%;right:14px;text-align:right;pointer-events:none;z-index:4;
+  font-family:'Archivo Black';font-size:26px;color:var(--heat);opacity:0;text-shadow:0 2px 10px rgba(0,0,0,.55)}
+#combo.show{animation:comboPop .9s cubic-bezier(.2,1.8,.4,1) forwards}
+@keyframes comboPop{0%{opacity:0;transform:scale(.4) rotate(-8deg)}18%{opacity:1;transform:scale(1) rotate(-4deg)}
+  70%{opacity:1;transform:scale(1) rotate(-4deg)}100%{opacity:0;transform:scale(.9) translateY(-14px) rotate(-4deg)}}
+#combo small{display:block;font-size:11px;font-family:'M PLUS Rounded 1c';font-weight:800;letter-spacing:.2em}
+.timerbar{height:8px;background:#0F0C26;border-radius:99px;overflow:hidden;margin-bottom:14px}
+#timerfill{height:100%;background:var(--heat);width:100%;border-radius:99px;transition:background .4s}
+#qcard{background:var(--card);border-radius:24px;padding:26px 20px 22px;text-align:center;
+  position:relative;border:2px solid transparent;transition:border-color .3s}
+#qcard.heat3{border-color:var(--heat);box-shadow:0 0 30px var(--heat-soft)}
+#qcard.phrase{border-color:var(--gold);box-shadow:0 0 26px rgba(255,215,94,.18)}
+body.fever #qcard{border-color:var(--gold);box-shadow:0 0 36px rgba(255,215,94,.25)}
+#phtag{display:none;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin-bottom:9px}
+#qword{font-family:'Archivo Black',sans-serif;font-size:clamp(30px,10vw,48px);letter-spacing:-.01em;word-break:break-word;line-height:1.1}
+#qword.ph{font-size:clamp(23px,7.2vw,35px);color:var(--gold)}
+#dots{display:flex;gap:6px;justify-content:center;margin-top:12px}
+#dots i{width:8px;height:8px;border-radius:50%;background:#0F0C26}
+#dots i.f{background:var(--gold)}
+#choices{display:grid;gap:10px;margin-top:14px;flex:1;align-content:start;overflow-y:auto}
+.choice{background:var(--card2);border-radius:var(--r);padding:17px 15px;font-size:18px;font-weight:700;
+  text-align:left;display:flex;align-items:center;gap:12px;
+  transition:transform .07s, background .15s;border:2px solid transparent}
+.choice:active{transform:scale(.97)}
+.choice .key{min-width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--sub);flex-shrink:0}
+.choice.correct{background:rgba(94,230,168,.16);border-color:var(--good);color:var(--good)}
+.choice.wrong{background:rgba(255,107,129,.14);border-color:var(--bad);color:var(--bad);animation:shake .35s}
+.choice.dim{opacity:.35}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.float-pt{position:absolute;font-family:'Archivo Black';font-size:24px;color:var(--heat);pointer-events:none;
+  animation:floatUp .55s ease-out forwards;text-shadow:0 2px 8px rgba(0,0,0,.4);z-index:4}
+@keyframes floatUp{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-36px)}}
+#app.quake{animation:quake .25s}
+@keyframes quake{25%{transform:translate(3px,-2px)}50%{transform:translate(-3px,2px)}75%{transform:translate(2px,1px)}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:300;
+  background:var(--gold);color:#161233;font-weight:800;font-size:13px;padding:9px 16px;border-radius:999px;
+  box-shadow:0 6px 20px rgba(0,0,0,.4);animation:toastIn 2.2s forwards;white-space:nowrap;pointer-events:none}
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,16px)}12%{opacity:1;transform:translate(-50%,0)}
+  80%{opacity:1}100%{opacity:0;transform:translate(-50%,10px)}}
+
+/* ===== 結果 ===== */
+#result{justify-content:center;text-align:center;overflow-y:auto}
+#resScore{font-family:'Archivo Black';font-size:60px;color:var(--heat);transition:color .4s}
+#resMode{font-size:12px;color:var(--sub);font-weight:800;letter-spacing:.2em}
+#resBest{font-size:13px;font-weight:800;color:var(--good);min-height:20px;margin-top:2px}
+.res-stats{display:flex;gap:8px;margin:16px 0}
+#resWrong{background:var(--card);border-radius:var(--r);padding:14px;text-align:left;font-size:14px;
+  max-height:26dvh;overflow-y:auto;margin-bottom:14px}
+#resWrong h4{font-size:11px;color:var(--sub);letter-spacing:.15em;margin-bottom:8px}
+#resWrong .w{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+#resWrong .w .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:700}
+#resWrong .w .top b{word-break:break-word}
+#resWrong .w .top b.ph{color:var(--gold);font-size:13px}
+#resWrong .w .top span{color:var(--good);font-weight:700;font-size:13px;text-align:right}
+#resWrong .w .nt{color:var(--sub);font-weight:500;font-size:11.5px;line-height:1.7;margin-top:5px}
+#lvup{display:none;font-weight:800;color:var(--heat);font-size:16px;animation:pop .5s;margin-bottom:8px}
+#praise{display:none;font-size:17px;font-weight:800;color:var(--gold);margin-bottom:6px;animation:pop .5s}
+
+/* ===== 図鑑 ===== */
+#zukan{overflow:hidden}
+#zukanHead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+#zukanHead h2{font-family:'Archivo Black';font-size:22px}
+#zukanPct{color:var(--gold);font-weight:800}
+.zbar{height:9px;background:#0F0C26;border-radius:99px;overflow:hidden;margin-bottom:12px}
+#zfill{height:100%;background:var(--gold);width:0%;border-radius:99px}
+#zlist{flex:1;overflow-y:auto;background:var(--card);border-radius:var(--r);padding:6px 14px}
+.zw{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);font-weight:700;font-size:14px}
+.zw .zja{color:var(--sub);font-weight:500;font-size:13px;text-align:right}
+.znum{color:var(--heat);font-weight:800;font-size:12px;min-width:26px;font-family:'Archivo Black',sans-serif}
+.zleft{display:flex;align-items:center;gap:10px;min-width:0}
+.zleft b{word-break:break-word}
+.zleft b.ph{color:var(--gold);font-size:13px}
+.zw.locked{opacity:.35}
+.zw .tag{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;margin-left:8px;white-space:nowrap}
+.zw .tag.m{background:rgba(255,215,94,.18);color:var(--gold)}
+.zw .tag.t{background:rgba(111,214,255,.15);color:var(--heat)}
+.zw .tag.w{background:rgba(255,107,129,.15);color:var(--bad)}
+
+/* ===== 引き継ぎ ===== */
+#data{overflow-y:auto}
+#data p{font-size:12.5px;color:var(--sub);line-height:1.85;font-weight:500;margin-bottom:12px}
+#codebox{width:100%;height:110px;background:#0F0C26;border:1.5px solid var(--card2);border-radius:14px;
+  color:var(--ink);font-size:11px;padding:12px;font-family:ui-monospace,Menlo,monospace;
+  resize:none;word-break:break-all;user-select:text;-webkit-user-select:text;outline:none}
+
+/* ===== 全問正解 派手演出 ===== */
+#celebrate{position:fixed;inset:0;z-index:200;pointer-events:none;display:none;overflow:hidden}
+#arashiBg{position:absolute;inset:0;opacity:0;background:
+  linear-gradient(120deg,#FF5BA8,#FF9F43,#FFD75E,#5EE6A8,#6FD6FF,#A86CFF,#FF5BA8);
+  background-size:300% 300%}
+#arashiBg.go{animation:arBgFade 3.2s ease-out forwards, rbShift2 3s linear infinite}
+@keyframes arBgFade{0%{opacity:0}12%{opacity:.85}82%{opacity:.85}100%{opacity:0}}
+@keyframes rbShift2{from{background-position:0 0}to{background-position:300% 300%}}
+#flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fff,rgba(255,255,255,0));opacity:0}
+#flash.go{animation:flashAnim .5s ease-out}
+@keyframes flashAnim{0%{opacity:.9}100%{opacity:0}}
+.praise-word{position:absolute;will-change:transform,opacity;pointer-events:none;
+  font-family:'M PLUS Rounded 1c','Archivo Black',sans-serif;font-weight:900;white-space:nowrap;
+  text-shadow:0 2px 8px rgba(0,0,0,.25),0 0 18px rgba(255,255,255,.5)}
+.cracker{position:absolute;width:12px;height:12px;will-change:transform,opacity}
+.confetti{position:fixed;width:10px;height:10px;top:-12px;pointer-events:none;z-index:99;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110dvh) rotate(720deg)}}
+
+/* ===== なまえ ===== */
+#nameModal{display:none;position:fixed;inset:0;background:rgba(10,8,30,.75);z-index:250;
+  align-items:center;justify-content:center;padding:24px}
+#nameCard{background:var(--card);border-radius:22px;padding:24px 20px;width:100%;max-width:340px;text-align:center;animation:pop .3s}
+#nameCard h3{font-size:16px;font-weight:800;margin-bottom:4px}
+#nameCard p{font-size:12px;color:var(--sub);margin-bottom:14px}
+#nameInput{width:100%;background:#0F0C26;border:1.5px solid var(--card2);border-radius:14px;color:var(--ink);
+  font-family:inherit;font-size:17px;font-weight:700;padding:13px;text-align:center;
+  user-select:text;-webkit-user-select:text;outline:none}
+#nameInput:focus{border-color:var(--heat)}
+#nameBtns{display:flex;gap:10px;margin-top:14px}
+#nameBtns button{flex:1;border-radius:999px;padding:12px;font-weight:800;font-size:14px}
+#nameOk{background:var(--heat);color:#161233}
+#nameSkip{background:var(--card2);color:var(--sub)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="celebrate"><div id="arashiBg"></div><div id="flash"></div></div>
+  <button id="sndToggle" aria-label="サウンド切り替え">🔊</button>
+
+  <!-- ホーム -->
+  <section id="home" class="screen active">
+    <div>
+      <p class="eyebrow">意味のうわがき</p>
+      <h1 class="logo">WORD <span class="rush">RUSH 92</span></h1>
+      <button id="nameBtn"></button>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><b id="stBest">0</b><span>ベスト</span></div>
+      <div class="stat"><b id="stSurv">0</b><span>サバイバル記録</span></div>
+      <div class="stat"><b>🔥<span id="stStreak">0</span></b><span>連続日数</span></div>
+      <div class="stat"><b id="stAcc">-%</b><span>正答率</span></div>
+    </div>
+    <div id="levelBox">
+      <div id="levelTitle"><span id="rankName">見習いルーキー</span><span id="lvNum">Lv.1</span></div>
+      <div class="xpbar"><div class="xpfill" id="xpfill"></div></div>
+      <div class="xptext" id="xptext"></div>
+    </div>
+    <div id="toneBox">
+      <h3>♪ 効果音の音色(タップで試聴)</h3>
+      <div id="toneChips"></div>
+    </div>
+    <button id="zukanBtn">📖 単語図鑑 <span class="pct" id="zukanRate">0%</span></button>
+    <button id="reviewBadge">⚡ 苦手な単語が <b id="weakCount">0</b> 個 — 復習ラッシュで倒そう</button>
+    <div id="rangeBox">
+      <h3>📏 出題範囲(単語番号)</h3>
+      <div class="range-row">
+        <input id="rangeLo" type="number" inputmode="numeric">
+        <span class="dash">〜</span>
+        <input id="rangeHi" type="number" inputmode="numeric">
+        <button id="rangeSet" class="chip sel">セット</button>
+        <button id="rangeAll" class="chip">全部</button>
+      </div>
+      <div id="rangeNow" class="range-now"></div>
+    </div>
+    <div style="margin-top:auto;padding-top:8px">
+      <button class="big-btn" id="startBtn">スプリント(8問)▶</button>
+      <button class="big-btn alt" id="survBtn">🛡 サバイバル(3ミスで終了)</button>
+      <button class="ghost-btn" id="reviewBtn" style="display:none">苦手だけ復習する</button>
+      <button class="ghost-btn" id="dataBtn">🔑 引き継ぎコード</button>
+    </div>
+  </section>
+
+  <!-- クイズ -->
+  <section id="quiz" class="screen">
+    <div id="hud">
+      <span id="qnum">Q1 / 8</span>
+      <span id="lives"></span>
+      <span id="score">0</span>
+    </div>
+    <div id="feverBanner">★ FEVER TIME ×2 ★</div>
+    <div class="timerbar"><div id="timerfill"></div></div>
+    <div id="qcard">
+      <div id="phtag">この意味は、この形のときだけ</div>
+      <div id="qword"></div>
+      <div id="dots"></div>
+    </div>
+    <div id="choices"></div>
+    <div id="combo"><small>COMBO</small>×0</div>
+  </section>
+
+  <!-- 結果 -->
+  <section id="result" class="screen">
+    <p class="eyebrow" id="resMode">RESULT</p>
+    <div id="lvup">🎉 LEVEL UP!</div>
+    <div id="praise"></div>
+    <div id="resScore">0</div>
+    <div id="resBest"></div>
+    <div class="res-stats">
+      <div class="stat"><b id="resCorrect">0/8</b><span>正解</span></div>
+      <div class="stat"><b id="resMaxCombo">×0</b><span>最大コンボ</span></div>
+      <div class="stat"><b id="resXp">+0</b><span>XP</span></div>
+    </div>
+    <div id="resWrong" style="display:none"><h4>とりこぼした単語</h4><div id="resWrongList"></div></div>
+    <button class="big-btn" id="againBtn">もう1回 ▶</button>
+    <button class="ghost-btn" id="homeBtn">ホームへ</button>
+  </section>
+
+  <!-- 図鑑 -->
+  <section id="zukan" class="screen">
+    <div id="zukanHead"><h2>単語図鑑</h2><span id="zukanPct">0%</span></div>
+    <div class="zbar"><div id="zfill"></div></div>
+    <div id="zlist"></div>
+    <button class="ghost-btn" id="zukanBack">ホームへ戻る</button>
+  </section>
+
+  <!-- 引き継ぎ -->
+  <section id="data" class="screen">
+    <div id="zukanHead"><h2 style="font-family:'Archivo Black';font-size:20px">引き継ぎコード</h2></div>
+    <p>機種変更やブラウザを変えるときは、このコードをコピーして新しい方に貼りつけてください。進んだところが引き継げます。</p>
+    <textarea id="codebox" readonly></textarea>
+    <button class="big-btn alt" id="copyBtn" style="margin-top:10px">コードをコピー</button>
+    <button class="ghost-btn" id="pasteBtn">コードを読みこむ</button>
+    <p style="margin-top:16px">Safari で開いて「ホーム画面に追加」しておくと、1タップで開けます。</p>
+    <div style="margin-top:auto"><button class="ghost-btn" id="dataBack">ホームへ戻る</button></div>
+  </section>
+
+  <!-- なまえ -->
+  <div id="nameModal">
+    <div id="nameCard">
+      <h3>なまえを教えてね</h3>
+      <p>あとで「ようこそ」のところから変えられます</p>
+      <input id="nameInput" maxlength="10" placeholder="ニックネームでもOK">
+      <div id="nameBtns"><button id="nameSkip">あとで</button><button id="nameOk">けってい</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= 単語データ =================
+   [番号, 英語, 日本語, 句(英), 句(日), 誤答に混ぜる語の番号, 解説]
+   訳語は本体830語版の書き方に合わせています。
+   本体と意味がずれる語には、解説で「本体では〜」と明記しています。 */
+const WORDS=[
+[1,"improve","向上する",null,null,35,null],
+[2,"mean","意味する",null,null,8,"mean to do で「〜するつもりである」"],
+[3,"allow for","考慮に入れる",null,null,42,"本体の allow は「許す」。for が付くと意味が変わります。"],
+[4,"produce","生み出す，生産する",null,null,5,null],
+[5,"offer","提供する",null,null,4,null],
+[6,"share","共有する",null,null,73,null],
+[7,"tend","傾向がある",null,null,54,"tend to do の形で使う"],
+[8,"describe","（言葉で）描写する，述べる",null,null,48,null],
+[9,"involve","伴う",null,null,39,null],
+[10,"bear","耐える","bear in mind","心に留める",82,"bear 単体は「耐える・負う」。「心に留める」は in mind が付いたときだけ出る意味です。"],
+[11,"deal in","扱う，商う",null,null,75,"本体で覚えた deal with は「対処する」。in だと「商う」。"],
+[12,"realize","（頭で）悟る，実感する",null,null,82,null],
+[13,"encourage","励ます",null,null,74,null],
+[14,"measure","測る",null,null,37,null],
+[15,"challenge","異議を唱える",null,null,16,"本体では「挑む」で覚えた語。同じ challenge に、逆向きに見える意味があります。"],
+[16,"object","反対する",null,null,78,"名詞の「物」ではない方。challenge とセットで覚えると混ざりにくい。"],
+[17,"influence","影響を与える",null,null,58,"本体では名詞「影響（力）」。ここは動詞です。"],
+[18,"matter","重要である",null,null,47,"本体では名詞「問題，事柄」。ここは動詞で「重要である」。"],
+[19,"practice","実践する，営む",null,null,20,"本体では名詞「実践」。practice law で「弁護士業を営む」。"],
+[20,"theory","理論",null,null,19,null],
+[21,"term","用語","in terms of","〜の観点から",44,"term 単体は「用語・学期・条件」。「観点」は in terms of の形でしか出ません。"],
+[22,"appropriate","ふさわしい，適切な",null,null,28,null],
+[23,"common","共通の","common sense","常識",24,"common 単体は「共通の・普通の」。「常識」は sense と組んだときの意味です。"],
+[24,"certain","確信している",null,null,66,"本体では「確かな」。be certain that 〜 で「確信している」。"],
+[25,"major","主要な",null,null,27,null],
+[26,"patient","忍耐強い",null,null,10,"形容詞。「患者」ではない方。"],
+[27,"particular","特定の，個々の",null,null,46,null],
+[28,"available","利用できる",null,null,22,null],
+[29,"due","予定された","due to","〜が原因で",64,"due 単体は「予定された・期限の来た」。「原因で」は to が付いたときだけの意味です。"],
+[30,"refer","言及する，参照する",null,null,8,null],
+[31,"wonder","かなと思う",null,null,60,null],
+[32,"occur","起こる","occur to someone","〜の心に浮かぶ",82,"occur 単体は「起こる」。「心に浮かぶ」は to +人 が付いたときだけ出ます。"],
+[33,"argue","論じる，主張する",null,null,34,"claim との違い：argue は理由を挙げて論じる。"],
+[34,"claim","（当然のこととして）主張する，要求する",null,null,33,"argue との違い：claim は当然のこととして言い切る。"],
+[35,"advance","進歩する，進める",null,null,1,null],
+[36,"suppose","思う",null,null,61,null],
+[37,"determine","決定する，突き止める",null,null,14,null],
+[38,"apply","適用する，応募する",null,null,50,"apply for 〜 で「〜に応募する」。"],
+[39,"contain","（中に）含んでいる",null,null,51,null],
+[40,"suffer","苦しむ",null,null,10,null],
+[41,"medium","媒体，伝達手段",null,null,43,"「中くらい」ではない方。"],
+[42,"account","説明","account for","〜を説明する，占める",3,"account 単体は「説明・口座」。for が付くと「〜を占める」の意味も出ます。"],
+[43,"method","方法，方式",null,null,41,null],
+[44,"aspect","側面",null,null,90,null],
+[45,"positive","肯定的な",null,null,66,null],
+[46,"specific","具体的な，明確な",null,null,27,null],
+[47,"worth","価値がある",null,null,62,null],
+[48,"represent","代表する，表現する",null,null,8,null],
+[49,"manage","なんとか〜する",null,null,51,"本体では「管理する」。manage to do の形だと「なんとか〜する」。"],
+[50,"attend","出席する，通う",null,null,54,null],
+[51,"maintain","維持する",null,null,39,"that 節が続くと「〜と主張する」の意味にもなります。"],
+[52,"conduct","実施する",null,null,83,null],
+[53,"associate","関連づける",null,null,61,null],
+[54,"attempt","試みる",null,null,50,"attend と混同しやすい。"],
+[55,"unite","団結させる",null,null,73,null],
+[56,"observe","観察する，（規則を）守る",null,null,69,"本体では「観察する」だけ。規則を「守る」の意味もあります。"],
+[57,"reveal","明らかにする",null,null,71,null],
+[58,"reflect","反映する","reflect on","〜について熟考する",36,"reflect 単体は「反射・反映する」。「熟考する」は on が付いたときだけの意味です。"],
+[59,"adapt","適応する",null,null,76,"adopt（採用する）と混同しやすい。"],
+[60,"doubt","（真偽を）疑う，信じない",null,null,31,null],
+[61,"assume","仮定する",null,null,36,"「（責任などを）引き受ける」の意味もあります。"],
+[62,"reward","報酬",null,null,47,null],
+[63,"context","文脈",null,null,86,null],
+[64,"consequence","結果",null,null,29,null],
+[65,"cognitive","認知の",null,null,91,null],
+[66,"obvious","明白な，見え見えの",null,null,67,null],
+[67,"previous","以前の",null,null,66,null],
+[68,"whereas","一方で",null,null,0,null],
+[69,"examine","調べる，診察する",null,null,56,null],
+[70,"stick","くっつく","stick to","〜に固執する",51,"stick 単体は「くっつく・突き刺す」。「固執する」は to が付いたときだけの意味です。ここが一番抜けやすいところ。"],
+[71,"emerge","現れる",null,null,80,null],
+[72,"vary","変わる",null,null,73,null],
+[73,"divide","分ける",null,null,55,null],
+[74,"enable","可能にする",null,null,13,null],
+[75,"engage","従事する",null,null,11,null],
+[76,"adopt","採用する",null,null,59,"adapt（適応する）と混同しやすい。"],
+[77,"acquire","習得する，身につける",null,null,76,null],
+[78,"refuse","断る",null,null,16,null],
+[79,"confuse","混同する",null,null,81,"convince（納得させる）と混同しやすい。"],
+[80,"evolve","発展する，進化する",null,null,71,null],
+[81,"convince","納得させる",null,null,79,"confuse（混同する）と混同しやすい。"],
+[82,"recall","思い出す",null,null,12,null],
+[83,"organize","組織する，準備する",null,null,52,null],
+[84,"address","（問題に）取り組む",null,null,11,"名詞の「住所」ではない方。"],
+[85,"appreciate","正当に評価する",null,null,47,"「ありがたく思う・感謝する」の意味もあります。"],
+[86,"circumstance","事情，状況",null,null,63,null],
+[87,"institution","機関，制度",null,null,88,null],
+[88,"authority","権威，権限",null,null,87,null],
+[89,"psychology","心理学",null,null,65,null],
+[90,"perspective","観点",null,null,44,null],
+[91,"intelligent","聡明な",null,null,65,null],
+[92,"conscious","意識している",null,null,65,null],
+
+
+
+
+
+[101,"improve skill","スキルを向上させる",null,null,35,null],
+[102,"mean to do","〜するつもりである",null,null,8,null],
+[103,"allow for the possibility","可能性を考慮する",null,null,42,null],
+[104,"produce results","結果を生み出す",null,null,5,null],
+[105,"offer support","支援を提供する",null,null,4,null],
+[106,"share information","情報を共有する",null,null,73,null],
+[107,"tend to do","〜する傾向がある",null,null,54,null],
+[108,"describe as","〜と描写する",null,null,48,null],
+[109,"involve risks","リスクを伴う",null,null,39,null],
+[110,"bear in mind","心に留める",null,null,82,
+ "bear 単体では「耐える」。bear in mind で「心に留める」。"],
+[111,"deal in goods","商品を扱う",null,null,75,
+ "deal in は商品などを「扱う・商う」。deal with との違いに注意。"],
+[112,"realize the importance","重要性を理解する",null,null,82,null],
+[113,"encourage students","生徒を励ます",null,null,74,null],
+[114,"measure the impact","影響を測定する",null,null,37,null],
+[115,"challenge the status quo","現状に異議を唱える",null,null,16,null],
+[116,"object to the plan","計画に反対する",null,null,78,
+ "object to 〜 で「〜に反対する」。to は前置詞。"],
+[117,"influence behavior","行動に影響を与える",null,null,58,null],
+[118,"matter most","最も重要である",null,null,47,null],
+[119,"practice law","法律事務に従事する",null,null,20,
+ "practice law で「弁護士業・法律業務に従事する」。"],
+[120,"theory and practice","理論と実践",null,null,19,null],
+[121,"in terms of","〜の観点から",null,null,44,null],
+[122,"appropriate for","〜に適した",null,null,28,null],
+[123,"common sense","常識",null,null,24,null],
+[124,"certain that","〜と確信している",null,null,66,null],
+[125,"major changes","主要な変化",null,null,27,null],
+[126,"patient with","〜に対して忍耐強い",null,null,10,null],
+[127,"particular attention","特別の注意",null,null,46,null],
+[128,"available online","オンラインで利用可能な",null,null,22,null],
+[129,"due to","〜が原因で",null,null,64,null],
+[130,"refer to","〜を参照する",null,null,8,null],
+[131,"wonder if","〜かしらと思う",null,null,60,null],
+[132,"occur to someone","〜の心に浮かぶ",null,null,82,null],
+[133,"argue that","〜と主張する",null,null,34,
+ "argue that 〜 は、理由・根拠を伴って「〜と主張する」。"],
+[134,"claim responsibility","責任を主張する",null,null,33,null],
+[135,"advance in technology","技術の進歩",null,null,1,null],
+[136,"suppose that","〜と仮定する",null,null,61,null],
+[137,"determine the cause","原因を特定する",null,null,14,null],
+[138,"apply for a job","仕事に応募する",null,null,50,null],
+[139,"contain information","情報を含む",null,null,51,null],
+[140,"suffer from","〜で苦しむ",null,null,10,null],
+[141,"medium of communication","伝達手段",null,null,43,null],
+[142,"account for","〜を説明する",null,null,3,
+ "account for には「〜を説明する」のほか「〜を占める」の意味もある。"],
+[143,"method of teaching","教授法",null,null,41,null],
+[144,"aspect of life","人生の側面",null,null,90,null],
+[145,"positive impact","肯定的な影響",null,null,66,null],
+[146,"specific examples","具体的な例",null,null,27,null],
+[147,"worth noting","注目に値する",null,null,62,null],
+[148,"represent the company","会社を代表する",null,null,8,null],
+[149,"manage to do","なんとか〜する",null,null,51,null],
+[150,"attend school","学校に通う",null,null,54,null],
+[151,"maintain a balance","バランスを維持する",null,null,39,null],
+[152,"conduct research","調査を行う",null,null,83,null],
+[153,"associate with","〜と関連付ける",null,null,61,null],
+[154,"attempt to do","〜しようと試みる",null,null,50,null],
+[155,"unite forces","力を合わせる",null,null,73,null],
+[156,"observe rules","規則を守る",null,null,69,
+ "observe には「観察する」のほか、規則などを「守る」の意味がある。"],
+[157,"reveal the truth","真実を明かす",null,null,71,null],
+[158,"reflect on","〜について熟考する",null,null,36,null],
+[159,"adapt to new environments","新しい環境に適応する",null,null,76,
+ "adapt to 〜 は「〜に適応する」。adopt と混同しない。"],
+[160,"doubt whether","〜かどうか疑う",null,null,31,null],
+[161,"assume responsibility","責任を引き受ける",null,null,36,
+ "assume には「仮定する」のほか、責任などを「引き受ける」の意味がある。"],
+[162,"reward for","〜への報酬",null,null,47,null],
+[163,"in this context","この文脈において",null,null,86,null],
+[164,"as a consequence","結果として",null,null,29,null],
+[165,"cognitive skills","認知能力",null,null,91,null],
+[166,"obvious that","〜なのは明白だ",null,null,67,null],
+[167,"previous experience","以前の経験",null,null,66,null],
+[168,"whereas others","他方が〜である一方で",null,null,0,null],
+[169,"examine the evidence","証拠を調査する",null,null,56,null],
+[170,"stick to the plan","計画に固執する",null,null,51,
+ "stick to 〜 で「〜に固執する・〜を守り続ける」。"],
+[171,"emerge as","〜として浮上する",null,null,80,null],
+[172,"vary depending on","〜によって異なる",null,null,73,null],
+[173,"divide into","〜に分割する",null,null,55,null],
+[174,"enable someone to do","人が〜することを可能にする",null,null,13,null],
+[175,"engage in","〜に従事する",null,null,11,null],
+[176,"adopt a policy","方針を採用する",null,null,59,
+ "adopt は「採用する」。adapt「適応する」と混同しない。"],
+[177,"acquire knowledge","知識を習得する",null,null,76,null],
+[178,"refuse to do","〜することを拒む",null,null,16,null],
+[179,"confuse A with B","AとBを混同する",null,null,81,
+ "confuse A with B で「AとBを混同する」。"],
+[180,"evolve into","〜へ進化する",null,null,71,null],
+[181,"convince someone that","〜に納得させる",null,null,79,
+ "convince 人 that 〜 で「人に〜だと納得させる」。"],
+[182,"recall memories","記憶を思い出す",null,null,12,null],
+[183,"organize an event","イベントを準備する",null,null,52,null],
+[184,"address an issue","課題に取り組む",null,null,11,
+ "address はここでは「住所」ではなく、問題・課題に「取り組む」。"],
+[185,"appreciate the help","助けに感謝する",null,null,47,null],
+[186,"under the circumstances","そのような状況下で",null,null,63,null],
+[187,"educational institution","教育機関",null,null,88,null],
+[188,"authority over","〜に対する権限",null,null,87,null],
+[189,"psychology department","心理学部",null,null,65,null],
+[190,"from a different perspective","異なる視点から",null,null,44,null],
+[191,"intelligent system","知能システム",null,null,65,null],
+[192,"conscious of","〜を意識している",null,null,65,null]
+
+
+
+
+];
+
+/* ================= 状態 ================= */
+const KEY="wordrush_target92_v1";
+const NEED=5;                                  /* マスターに必要な正解数 */
+const RANKS=["見習いルーキー","単語ハンター","コンボ職人","スピードスター","語彙の鬼","単語マスター","レジェンド"];
+const QN=8, TIME_MS=7000, FEVER_AT=6, FEVER_MS=8000;
+let S={best:0,bestSurv:0,streakDays:0,lastDay:"",xp:0,level:1,total:0,correct:0,word:{},
+       sound:true,tone:"piano",name:"",askedName:false,perfects:0,range:null};
+const $=id=>document.getElementById(id);
+
+/* ================= 保存 ================= */
+async function storeGet(k){
+  if(window.storage){const r=await window.storage.get(k);return r?r.value:null;}
+  try{return localStorage.getItem(k);}catch(e){return null;}
+}
+async function storeSet(k,v){
+  if(window.storage)return window.storage.set(k,v);
+  try{localStorage.setItem(k,v);}catch(e){}
+}
+async function loadState(){
+  try{const v=await storeGet(KEY);if(v)S={...S,...JSON.parse(v)};}catch(e){}
+  renderHome();
+  if(!S.name&&!S.askedName){S.askedName=true;saveState();askName(true);}
+}
+async function saveState(){try{await storeSet(KEY,JSON.stringify(S));}catch(e){}}
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function toast(msg){
+  const t=document.createElement("div");t.className="toast";t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2300);
+}
+
+/* ================= レベル ================= */
+const xpNeed=lv=>200+lv*120;
+function rankFor(lv){return RANKS[Math.min(RANKS.length-1,Math.floor((lv-1)/3))];}
+function addXp(n){
+  S.xp+=n;let up=false;
+  while(S.xp>=xpNeed(S.level)){S.xp-=xpNeed(S.level);S.level++;up=true;}
+  return up;
+}
+
+/* ================= ヒート & フィーバー ================= */
+const HEAT=[["#6FD6FF","rgba(111,214,255,.18)"],["#FFC53D","rgba(255,197,61,.2)"],
+            ["#FF7A45","rgba(255,122,69,.2)"],["#FF3D8A","rgba(255,61,138,.22)"]];
+function heatLevel(c){return c>=10?3:c>=6?2:c>=3?1:0;}
+function applyHeat(c){
+  const h=heatLevel(c);
+  document.documentElement.style.setProperty("--heat",HEAT[h][0]);
+  document.documentElement.style.setProperty("--heat-soft",HEAT[h][1]);
+  $("qcard").classList.toggle("heat3",h>=2&&!$("qcard").classList.contains("phrase"));
+}
+let feverTimer=null;
+function startFever(){
+  if(!G||G.fever)return;
+  G.fever=true;G.feverUsed=true;
+  document.body.classList.add("fever");
+  $("feverBanner").style.display="block";
+  sfx.fever();burstConfetti(30);
+  feverTimer=setTimeout(endFever,FEVER_MS);
+}
+function endFever(){
+  clearTimeout(feverTimer);
+  if(G)G.fever=false;
+  document.body.classList.remove("fever");
+  $("feverBanner").style.display="none";
+}
+
+/* ================= サウンド(本体と同じエンジン) ================= */
+const SCALE=[523.25,587.33,659.25,698.46,783.99,880,987.77,1046.5,
+             1174.66,1318.5,1396.9,1568,1760,1975.5,2093];
+const TONES={piano:"ピアノ",clar:"クラリネット",bari:"バリトンサックス",mbox:"オルゴール",bit:"8bit"};
+let AC=null;
+function ctx(){AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function playNote(freq,tone,delay=0,vol=1){
+  if(!S.sound)return;
+  try{
+    const ac=ctx(),t=ac.currentTime+delay;
+    const out=ac.createGain();out.connect(ac.destination);
+    const env=(g,a,peak,dec)=>{g.gain.setValueAtTime(.0001,t);
+      g.gain.linearRampToValueAtTime(peak*vol,t+a);
+      g.gain.exponentialRampToValueAtTime(.0001,t+dec);return dec;};
+    let dur=1;
+    if(tone==="piano"){
+      [[1,"triangle",.16],[2,"sine",.05],[3,"sine",.02]].forEach(([m,w,p])=>{
+        const o=ac.createOscillator(),g=ac.createGain();
+        o.type=w;o.frequency.value=freq*m;env(g,.004,p,.862);
+        o.connect(g).connect(out);o.start(t);o.stop(t+.9);});
+      dur=.9;
+    }else if(tone==="mbox"){
+      [[1,.14,1.3],[4,.05,.45],[5.4,.02,.3]].forEach(([m,p,d])=>{
+        const o=ac.createOscillator(),g=ac.createGain();
+        o.type="sine";o.frequency.value=freq*m;env(g,.002,p,d);
+        o.connect(g).connect(out);o.start(t);o.stop(t+d+.05);});
+      dur=1.3;
+    }else if(tone==="clar"){
+      const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+      o.type="square";o.frequency.value=freq/2;
+      f.type="lowpass";f.frequency.value=freq*1.8;f.Q.value=.8;
+      g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.09*vol,t+.05);
+      g.gain.setValueAtTime(.09*vol,t+.22);g.gain.exponentialRampToValueAtTime(.0001,t+.38);
+      o.connect(f).connect(g).connect(out);o.start(t);o.stop(t+.4);dur=.4;
+    }else if(tone==="bari"){
+      [0,-7].forEach(cents=>{
+        const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+        o.type="sawtooth";o.frequency.value=(freq/4)*Math.pow(2,cents/1200);
+        f.type="lowpass";f.frequency.value=freq*1.1;f.Q.value=1;
+        g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.07*vol,t+.06);
+        g.gain.setValueAtTime(.07*vol,t+.24);g.gain.exponentialRampToValueAtTime(.0001,t+.42);
+        o.connect(f).connect(g).connect(out);o.start(t);o.stop(t+.45);});
+      dur=.45;
+    }else{
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type="square";o.frequency.value=freq;
+      g.gain.setValueAtTime(.06*vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+.12);
+      o.connect(g).connect(out);o.start(t);o.stop(t+.13);dur=.13;
+    }
+    setTimeout(()=>out.disconnect(),(delay+dur+.2)*1000);
+  }catch(e){}
+}
+function playChord(fs,tone,delay=0,vol=.6){fs.forEach(f=>playNote(f,tone,delay,vol));}
+function beep(freq,dur=.09,type="square",gain=.06){
+  if(!S.sound)return;
+  try{const ac=ctx(),o=ac.createOscillator(),g=ac.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(gain,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);
+    o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+dur);}catch(e){}
+}
+const sfx={
+  ok:c=>{const i=Math.min(Math.max(c-1,0),SCALE.length-1);playNote(SCALE[i],S.tone);
+    if(c===8)playChord([523.25,659.25,783.99],S.tone,0,.4);},
+  ng:()=>beep(160,.18,"sawtooth",.05),
+  lvup:()=>[523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.13,"triangle",.07),i*80)),
+  fever:()=>[392,523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.12,"triangle",.08),i*70)),
+  tick:()=>beep(880,.04,"sine",.03),
+  fanfare:()=>{[523.25,659.25,783.99,1046.5].forEach((f,i)=>playNote(f,S.tone,i*.13));
+    playChord([523.25,659.25,783.99,1046.5],S.tone,.55,.5);},
+  preview:t=>{[523.25,659.25,783.99,1046.5].forEach((f,i)=>playNote(f,t,i*.16));}
+};
+
+/* ================= 範囲・進捗 ================= */
+function dataLo(){return WORDS[0][0];}
+function dataHi(){return WORDS[WORDS.length-1][0];}
+function activeRange(){
+  const lo=dataLo(),hi=dataHi();
+  if(!S.range)return {lo,hi};
+  return {lo:Math.max(lo,S.range.lo),hi:Math.min(hi,S.range.hi)};
+}
+function inRange(w){const R=activeRange();return w[0]>=R.lo&&w[0]<=R.hi;}
+function rangeCount(){return WORDS.filter(inRange).length;}
+function answerOf(w){return w[3]?w[4]:w[2];}
+function stateOf(en){return S.word[en]||{right:0,wrong:0,okDay:null};}
+function isMastered(en){return stateOf(en).right>=NEED;}
+/* 軽量SRS: MASTER済み かつ 当日すでに正解した語は、その日もう出さない */
+function isRestingToday(en){const st=stateOf(en);return isMastered(en)&&st.okDay===todayStr();}
+function eligiblePool(){return WORDS.filter(w=>inRange(w)&&!isRestingToday(w[1]));}
+/* 図鑑の段階進捗: 未挑戦=0 / 挑戦中・苦手=0.5 / MASTER=1 */
+function zukanProgress(){
+  let p=0;
+  WORDS.filter(inRange).forEach(w=>{
+    const st=stateOf(w[1]);
+    if(st.right+st.wrong===0)return;
+    p+=isMastered(w[1])?1:.5;
+  });
+  return p;
+}
+
+/* ================= 出題(苦手優先) ================= */
+function pickWords(reviewOnly,count){
+  let base=eligiblePool();
+  let pool=base;
+  if(reviewOnly)pool=base.filter(w=>{const st=stateOf(w[1]);return st.wrong>st.right;});
+  if(!pool.length)pool=base.length?base:WORDS.filter(inRange);
+  const weight=w=>{const st=stateOf(w[1]);
+    return Math.max(.1,1+(st.wrong||0)*3-Math.min((st.right||0)*.3,.8));};
+  const picked=[],bag=[...pool];
+  while(picked.length<count&&bag.length){
+    const tot=bag.reduce((s,w)=>s+weight(w),0);
+    let r=Math.random()*tot;
+    for(let k=0;k<bag.length;k++){
+      r-=weight(bag[k]);
+      if(r<=0){picked.push(bag.splice(k,1)[0]);break;}
+    }
+  }
+  while(picked.length<count&&pool.length)picked.push(pool[Math.floor(Math.random()*pool.length)]);
+  return picked;
+}
+function makeChoices(w){
+  const set=[answerOf(w)];
+  const trap=WORDS.find(x=>x[0]===w[5]);
+  if(trap&&set.indexOf(answerOf(trap))<0)set.push(answerOf(trap));
+  let guard=0;
+  while(set.length<4&&guard++<400){
+    const o=WORDS[Math.floor(Math.random()*WORDS.length)];
+    if(o[0]===w[0])continue;
+    if(set.indexOf(answerOf(o))<0)set.push(answerOf(o));
+  }
+  return set.sort(()=>Math.random()-.5);
+}
+
+/* ================= ゲーム進行 ================= */
+let G=null,timerId=null,tickId=null;
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");}
+function startGame(mode){
+  endFever();hideCelebrate();
+  if(mode!=="review"&&eligiblePool().length===0){showDoneToday();return;}
+  const count=mode==="survival"?eligiblePool().length:QN;
+  G={mode,qs:pickWords(mode==="review",count),idx:0,score:0,combo:0,maxCombo:0,ok:0,
+     wrongList:[],lives:3,fever:false,feverUsed:false,newMaster:0};
+  if(!G.qs.length){showDoneToday();return;}
+  applyHeat(0);$("score").textContent="0";
+  $("lives").textContent=mode==="survival"?"❤️❤️❤️":"";
+  show("quiz");nextQ();
+}
+function showDoneToday(){
+  const d=document.createElement("div");
+  d.innerHTML="🎉 今日のぶんは完了！<br>また明日ね";
+  d.style.cssText="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:500;background:var(--card);color:var(--ink);padding:20px 24px;border-radius:16px;font-weight:800;font-size:16px;line-height:1.6;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,.5);border:1px solid #3a3270;max-width:80%";
+  document.body.appendChild(d);
+  setTimeout(()=>{d.style.transition="opacity .4s";d.style.opacity="0";},2400);
+  setTimeout(()=>d.remove(),2900);
+}
+function curTime(){
+  if(G.mode!=="survival")return TIME_MS;
+  return Math.max(3500,TIME_MS-G.idx*150);
+}
+function nextQ(){
+  clearTimeout(timerId);clearInterval(tickId);
+  const isOver=G.mode==="survival"?(G.lives<=0||G.idx>=G.qs.length):(G.idx>=G.qs.length);
+  if(isOver)return endGame();
+  const w=G.qs[G.idx];
+  const ph=!!w[3];
+  $("qnum").textContent=G.mode==="survival"?"Q"+(G.idx+1):"Q"+(G.idx+1)+" / "+G.qs.length;
+  $("qcard").classList.toggle("phrase",ph);
+  $("phtag").style.display=ph?"block":"none";
+  const qw=$("qword");qw.textContent=ph?w[3]:w[1];qw.className=ph?"ph":"";
+  const st=stateOf(w[1]);
+  const dots=$("dots");dots.innerHTML="";
+  for(let i=0;i<NEED;i++){const d=document.createElement("i");if(i<st.right)d.className="f";dots.appendChild(d);}
+  const ans=answerOf(w);
+  const box=$("choices");box.innerHTML="";
+  makeChoices(w).forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.innerHTML='<span class="key">'+(i+1)+"</span>"+c;
+    b.dataset.ja=c;
+    b.onclick=()=>answer(b,c===ans,w,ans,Date.now());
+    box.appendChild(b);
+  });
+  const f=$("timerfill"),tm=curTime();
+  f.style.transition="none";f.style.width="100%";
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    f.style.transition="width "+tm+"ms linear";f.style.width="0%";});});
+  G.qStart=Date.now();G.qTime=tm;
+  timerId=setTimeout(()=>answer(null,false,w,ans,Date.now()),tm);
+  tickId=setInterval(()=>{if(Date.now()-G.qStart>G.qTime-2000)sfx.tick();},500);
+}
+function answer(btn,ok,w,ans,now){
+  clearTimeout(timerId);clearInterval(tickId);
+  document.querySelectorAll(".choice").forEach(b=>{
+    b.onclick=null;
+    if(b.dataset.ja===ans)b.classList.add("correct");
+    else if(b!==btn)b.classList.add("dim");
+  });
+  const st=S.word[w[1]]=S.word[w[1]]||{right:0,wrong:0,okDay:null};
+  S.total++;
+  if(ok){
+    S.correct++;
+    const wasMaster=st.right>=NEED;
+    st.right++;st.okDay=todayStr();
+    if(!wasMaster&&st.right>=NEED)G.newMaster++;
+    G.ok++;G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
+    const t=now-G.qStart;
+    const speedBonus=Math.max(0,Math.round((G.qTime-t)/G.qTime*100));
+    let mult=1+Math.min(G.combo*0.1,2);
+    if(G.fever)mult*=2;
+    const pts=Math.round((100+speedBonus)*mult);
+    G.score+=pts;$("score").textContent=G.score;
+    applyHeat(G.combo);
+    const cb=$("combo");cb.innerHTML="<small>COMBO</small>×"+G.combo;
+    cb.classList.remove("show");void cb.offsetWidth;cb.classList.add("show");
+    floatPts(btn,"+"+pts);
+    sfx.ok(G.combo);
+    if(G.combo>0&&G.combo%5===0)burstConfetti(20);
+    if(G.combo>=FEVER_AT&&!G.feverUsed)startFever();
+  }else{
+    st.wrong++;
+    if(btn)btn.classList.add("wrong");
+    G.combo=0;applyHeat(0);endFever();
+    $("combo").classList.remove("show");
+    G.wrongList.push(w);
+    if(G.mode==="survival"){
+      G.lives--;
+      $("lives").textContent="❤️".repeat(G.lives)+"🖤".repeat(3-G.lives);
+    }
+    sfx.ng();
+    $("app").classList.remove("quake");void $("app").offsetWidth;$("app").classList.add("quake");
+  }
+  G.idx++;
+  setTimeout(nextQ,ok?550:1050);
+}
+function floatPts(btn,text){
+  const el=document.createElement("div");
+  el.className="float-pt";el.textContent=text;
+  const r=(btn||$("choices")).getBoundingClientRect();
+  el.style.left=(r.left+r.width/2-30)+"px";
+  el.style.top=(r.top+r.height/2-14)+"px";el.style.position="fixed";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),600);
+}
+function burstConfetti(n){
+  const cols=["#6FD6FF","#FFC53D","#FF7A45","#FF3D8A","#5EE6A8"];
+  for(let i=0;i<n;i++){
+    const c=document.createElement("div");c.className="confetti";
+    c.style.left=Math.random()*100+"vw";c.style.background=cols[i%cols.length];
+    c.style.animationDuration=(1.2+Math.random())+"s";
+    c.style.borderRadius=Math.random()>.5?"50%":"2px";
+    document.body.appendChild(c);setTimeout(()=>c.remove(),2400);
+  }
+}
+const PRAISES=["すごい！","天才！","神！","最高！","完璧！","さすが！","よくやった！","素晴らしい！",
+  "やるね！","パーフェクト！","ブラボー！","AMAZING!","GENIUS!","PERFECT!","WONDERFUL!","BRAVO!",
+  "GREAT!","花マル！","100点！","えらい！","きらきら✨","NICE!","超人！","脱帽！","圧巻！","お見事！"];
+let celebrating=false;
+function praiseStorm(){
+  const cel=$("celebrate");
+  const cols=["#fff","#FFD75E","#FF5BA8","#6FD6FF","#5EE6A8","#FFE9A8","#C9A0FF"];
+  const nm=(S.name?S.name+"ちゃん、":"あなた、");
+  for(let i=0;i<12;i++){
+    setTimeout(()=>{
+      if(!celebrating)return;
+      const el=document.createElement("div");
+      el.className="praise-word";
+      el.textContent=nm+PRAISES[Math.floor(Math.random()*PRAISES.length)];
+      el.style.color=cols[Math.floor(Math.random()*cols.length)];
+      el.style.fontSize=(17+Math.random()*22)+"px";
+      el.style.left=(Math.random()*78)+"vw";
+      el.style.top=(Math.random()*86)+"vh";
+      const rot=Math.random()*24-12;
+      cel.appendChild(el);
+      el.animate([
+        {opacity:0,transform:"scale(.4) rotate("+rot+"deg)"},
+        {opacity:1,transform:"scale(1.1) rotate("+rot+"deg)",offset:.22},
+        {opacity:1,transform:"scale(1) rotate("+rot+"deg)",offset:.78},
+        {opacity:0,transform:"scale(1.04) rotate("+rot+"deg) translateY(-18px)"}
+      ],{duration:1800,easing:"cubic-bezier(.2,1.4,.4,1)",fill:"forwards"});
+      setTimeout(()=>el.remove(),1840);
+      if(S.sound&&i%3===0){const f=[660,740,880,990][i%4];playNote(f,S.tone,0,.5);}
+    },i*130);
+  }
+}
+function crackerBlast(){
+  const cel=$("celebrate");
+  const colors=["#6FD6FF","#FFC53D","#FF7A45","#FF3D8A","#5EE6A8","#FFD75E","#fff"];
+  const shapes=["star","heart","sq"];
+  const W=window.innerWidth,H=window.innerHeight;
+  [[W*0.12,H],[W*0.88,H],[W*0.5,H*1.02]].forEach((o,oi)=>{
+    for(let i=0;i<46;i++){
+      const c=document.createElement("div");c.className="cracker";
+      const col=colors[Math.floor(Math.random()*colors.length)];
+      const shp=shapes[Math.floor(Math.random()*shapes.length)];
+      if(shp==="star"){c.textContent="★";c.style.cssText="font-size:18px;line-height:1;color:"+col;c.style.width="auto";c.style.height="auto";}
+      else if(shp==="heart"){c.textContent="♥";c.style.cssText="font-size:16px;line-height:1;color:"+col;c.style.width="auto";c.style.height="auto";}
+      else{c.style.background=col;c.style.borderRadius=Math.random()>.5?"50%":"2px";}
+      c.style.left=o[0]+"px";c.style.top=o[1]+"px";c.style.position="absolute";
+      cel.appendChild(c);
+      const baseAng=oi===0?-60:oi===1?-120:-90;
+      const ang=(baseAng+(Math.random()*70-35))*Math.PI/180;
+      const sp=H*(0.55+Math.random()*0.5);
+      const vx=Math.cos(ang)*sp,vy=Math.sin(ang)*sp;
+      const dur=1100+Math.random()*900;
+      const spin=(Math.random()*720-360);
+      c.animate([
+        {transform:"translate(0,0) rotate(0deg)",opacity:1},
+        {transform:"translate("+vx*0.5+"px,"+(vy*0.5+H*0.12)+"px) rotate("+spin*0.5+"deg)",opacity:1,offset:.5},
+        {transform:"translate("+vx*0.8+"px,"+(vy*0.55+H*0.85)+"px) rotate("+spin+"deg)",opacity:0}
+      ],{duration:dur,easing:"cubic-bezier(.18,.7,.5,1)",fill:"forwards"});
+      setTimeout(()=>c.remove(),dur+60);
+    }
+  });
+}
+function hideCelebrate(){
+  celebrating=false;
+  const c=$("celebrate");c.style.display="none";
+  $("arashiBg").classList.remove("go");$("flash").classList.remove("go");
+  c.querySelectorAll(".praise-word,.cracker").forEach(e=>e.remove());
+  document.querySelectorAll(".confetti").forEach(e=>e.remove());
+}
+function celebratePerfect(){
+  const cel=$("celebrate");
+  celebrating=true;cel.style.display="block";
+  ["arashiBg","flash"].forEach(id=>{const e=$(id);e.classList.remove("go");void e.offsetWidth;});
+  $("arashiBg").classList.add("go");$("flash").classList.add("go");
+  praiseStorm();crackerBlast();burstConfetti(30);sfx.fanfare();
+  $("app").classList.remove("quake");void $("app").offsetWidth;$("app").classList.add("quake");
+  setTimeout(hideCelebrate,3500);
+}
+
+async function endGame(){
+  endFever();
+  const t=todayStr();
+  if(S.lastDay!==t){
+    const y=new Date(Date.now()-864e5);
+    const ys=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();
+    S.streakDays=(S.lastDay===ys)?S.streakDays+1:1;
+    S.lastDay=t;
+  }
+  const perfect=(G.mode!=="survival"&&G.qs.length&&G.ok===G.qs.length);
+  const gained=Math.round(G.score/10)+(perfect?100:0)+G.newMaster*30;
+  const up=addXp(gained);
+  let newBest=false;
+  if(G.mode==="survival"){if(G.ok>S.bestSurv){S.bestSurv=G.ok;newBest=true;}}
+  else{if(G.score>S.best){S.best=G.score;newBest=true;}}
+  let praise="";
+  const nm=S.name?S.name+"ちゃん":"";
+  let doCelebrate=false;
+  if(perfect){
+    S.perfects=(S.perfects||0)+1;
+    if(S.perfects===1)praise=(nm?nm+"、":"")+"初の全問正解!オクターブ完成🎵";
+    else{
+      const pool=nm?[nm+"、すごい!","完璧!ドからドまで登りきった!",nm+"、見事なオクターブ!"]
+                  :["すごい!全問正解!","完璧!ドからドまで登りきった!","見事なオクターブ!"];
+      praise=pool[S.perfects%pool.length];
+    }
+    doCelebrate=true;
+  }else if(G.newMaster){
+    praise=(nm?nm+"、":"")+"★ マスターが "+G.newMaster+" 個ふえた!";
+  }else if(newBest){
+    praise=G.mode==="survival"?"新記録!耳も頭も冴えてる!":(nm?nm+"、":"")+"記録更新!";
+  }
+  await saveState();
+
+  $("praise").textContent=praise;
+  $("praise").style.display=praise?"block":"none";
+  if(doCelebrate)setTimeout(celebratePerfect,120);
+  $("resMode").textContent=G.mode==="survival"?"SURVIVAL RESULT":G.mode==="review"?"REVIEW RESULT":"SPRINT RESULT";
+  $("resScore").textContent=G.mode==="survival"?G.ok:G.score;
+  $("resBest").textContent=newBest?(G.mode==="survival"?"🏆 サバイバル記録更新!":"🏆 自己ベスト更新!"):"";
+  $("resCorrect").textContent=G.mode==="survival"?G.ok+"問突破":G.ok+"/"+G.qs.length;
+  $("resMaxCombo").textContent="×"+G.maxCombo;
+  $("resXp").textContent="+"+gained;
+  $("lvup").style.display=up?"block":"none";
+  if(up){sfx.lvup();burstConfetti(50);}
+  else if(perfect){burstConfetti(40);}
+  const box=$("resWrong"),list=$("resWrongList");
+  if(G.wrongList.length){
+    box.style.display="block";
+    list.innerHTML=G.wrongList.map(w=>
+      '<div class="w"><div class="top"><b class="'+(w[3]?"ph":"")+'">'+(w[3]||w[1])+"</b><span>"+
+      answerOf(w)+"</span></div>"+(w[6]?'<div class="nt">'+w[6]+"</div>":"")+"</div>").join("");
+  }else box.style.display="none";
+  show("result");
+}
+
+/* ================= ホーム・図鑑 ================= */
+function renderHome(){
+  $("stBest").textContent=S.best;
+  $("stSurv").textContent=S.bestSurv;
+  $("stStreak").textContent=S.streakDays;
+  $("stAcc").textContent=S.total?Math.round(S.correct/S.total*100)+"%":"-%";
+  $("rankName").textContent=rankFor(S.level);
+  $("lvNum").textContent="Lv."+S.level;
+  $("xpfill").style.width=Math.min(100,S.xp/xpNeed(S.level)*100)+"%";
+  $("xptext").textContent="次のレベルまで "+(xpNeed(S.level)-S.xp)+" XP";
+  const R=activeRange(),rc=rangeCount();
+  const weak=WORDS.filter(w=>{if(!inRange(w))return false;const st=stateOf(w[1]);return st.wrong>st.right;}).length;
+  $("weakCount").textContent=weak;
+  $("reviewBadge").style.display=weak>=3?"block":"none";
+  $("reviewBtn").style.display=weak>=3?"block":"none";
+  $("zukanRate").textContent=(rc?Math.round(zukanProgress()/rc*100):0)+"%";
+  if(document.activeElement!==$("rangeLo"))$("rangeLo").value=R.lo;
+  if(document.activeElement!==$("rangeHi"))$("rangeHi").value=R.hi;
+  $("rangeNow").textContent="いまの範囲: "+R.lo+"〜"+R.hi+"（"+rc+"語 / ★"+
+    WORDS.filter(w=>inRange(w)&&isMastered(w[1])).length+"）";
+  $("sndToggle").textContent=S.sound?"🔊":"🔇";
+  $("nameBtn").textContent=S.name?"ようこそ、"+S.name+"ちゃん 🎵":"✏️ なまえを設定";
+  const tc=$("toneChips");tc.innerHTML="";
+  Object.entries(TONES).forEach(([k,name])=>{
+    const b=document.createElement("button");
+    b.className="chip"+(S.tone===k?" sel":"");
+    b.textContent=name;
+    b.onclick=()=>{S.tone=k;saveState();renderHome();sfx.preview(k);};
+    tc.appendChild(b);
+  });
+}
+function renderZukan(){
+  const R=activeRange(),rc=rangeCount(),prog=zukanProgress();
+  const pct=rc?Math.round(prog/rc*100):0;
+  $("zukanPct").textContent=pct+"%（"+R.lo+"〜"+R.hi+"）";
+  $("zfill").style.width=(rc?prog/rc*100:0)+"%";
+  const zl=$("zlist");zl.innerHTML="";
+  WORDS.forEach(w=>{
+    if(!inRange(w))return;
+    const st=stateOf(w[1]);
+    const untried=st.right+st.wrong===0;
+    let tag="";
+    if(!untried){
+      if(isMastered(w[1]))tag='<span class="tag m">★ MASTER</span>';
+      else if(st.wrong>st.right)tag='<span class="tag w">⚡ 苦手</span>';
+      else tag='<span class="tag t">'+st.right+"/"+NEED+"</span>";
+    }
+    const d=document.createElement("div");
+    d.className="zw"+(untried?" locked":"");
+    d.innerHTML='<span class="zleft"><span class="znum">'+w[0]+'</span><b class="'+(w[3]?"ph":"")+'">'+
+      (w[3]||w[1])+'</b></span><span class="zja">'+(untried?"???":answerOf(w))+tag+"</span>";
+    zl.appendChild(d);
+  });
+}
+
+/* ================= 引き継ぎコード ================= */
+function openData(){
+  try{$("codebox").value=btoa(unescape(encodeURIComponent(JSON.stringify(S))));}catch(e){$("codebox").value="";}
+  show("data");
+}
+$("copyBtn").onclick=()=>{
+  const t=$("codebox");t.select();t.setSelectionRange(0,99999);
+  try{document.execCommand("copy");}catch(e){}
+  if(navigator.clipboard)navigator.clipboard.writeText(t.value).catch(()=>{});
+  toast("コピーしました");
+};
+$("pasteBtn").onclick=async()=>{
+  const c=prompt("コードを貼りつけてください");
+  if(!c)return;
+  try{
+    const o=JSON.parse(decodeURIComponent(escape(atob(c.trim()))));
+    if(typeof o!=="object"||o===null||!o.word)throw 0;
+    S={...S,...o};await saveState();renderHome();show("home");toast("読みこみました");
+  }catch(e){alert("コードが読めませんでした。全部が貼れているか確認してください。");}
+};
+
+/* ================= イベント ================= */
+$("startBtn").onclick=()=>startGame("sprint");
+$("survBtn").onclick=()=>startGame("survival");
+$("reviewBtn").onclick=()=>startGame("review");
+$("reviewBadge").onclick=()=>startGame("review");
+$("rangeSet").onclick=()=>{
+  const dlo=dataLo(),dhi=dataHi();
+  let lo=parseInt($("rangeLo").value,10),hi=parseInt($("rangeHi").value,10);
+  if(isNaN(lo))lo=dlo;if(isNaN(hi))hi=dhi;
+  if(lo>hi){const t=lo;lo=hi;hi=t;}
+  lo=Math.max(dlo,Math.min(lo,dhi));hi=Math.max(dlo,Math.min(hi,dhi));
+  S.range=(lo===dlo&&hi===dhi)?null:{lo,hi};
+  saveState();renderHome();
+};
+$("rangeAll").onclick=()=>{S.range=null;saveState();renderHome();};
+$("againBtn").onclick=()=>startGame(G?G.mode:"sprint");
+$("homeBtn").onclick=()=>{hideCelebrate();renderHome();show("home");};
+$("zukanBtn").onclick=()=>{renderZukan();show("zukan");};
+$("zukanBack").onclick=()=>{renderHome();show("home");};
+$("dataBtn").onclick=openData;
+$("dataBack").onclick=()=>{renderHome();show("home");};
+$("sndToggle").onclick=()=>{S.sound=!S.sound;$("sndToggle").textContent=S.sound?"🔊":"🔇";saveState();};
+function askName(first){
+  $("nameInput").value=S.name||"";
+  $("nameSkip").textContent=first?"あとで":"キャンセル";
+  $("nameModal").style.display="flex";
+  setTimeout(()=>$("nameInput").focus(),100);
+}
+$("nameBtn").onclick=()=>askName(false);
+$("nameOk").onclick=()=>{S.name=$("nameInput").value.trim().slice(0,10);
+  $("nameModal").style.display="none";saveState();renderHome();};
+$("nameSkip").onclick=()=>{$("nameModal").style.display="none";};
+$("nameInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("nameOk").click();});
+document.addEventListener("keydown",e=>{
+  if($("nameModal").style.display==="flex")return;
+  if(!$("quiz").classList.contains("active"))return;
+  const n=parseInt(e.key);
+  if(n>=1&&n<=4){const b=$("choices").children[n-1];if(b&&b.onclick)b.click();}
+});
+
+loadState();
+</script>
+</body>
+</html>
