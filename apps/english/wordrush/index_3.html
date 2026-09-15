@@ -76,6 +76,13 @@ button{font-family:inherit;border:none;cursor:pointer;color:inherit}
 #reviewBadge{display:none;background:var(--heat-soft);border:1.5px dashed var(--heat);color:var(--heat);border-radius:var(--r);padding:11px 14px;font-size:13px;font-weight:700;width:100%;text-align:left;transition:border-color .4s,color .4s}
 #zukanBtn{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:var(--r);padding:13px 14px;width:100%;font-size:13px;font-weight:800;text-align:left}
 #zukanBtn .pct{color:var(--gold)}
+/* ほかのアプリへのリンク: アプリ内のボタン(塗り)と区別するため、線で区切り・枠線だけ・横並び */
+#appLinks{border-top:1px solid rgba(157,147,201,.2);padding-top:12px}
+#appLinks h3{font-size:11px;letter-spacing:.2em;color:var(--sub);margin-bottom:9px}
+.app-link-row{display:flex;gap:8px}
+.app-link{flex:1;display:block;text-align:center;text-decoration:none;color:var(--ink);font-weight:800;font-size:15px;padding:12px 8px;border:1.5px solid rgba(157,147,201,.4);border-radius:999px;transition:transform .07s,background .15s;-webkit-touch-callout:none}
+.app-link:active{transform:scale(.96);background:var(--card)}
+.app-link:focus-visible{outline:2px solid var(--heat);outline-offset:2px}
 
 /* ===== クイズ ===== */
 #hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -285,6 +292,14 @@ body.fever #qcard{border-color:var(--gold);box-shadow:0 0 36px rgba(255,215,94,.
       <button class="big-btn alt" id="survBtn">🛡 サバイバル(3ミスで終了)</button>
       <button class="ghost-btn" id="reviewBtn" style="display:none">苦手だけ復習する</button>
     </div>
+    <!-- ★ほかのアプリへのリンク（URLを変えるときは、下の2つの href だけ直す／同じタブで開く） -->
+    <nav id="appLinks" aria-label="ほかのアプリ">
+      <h3>ほかのアプリ</h3>
+      <div class="app-link-row">
+        <a class="app-link" href="https://hiro-kishida.github.io/keiyu-learning-apps/apps/english/wordrush/grammar_rush_v1.html">文法</a>
+        <a class="app-link" href="https://hiro-kishida.github.io/keiyu-learning-apps/apps/english/wordrush/wordrush_target92.html">苦手英単語</a>
+      </div>
+    </nav>
   </section>
 
   <!-- クイズ -->
