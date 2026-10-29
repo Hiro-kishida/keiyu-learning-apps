@@ -1456,7 +1456,7 @@ const WORDS=[
 ];
 
 /* ================= 状態 ================= */
-const KEY="wordrush_target92_v1";
+const KEY="wordrush_target92_v2";   /* v2: 成績の見出しを英語の綴りから番号に変更(2026-10-30) */
 const NEED=5;                                  /* マスターに必要な正解数 */
 const RANKS=["見習いルーキー","単語ハンター","コンボ職人","スピードスター","語彙の鬼","単語マスター","レジェンド"];
 const QN=8, TIME_MS=7000, FEVER_AT=6, FEVER_MS=8000;
@@ -1604,6 +1604,7 @@ function activeRange(){
 function inRange(w){const R=activeRange();return w[0]>=R.lo&&w[0]<=R.hi;}
 function rangeCount(){return WORDS.filter(inRange).length;}
 function answerOf(w){return w[3]?w[4]:w[2];}
+/* 成績は単語番号(w[0])ごとに記録する。同じ綴りでも番号が違えば別の記録 */
 function stateOf(en){return S.word[en]||{right:0,wrong:0,okDays:[],doneDay:null};}
 /* 正解した日数 = okDays の長さ。right +1 は1日1回までなので、回数=日数 */
 function rightOf(en){const st=stateOf(en);return st.okDays?st.okDays.length:0;}
@@ -1618,9 +1619,10 @@ function dayDiff(a,b){
   const da=new Date(pa[0],pa[1]-1,pa[2]),db=new Date(pb[0],pb[1]-1,pb[2]);
   return Math.round((db-da)/864e5);
 }
-/* --- 間隔: right の値で「次に出てよい日」までの日数 ---
-   0〜2 → 翌日 / 3 → 2日後 / 4 → 3日後 / MASTER以降 → 3日後で固定 */
-function gapFor(r){return r<=2?1:r===3?2:3;}
+/* --- 間隔: 正解日数で「次に出てよい日」までの日数 ---
+   1〜2 → 翌日 / 3 → 2日後 / 4 → 3日後
+   5(MASTER) → 7日後 / 6 → 14日後 / 7以降 → 30日後   (2026-10-30 変更。以前はMASTER以降3日で固定) */
+function gapFor(r){return r<=2?1:r===3?2:r===4?3:r===5?7:r===6?14:30;}
 /* 間隔でお休み中か */
 function isSleeping(en){
   const r=rightOf(en);
@@ -1639,7 +1641,7 @@ function isRestingToday(en){
   if(okToday(en))return false;      /* 今日1回正解ずみ → あと1回は出る */
   return isSleeping(en);
 }
-function eligiblePool(){return WORDS.filter(w=>inRange(w)&&!isRestingToday(w[1]));}
+function eligiblePool(){return WORDS.filter(w=>inRange(w)&&!isRestingToday(w[0]));}
 /* 苦手 = 未MASTER かつ 誤答が正解日数を上回る。MASTER済みは含めない */
 function isWeak(en){
   if(isMastered(en))return false;
@@ -1650,9 +1652,9 @@ function isWeak(en){
 function zukanProgress(){
   let p=0;
   WORDS.filter(inRange).forEach(w=>{
-    const st=stateOf(w[1]);
-    if(rightOf(w[1])+(st.wrong||0)===0)return;
-    p+=isMastered(w[1])?1:.5;
+    const st=stateOf(w[0]);
+    if(rightOf(w[0])+(st.wrong||0)===0)return;
+    p+=isMastered(w[0])?1:.5;
   });
   return p;
 }
@@ -1663,7 +1665,7 @@ function logGap(en,ok){
   const lo=lastOk(en);
   if(!lo)return;                       /* 初回は間隔なし */
   const d=Math.min(dayDiff(lo,todayStr()),30);
-  if(d<0||d>30)return;
+  if(d<1||d>30)return;                 /* 同じ日の2回目(0日)は間隔の統計に入れない */
   S.gapStats=S.gapStats||{};
   const k=String(d);
   S.gapStats[k]=S.gapStats[k]||{ok:0,ng:0};
@@ -1674,11 +1676,11 @@ function logGap(en,ok){
 function pickWords(reviewOnly,count,free){
   let base=free?WORDS.filter(inRange):eligiblePool();
   let pool=base;
-  if(reviewOnly)pool=base.filter(w=>isWeak(w[1]));
+  if(reviewOnly)pool=base.filter(w=>isWeak(w[0]));
   if(!pool.length)pool=base.length?base:WORDS.filter(inRange);
   /* 重みは本体と同じ式。シミュレーションで変更しても効果が出なかったため据え置き */
-  const weight=w=>{const st=stateOf(w[1]);
-    return Math.max(.1,1+(st.wrong||0)*3-Math.min(rightOf(w[1])*.3,.8));};
+  const weight=w=>{const st=stateOf(w[0]);
+    return Math.max(.1,1+(st.wrong||0)*3-Math.min(rightOf(w[0])*.3,.8));};
   const picked=[],bag=[...pool];
   while(picked.length<count&&bag.length){
     const tot=bag.reduce((s,w)=>s+weight(w),0);
@@ -1705,12 +1707,13 @@ function makeChoices(w){
 }
 
 /* ================= ゲーム進行 ================= */
-let G=null,timerId=null,tickId=null;
-function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");}
+let G=null,timerId=null,tickId=null,pendingStart=null;   /* pendingStart: じゆう練習の通知後に始めるタイマー */
+function show(id){clearTimeout(pendingStart);pendingStart=null;document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");}
 function startGame(mode){
+  clearTimeout(pendingStart);pendingStart=null;   /* 待っている開始があれば取り消す */
   endFever();hideCelebrate();
   /* 復習ラッシュ: 苦手が今日ぶん残っていなければ、達成として伝える */
-  if(mode==="review"&&!eligiblePool().filter(w=>isWeak(w[1])).length){
+  if(mode==="review"&&!eligiblePool().filter(w=>isWeak(w[0])).length){
     showMsg("⚡ 今日の苦手は<br>ぜんぶやっつけた！");return;
   }
   /* 今日のぶんが終わっていたら、記録に入らない自由練習へ。
@@ -1720,7 +1723,7 @@ function startGame(mode){
     if(!S.freeNoticeDay||S.freeNoticeDay!==todayStr()){
       S.freeNoticeDay=todayStr();saveState();
       showMsg("🎉 今日のぶんは完了！<br><span style='font-size:13px;font-weight:700;color:var(--sub)'>ここからは記録に入らない<br>じゆう練習だよ</span>");
-      setTimeout(()=>startGame(mode),2600);return;
+      pendingStart=setTimeout(()=>{pendingStart=null;startGame(mode);},2600);return;
     }
     free=true;
   }
@@ -1754,9 +1757,9 @@ function nextQ(){
   $("qcard").classList.toggle("phrase",ph);
   $("phtag").style.display=ph?"block":"none";
   const qw=$("qword");qw.textContent=ph?w[3]:w[1];qw.className=ph?"ph":"";
-  const st=stateOf(w[1]);
+  const st=stateOf(w[0]);
   const dots=$("dots");dots.innerHTML="";
-  const rc=rightOf(w[1]);
+  const rc=rightOf(w[0]);
   for(let i=0;i<NEED;i++){const d=document.createElement("i");if(i<rc)d.className="f";dots.appendChild(d);}
   const ans=answerOf(w);
   const box=$("choices");box.innerHTML="";
@@ -1803,18 +1806,19 @@ function answer(btn,ok,w,ans,now){
     }
     G.idx++;setTimeout(nextQ,ok?550:1050);return;
   }
-  const st=S.word[w[1]]=S.word[w[1]]||{right:0,wrong:0,okDays:[],doneDay:null};
+  const st=S.word[w[0]]=S.word[w[0]]||{right:0,wrong:0,okDays:[],doneDay:null};
   if(!st.okDays)st.okDays=[];              /* 旧データからの移行 */
   const T=todayStr();
   const alreadyOkToday=(st.okDays[st.okDays.length-1]===T);
   S.total++;
   if(ok){
     S.correct++;
-    logGap(w[1],true);
+    logGap(w[0],true);
     const wasMaster=st.okDays.length>=NEED;
     if(!alreadyOkToday){
       st.okDays.push(T);                   /* right +1 は1日1回まで */
       if(!wasMaster&&st.okDays.length>=NEED)G.newMaster++;
+      if(wasMaster)st.doneDay=T;           /* MASTER済みの語は1日1回正解したら今日は終わり(2026-10-30) */
     }else{
       st.doneDay=T;                        /* 2回目も正解 → 今日は終わり */
     }
@@ -1833,7 +1837,7 @@ function answer(btn,ok,w,ans,now){
     if(G.combo>0&&G.combo%5===0)burstConfetti(20);
     if(G.combo>=FEVER_AT&&!G.feverUsed)startFever();
   }else{
-    logGap(w[1],false);
+    logGap(w[0],false);
     st.wrong++;                            /* 誤答は制限なし。doneDay は立てない */
     if(btn)btn.classList.add("wrong");
     G.combo=0;applyHeat(0);endFever();
@@ -2031,7 +2035,7 @@ function renderHome(){
   $("xpfill").style.width=Math.min(100,S.xp/xpNeed(S.level)*100)+"%";
   $("xptext").textContent="次のレベルまで "+(xpNeed(S.level)-S.xp)+" XP";
   const R=activeRange(),rc=rangeCount();
-  const weak=WORDS.filter(w=>inRange(w)&&isWeak(w[1])).length;
+  const weak=WORDS.filter(w=>inRange(w)&&isWeak(w[0])).length;
   $("weakCount").textContent=weak;
   $("reviewBadge").style.display=weak>=3?"block":"none";
   $("reviewBtn").style.display=weak>=3?"block":"none";
@@ -2039,7 +2043,7 @@ function renderHome(){
   if(document.activeElement!==$("rangeLo"))$("rangeLo").value=R.lo;
   if(document.activeElement!==$("rangeHi"))$("rangeHi").value=R.hi;
   $("rangeNow").textContent="いまの範囲: "+R.lo+"〜"+R.hi+"（"+rc+"語 / ★"+
-    WORDS.filter(w=>inRange(w)&&isMastered(w[1])).length+"）";
+    WORDS.filter(w=>inRange(w)&&isMastered(w[0])).length+"）";
   $("sndToggle").textContent=S.sound?"🔊":"🔇";
   $("nameBtn").textContent=S.name?"ようこそ、"+S.name+"ちゃん 🎵":"✏️ なまえを設定";
   const tc=$("toneChips");tc.innerHTML="";
@@ -2059,13 +2063,13 @@ function renderZukan(){
   const zl=$("zlist");zl.innerHTML="";
   WORDS.forEach(w=>{
     if(!inRange(w))return;
-    const st=stateOf(w[1]);
-    const rc=rightOf(w[1]);
+    const st=stateOf(w[0]);
+    const rc=rightOf(w[0]);
     const untried=rc+(st.wrong||0)===0;
     let tag="";
     if(!untried){
-      if(isMastered(w[1]))tag='<span class="tag m">★ MASTER</span>';
-      else if(isWeak(w[1]))tag='<span class="tag w">⚡ 苦手</span>';
+      if(isMastered(w[0]))tag='<span class="tag m">★ MASTER</span>';
+      else if(isWeak(w[0]))tag='<span class="tag w">⚡ 苦手</span>';
       else tag='<span class="tag t">'+rc+"/"+NEED+"</span>";
     }
     const d=document.createElement("div");
@@ -2104,7 +2108,12 @@ $("pasteBtn").onclick=async()=>{
   try{
     const o=JSON.parse(decodeURIComponent(escape(atob(c.trim()))));
     if(typeof o!=="object"||o===null||!o.word)throw 0;
-    S={...S,...o};await saveState();renderHome();show("home");toast("読みこみました");
+    /* v1(綴りで記録)時代のコードは、単語の成績だけ読み込まない */
+    const wd={};let old=0;
+    Object.keys(o.word).forEach(k=>{if(/^\d+$/.test(k))wd[k]=o.word[k];else old++;});
+    o.word=wd;
+    S={...S,...o};await saveState();renderHome();show("home");
+    toast(old?"古い形式のため、単語の成績は引き継げませんでした":"読みこみました");
   }catch(e){alert("コードが読めませんでした。全部が貼れているか確認してください。");}
 };
 
